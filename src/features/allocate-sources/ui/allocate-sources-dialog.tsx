@@ -7,6 +7,7 @@ import {
   addableSeedOptions,
   appendGoalSeedLine,
   seedLineAllocationView,
+  setSeedLineAllIn,
   sourceAvailability,
   type GoalProfile,
   type GoalSeedLine,
@@ -21,6 +22,7 @@ import { Button } from "@/shared/ui/kit/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/shared/ui/kit/command";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/kit/dialog";
 import { Label } from "@/shared/ui/kit/label";
+import { Switch } from "@/shared/ui/kit/switch";
 import { Money } from "@/shared/ui/money";
 
 export type AllocateSourcesDialogProps = {
@@ -36,6 +38,8 @@ export type AllocateSourcesDialogProps = {
   applyLabel?: string;
   /** What the allocation is for, used in labels ("plan", "income source"); pass it translated. Defaults to "plan". */
   subject?: string;
+  /** Offer "all in" on tracked sources (goal plans). */
+  allowAllIn?: boolean;
   onApply: (lines: GoalSeedLine[]) => void | Promise<void>;
 };
 
@@ -59,6 +63,7 @@ function AllocationEditor({
   seedOptions,
   applyLabel,
   subject: subjectProp,
+  allowAllIn = false,
   onApply,
 }: AllocateSourcesDialogProps) {
   const { t } = useI18n();
@@ -108,6 +113,8 @@ function AllocationEditor({
                 view={seedLineAllocationView(line, seedOptions, savedPlans, draft)}
                 subject={subject}
                 amount={line.amount}
+                allowAllIn={allowAllIn}
+                onAllInChange={(on) => setLines((prev) => setSeedLineAllIn(prev, line.id, on, seedOptions, savedPlans, { ...profile, seedLines: prev }))}
                 onAmountChange={(amount) => setLines((prev) => prev.map((l) => (l.id === line.id ? { ...l, amount } : l)))}
                 onRemove={() => setLines((prev) => prev.filter((l) => l.id !== line.id))}
               />
@@ -217,18 +224,24 @@ function AllocationLineRow({
   view,
   subject,
   amount,
+  allowAllIn,
+  onAllInChange,
   onAmountChange,
   onRemove,
 }: {
   view: ReturnType<typeof seedLineAllocationView>;
   subject: string;
   amount: number;
+  allowAllIn: boolean;
+  onAllInChange: (allIn: boolean) => void;
   onAmountChange: (amount: number) => void;
   onRemove: () => void;
 }) {
   const { t } = useI18n();
   const m = t.goals.allocate;
   const inputId = useId();
+  const allInId = useId();
+  const blocked = !view.allIn && view.allInElsewhere !== null;
   return (
     <li className="rounded-md border bg-card">
       <div className="flex items-start justify-between gap-2 border-b px-3 py-2.5">
@@ -245,7 +258,15 @@ function AllocationLineRow({
       <div className="grid gap-3 p-3 sm:grid-cols-[minmax(0,15rem)_1fr] sm:gap-5">
         <div className="grid gap-1.5">
           <Label htmlFor={inputId}>{view.isCustom ? m.amount : m.allocateFromSource}</Label>
-          <MoneyInput id={inputId} value={amount} onChange={onAmountChange} min={0} max={view.isCustom ? undefined : view.maxAlloc} />
+          {/* All in: the amount follows the source, so it isn't typed. */}
+          <MoneyInput
+            id={inputId}
+            value={view.allIn ? view.effective : amount}
+            onChange={onAmountChange}
+            min={0}
+            max={view.isCustom ? undefined : view.maxAlloc}
+            disabled={view.allIn}
+          />
         </div>
         {view.isCustom ? (
           <p className="self-center text-xs text-muted-foreground">{m.customHintSentence}</p>
@@ -267,12 +288,24 @@ function AllocationLineRow({
           </dl>
         )}
       </div>
+      {allowAllIn && !view.isCustom ? (
+        <div className={cn("flex items-start justify-between gap-3 border-t px-3 py-2.5", view.allIn && "bg-primary-soft/40")}>
+          <div className="grid min-w-0 gap-0.5">
+            <Label htmlFor={allInId} className={cn("text-sm", blocked && "text-muted-foreground")}>
+              {m.allIn}
+            </Label>
+            <p className={cn("text-xs text-muted-foreground", blocked && "text-warning")}>{blocked ? m.allInTaken({ name: view.allInElsewhere! }) : m.allInHint}</p>
+          </div>
+          <Switch id={allInId} checked={view.allIn} disabled={blocked} onCheckedChange={onAllInChange} />
+        </div>
+      ) : null}
       {view.usage.length > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5 border-t px-3 py-2 text-xs">
           <span className="text-muted-foreground">{m.alsoReserved}</span>
           {view.usage.map((u) => (
             <Badge key={u.planId} variant="outline" className="gap-1.5 font-normal">
               <span className="max-w-40 truncate font-medium">{u.planName}</span>
+              {u.allIn ? <span className="text-primary">{m.allInBadge}</span> : null}
               <Money value={u.amount} className="text-muted-foreground" />
             </Badge>
           ))}

@@ -204,5 +204,9 @@ export const goals: Messages["goals"] = {
     countsToward: (p) => `Tính vào ${p.subject}`,
     capped: "Đã chạm giới hạn",
     alsoReserved: "Cũng đã giữ chỗ cho",
+    allIn: "Dồn hết nguồn này",
+    allInHint: "Luôn lấy toàn bộ phần còn trống của nguồn và tự cập nhật khi số dư thay đổi, không cần sửa tay.",
+    allInTaken: (p) => `Kế hoạch “${p.name}” đang dồn hết nguồn này.`,
+    allInBadge: "Dồn hết",
   },
 };

@@ -209,5 +209,9 @@ export const goals = {
     countsToward: (p: { subject: string }) => `Counts toward ${p.subject}`,
     capped: "Capped",
     alsoReserved: "Also reserved for",
+    allIn: "All in",
+    allInHint: "Always take everything still free in this source, following its balance as it changes — no manual updates.",
+    allInTaken: (p: { name: string }) => `“${p.name}” already takes all of this source.`,
+    allInBadge: "All in",
   },
 };

@@ -5,8 +5,15 @@ export type GoalSeedLine = {
   /**
    * `custom`: entered ₫. Keyed rows: ₫ **allocated** from that source to this plan
    * (capped by live balance minus amounts reserved on your other plans).
+   * For an `allIn` row: the amount it counted when last saved.
    */
   amount: number;
+  /**
+   * Keyed rows only: always count everything still free in the source (its
+   * live balance minus what other plans reserve), following its value as it
+   * changes. One plan per source; the others can keep but not grow their share.
+   */
+  allIn?: boolean;
 };
 
 /** Installment: ₫ due on `date`. Cumulative “due” on the chart sums these in date order. */

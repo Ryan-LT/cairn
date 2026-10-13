@@ -113,6 +113,7 @@ export function SourceMatrix({ rows, plans, sort, onSort }: SourceMatrixProps) {
               return (
                 <TableCell key={p.id} className="text-right">
                   {v > 0 ? <Money value={v} compact /> : <span className="text-muted-foreground">—</span>}
+                  {row.allInPlanId === p.id ? <p className="text-xs text-primary">{t.goals.allocate.allInBadge}</p> : null}
                 </TableCell>
               );
             })}
@@ -172,7 +173,10 @@ export function SourceItem({ row, plans }: { row: AllocationSourceRow; plans: Al
         <ul className="grid gap-1 rounded-md bg-muted/50 px-3 py-2 text-xs">
           {perPlan.map((p) => (
             <li key={p.id} className="flex justify-between gap-3">
-              <span className="truncate text-muted-foreground">{p.name}</span>
+              <span className="truncate text-muted-foreground">
+                {p.name}
+                {row.allInPlanId === p.id ? <span className="ml-1.5 text-primary">· {t.goals.allocate.allInBadge}</span> : null}
+              </span>
               <Money value={row.perPlanStored[p.id]} />
             </li>
           ))}
