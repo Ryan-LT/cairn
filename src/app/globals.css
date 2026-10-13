@@ -86,6 +86,8 @@
   --capstone: #f4b860;
   --capstone-foreground: #3b2a08;
   --capstone-soft: #fcf0da;
+  /* AI assistant accent: the end of the indigo → violet gradient on "Hỏi AI". */
+  --assist: #8b5cf6;
   --capstone-ink: #8a5a00;
 
   --tone-indigo: #4545b5;
@@ -171,6 +173,7 @@
   --capstone: #f4b860;
   --capstone-foreground: #3b2a08;
   --capstone-soft: #3b3122;
+  --assist: #7c6be8;
   --capstone-ink: #f4c983;
 
   --tone-indigo: #c4c6f8;
@@ -279,6 +282,7 @@
   --color-capstone: var(--capstone);
   --color-capstone-foreground: var(--capstone-foreground);
   --color-capstone-soft: var(--capstone-soft);
+  --color-assist: var(--assist);
   --color-capstone-ink: var(--capstone-ink);
   --color-chart-axis: var(--chart-axis);
 
@@ -365,6 +369,11 @@
   /* Delayed so quick page changes and syncs never show a loading state. */
   --animate-progress-in: reveal 200ms ease-out 150ms forwards;
   --animate-reveal-late: reveal 300ms ease-out 700ms forwards;
+  /* Floating assistant buttons and chat bubble. */
+  --animate-dock-in: dock-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1.25) both;
+  --animate-sheen: sheen 1.4s ease-in-out 1.4s 2 both;
+  --animate-bubble-in: bubble-in 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --animate-typing-dot: typing-dot 1s ease-in-out infinite;
 
   @keyframes progress-slide {
     from {
@@ -388,6 +397,46 @@
     }
     100% {
       transform: scale(1);
+    }
+  }
+  @keyframes dock-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.85);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes sheen {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes bubble-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes typing-dot {
+    0%,
+    80%,
+    100% {
+      opacity: 0.35;
+      transform: translateY(0);
+    }
+    40% {
+      opacity: 1;
+      transform: translateY(-3px);
     }
   }
   @keyframes row-in {

@@ -1,0 +1,50 @@
+import type { Messages } from "../en";
+
+export const assist: Messages["assist"] = {
+  dockLabel: "Trợ giúp và góp ý",
+  feedback: {
+    button: "Gửi góp ý",
+    title: "Gửi góp ý",
+    description: "Cho chúng tôi biết điều cần cải thiện, chỗ bị lỗi hay điều bạn thích. Mọi góp ý đều được đọc.",
+    kindLabel: "Góp ý về điều gì?",
+    kinds: { idea: "Ý tưởng", bug: "Bị lỗi", praise: "Mình thích", other: "Khác" },
+    ratingLabel: "Bạn thấy Cairn thế nào? (không bắt buộc)",
+    rating: (p) => `${p.count} trên 5`,
+    messageLabel: "Nội dung",
+    placeholder: {
+      idea: "Ước gì Cairn có thể…",
+      bug: "Chuyện gì đã xảy ra, và bạn mong đợi điều gì?",
+      praise: "Điều gì hữu ích với bạn?",
+      other: "Bạn đang nghĩ gì…",
+    },
+    counter: (p) => `${p.used}/${p.max}`,
+    context: "Kèm theo trang bạn đang mở, ngôn ngữ và loại thiết bị, không gì khác.",
+    send: "Gửi",
+    sending: "Đang gửi…",
+    sent: "Cảm ơn bạn! Góp ý đã được gửi.",
+    sentDetail: "Góp ý của bạn giúp quyết định tính năng tiếp theo.",
+    failed: "Chưa gửi được. Kiểm tra kết nối rồi thử lại.",
+    rateLimited: "Bạn gửi hơi nhiều trong một lúc. Thử lại sau ít phút nhé.",
+    offline: "Bạn đang mất mạng. Gửi lại khi có mạng nhé.",
+    signInNeeded: "Cần đăng nhập tài khoản để gửi góp ý.",
+  },
+  ai: {
+    button: "Hỏi AI",
+    title: "Trợ lý Cairn",
+    badge: "Sắp ra mắt",
+    close: "Đóng trợ lý",
+    greeting: "Xin chào! Mình là trợ lý AI của Cairn.",
+    underDevelopment:
+      "Mình đang được phát triển. Sắp tới bạn có thể hỏi về chi tiêu, khoản nợ và mục tiêu bằng lời bình thường, và nhận câu trả lời từ chính số liệu của bạn.",
+    tryLabel: "Những câu mình sẽ trả lời được:",
+    suggestions: [
+      "Tháng này tiền của mình đi đâu nhiều nhất?",
+      "Khi nào mình trả xong khoản vay mua xe?",
+      "Mình có kịp các mục tiêu không?",
+    ],
+    reply: "Câu hỏi hay đấy! Mình sẽ trả lời được khi tính năng ra mắt. Cảm ơn bạn đã kiên nhẫn chờ.",
+    inputPlaceholder: "Sắp ra mắt…",
+    send: "Gửi",
+    typing: "Trợ lý đang soạn tin",
+  },
+};
