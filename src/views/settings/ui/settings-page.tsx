@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileUp, History, LogOut, RefreshCw, Sheet } from "lucide-react";
+import { Calculator, Database, Download, FileUp, History, KeyRound, LogOut, Mountain, Palette, RefreshCw, Sheet } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useTheme } from "next-themes";
@@ -59,7 +59,7 @@ export function SettingsPage() {
   return (
     <TabContent className="max-w-3xl">
 
-      <Section title={s.appearance.title} description={s.appearance.description({ brand: BRAND.name })}>
+      <Section icon={Palette} tone="violet" title={s.appearance.title} description={s.appearance.description({ brand: BRAND.name })}>
         <SegmentedControl<ThemeValue>
           aria-label={t.common.theme}
           value={(theme as ThemeValue) ?? "system"}
@@ -85,7 +85,7 @@ export function SettingsPage() {
       <CurrencySection />
 
       <div id="milestone" className="scroll-mt-20">
-        <Section title={s.milestone.title} description={s.milestone.description} help="settingsMilestone">
+        <Section title={s.milestone.title} description={s.milestone.description} help="settingsMilestone" icon={Mountain} tone="capstone">
           <MilestoneForm
             value={prefs.milestone}
             onSave={(milestone) => {
@@ -97,7 +97,7 @@ export function SettingsPage() {
       </div>
 
       <div id="calculation" className="scroll-mt-20">
-        <Section title={s.calculation.title} description={s.calculation.description} help="settingsCalculation">
+        <Section title={s.calculation.title} description={s.calculation.description} help="settingsCalculation" icon={Calculator} tone="blue">
           <div className="flex items-start justify-between gap-4">
             <div className="grid gap-1">
               <Label htmlFor="loans-in-net-worth">{t.loans.netWorth.label}</Label>
@@ -119,6 +119,8 @@ export function SettingsPage() {
       <Section
         title={s.data.title}
         help="settingsData"
+        icon={Database}
+        tone="teal"
         description={s.data.description}
         actions={
           <Button variant="outline" size="sm" onClick={() => void syncNow()} disabled={syncing || !online}>
@@ -197,12 +199,12 @@ export function SettingsPage() {
       </Section>
 
       {authEnabled ? (
-        <Section title={s.password.title} description={s.password.description}>
+        <Section icon={KeyRound} tone="rose" title={s.password.title} description={s.password.description}>
           <ChangePasswordForm />
         </Section>
       ) : null}
 
-      <Section title={s.session.title}>
+      <Section icon={LogOut} tone="stone" title={s.session.title}>
         <DescriptionList
           items={[
             { label: s.session.signedInAs, value: userName },

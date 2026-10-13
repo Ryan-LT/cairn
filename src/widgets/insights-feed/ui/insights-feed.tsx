@@ -10,6 +10,7 @@ import { cn } from "@/shared/lib/cn";
 import { formatDate, formatMoneyCompact, formatNumber, formatPercent } from "@/shared/lib/format";
 import { Button } from "@/shared/ui/kit/button";
 import { HelpHint } from "@/shared/ui/help-hint";
+import { IconTile } from "@/shared/ui/icon-tile";
 import { Card } from "@/shared/ui/kit/card";
 
 const LOOK: Record<InsightSeverity, { icon: LucideIcon; tile: string }> = {
@@ -74,6 +75,7 @@ export function InsightsFeed({ insights, limit = 4, className }: { insights: Ins
     <Card className={cn("gap-0 py-0", className)} data-help="insights">
       <div className="flex items-center justify-between gap-3 px-5 pt-4 pb-2">
         <div className="flex items-center gap-1">
+          <IconTile icon={Sparkles} tone="violet" size="sm" className="mr-1.5" />
           <h2 className="text-base font-semibold">{t.insights.title}</h2>
           <HelpHint topic="insights" />
         </div>

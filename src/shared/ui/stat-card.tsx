@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 
 import type { HelpTopic } from "@/shared/config/help";
 import { cn } from "@/shared/lib/cn";
+import type { TileTone } from "@/shared/lib/tone";
 import { HelpHint } from "@/shared/ui/help-hint";
+import { IconTile } from "@/shared/ui/icon-tile";
 import { Card } from "@/shared/ui/kit/card";
 import { Skeleton } from "@/shared/ui/kit/skeleton";
 
@@ -23,11 +25,13 @@ type StatCardProps = {
   variant?: "default" | "hero";
   /** A "?" beside the label explaining the figure (also found by "explain this screen"). */
   help?: HelpTopic;
+  /** Colours for the icon tile. */
+  tone?: TileTone;
   className?: string;
 };
 
 /** KPI tile with a single fixed type scale. */
-export function StatCard({ label, value, icon: Icon, hint, aside, href, loading, variant = "default", help, className }: StatCardProps) {
+export function StatCard({ label, value, icon: Icon, hint, aside, href, loading, variant = "default", help, tone, className }: StatCardProps) {
   const hero = variant === "hero";
   return (
     <Card
@@ -54,7 +58,7 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
         )}
         {help ? <HelpHint topic={help} className="-my-0.5" /> : null}
         </div>
-        {Icon ? <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground max-sm:hidden" aria-hidden /> : null}
+        {Icon ? <IconTile icon={Icon} tone={tone} size="sm" className="-mt-0.5 max-sm:hidden" /> : null}
       </div>
       {/* Big standalone numbers use proportional figures (tabular only in columns). */}
       <div className={cn("mt-auto font-semibold **:normal-nums", hero ? "text-display md:text-hero" : "text-xl leading-tight tracking-tight md:text-2xl")}>

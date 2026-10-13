@@ -452,7 +452,7 @@ export function ActivityPage() {
             <EmptyState illustrated title={a.empty.title} description={a.empty.description} />
           ) : (
             <EmptyState
-              icon={History}
+              art="search"
               title={entity && !narrowed ? a.emptyFiltered : a.emptyMatches}
               action={
                 narrowed ? (

@@ -1,5 +1,6 @@
 "use client";
 
+import { ChartLine } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -27,6 +28,8 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
   return (
     <Section
       help="netWorthTrend"
+      icon={ChartLine}
+      tone="blue"
       title={m.title}
       description={
         points.length > 1 ? (

@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { findNavMatch, NAV_HUBS, type HubId } from "@/shared/config";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
+import { IconTile } from "@/shared/ui/icon-tile";
 import { TabLinks } from "@/shared/ui/tab-links";
 
 import { useOptimisticNavigation } from "../model/navigation";
@@ -48,9 +49,12 @@ export function HubFrame({ hub, activePath, onNavigate, summary, skeleton, child
       aria-busy={skeleton || undefined}
       className="mx-auto flex w-full max-w-[1400px] flex-col gap-4 px-4 pt-3 pb-6 md:gap-5 md:px-6 md:pt-6"
     >
-      <header className="max-md:sr-only">
-        <h1 className="text-2xl font-semibold tracking-tight">{t.nav.hubs[hub].label}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{activeTab ? t.nav.tabs[activeTab.id].description : t.nav.hubs[hub].description}</p>
+      <header className="flex items-center gap-3 max-md:sr-only">
+        {nav ? <IconTile icon={nav.icon} tone={nav.tone} size="lg" className="motion-safe:animate-check-pop" /> : null}
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight">{t.nav.hubs[hub].label}</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">{activeTab ? t.nav.tabs[activeTab.id].description : t.nav.hubs[hub].description}</p>
+        </div>
       </header>
       {summary}
       {tabs.length > 1 ? (

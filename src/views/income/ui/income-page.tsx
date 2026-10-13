@@ -92,7 +92,7 @@ export function IncomePage() {
       {sources.length === 0 ? (
         <Card className="gap-0 py-0">
           <EmptyState
-            illustrated
+            art="sprout"
             title={t.income.empty.title}
             description={t.income.empty.description}
             action={

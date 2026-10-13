@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, PencilRuler, Target, Zap } from "lucide-react";
+import { Clock, Grid3x3, PencilRuler, Target, Zap } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -64,6 +64,7 @@ export function AllocationsPage() {
       <StatGrid className="xl:grid-cols-3">
         <StatCard
           help="fundingInstant"
+          tone="teal"
           label={m.kpi.instantPool.label}
           icon={Zap}
           value={<Money value={report.totals.instantRemainingPool} compact />}
@@ -71,6 +72,7 @@ export function AllocationsPage() {
         />
         <StatCard
           help="fundingNotInstant"
+          tone="blue"
           label={m.kpi.notInstantPool.label}
           icon={Clock}
           value={<Money value={report.totals.notInstantRemainingPool} compact />}
@@ -79,6 +81,7 @@ export function AllocationsPage() {
         <StatCard
           className="max-xl:col-span-2"
           help="fundingCustom"
+          tone="violet"
           label={m.kpi.custom.label}
           icon={PencilRuler}
           value={<Money value={report.totals.customReservedStored} compact />}
@@ -89,7 +92,7 @@ export function AllocationsPage() {
       {report.plans.length === 0 ? (
         <Card className="gap-0 py-0">
           <EmptyState
-            icon={Target}
+            art="target"
             title={m.plans.emptyTitle}
             description={m.plans.emptyDescription}
             action={
@@ -134,6 +137,8 @@ export function AllocationsPage() {
 
       <Section
         help="fundingMatrix"
+        icon={Grid3x3}
+        tone="indigo"
         title={m.matrix.title}
         description={m.matrix.description}
         actions={
@@ -150,9 +155,9 @@ export function AllocationsPage() {
         flush
       >
         {report.sources.length === 0 ? (
-          <EmptyState title={m.matrix.emptyTitle} description={m.matrix.emptyDescription} />
+          <EmptyState art="wallet" title={m.matrix.emptyTitle} description={m.matrix.emptyDescription} />
         ) : rows.length === 0 ? (
-          <EmptyState title={m.matrix.noMatch} />
+          <EmptyState art="search" title={m.matrix.noMatch} />
         ) : compact ? (
           <ul className="divide-y">
             {rows.map((row) => (

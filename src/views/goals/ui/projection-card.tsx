@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, TriangleAlert } from "lucide-react";
+import { ChartSpline, CircleCheck, TriangleAlert } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CartesianGrid, ComposedChart, Line, ReferenceDot, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
@@ -69,7 +69,7 @@ export function ProjectionCard(props: ProjectionCardProps) {
 
   return (
     <Section
-      help="projection"
+      help="projection" icon={ChartSpline} tone="blue"
       title={p.title}
       description={summary}
       actions={<ChartViewToggle value={view} onChange={setView} />}
@@ -200,9 +200,9 @@ export function StartingOnlyCard({ startingBalance, targetAmount }: { startingBa
   const m = t.goals.startingOnly;
   const s = evaluateStartingOnlyStatus(startingBalance, targetAmount);
   return (
-    <Section title={m.title} description={m.description} help="projection">
+    <Section title={m.title} description={m.description} help="projection" icon={ChartSpline} tone="blue">
       {s.kind === "no_target" ? (
-        <EmptyState title={m.empty} className="py-8" />
+        <EmptyState art="chart" title={m.empty} className="py-8" />
       ) : (
         <div className="flex flex-col items-center gap-2 py-6 text-center">
           {s.kind === "met" ? <CircleCheck className="size-10 text-success" /> : <TriangleAlert className="size-10 text-danger" />}

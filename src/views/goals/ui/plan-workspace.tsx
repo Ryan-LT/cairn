@@ -160,7 +160,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
     return (
       <Card className="gap-0 py-0">
         <EmptyState
-          illustrated
+          art="target"
           title={g.newPlanTitle}
           description={g.newPlanDescription}
           action={
@@ -242,6 +242,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
       <StatGrid className="xl:grid-cols-3">
         <StatCard
           help="planProjected"
+          tone="blue"
           label={g.workspace.kpi.projected}
           icon={TrendingUp}
           value={<Money value={projection.projectedAtTarget} compact />}
@@ -250,6 +251,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
         />
         <StatCard
           help="planMonthly"
+          tone="teal"
           label={g.workspace.kpi.monthly}
           icon={Wallet}
           value={projection.applyMonthlyIncome ? <Money value={projection.effectiveMonthlyContribution} compact signed tone="auto" /> : g.status.excluded}
@@ -258,6 +260,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
         <StatCard
           className="max-xl:col-span-2"
           help="planTimeLeft"
+          tone="orange"
           label={g.hero.timeLeft}
           icon={Hourglass}
           value={projection.pastDue ? g.status.datePassed : draft.targetDate ? formatMonths(projection.monthsToTarget) : "—"}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { MouseEvent } from "react";
 
 import { useI18n } from "@/shared/i18n";
+import { toneColors } from "@/shared/lib/tone";
 import { BRAND, findNavMatch, isNavActive, NAV_HUBS } from "@/shared/config";
 import {
   Sidebar,
@@ -73,7 +74,7 @@ export function AppSidebar() {
                       className={ACTIVE_CLASS}
                     >
                       <Link href={hub.href} onClick={(e) => navigate(e, hub.href)} className={active ? "font-semibold" : undefined}>
-                        <hub.icon />
+                        <hub.icon style={{ color: toneColors(hub.tone).color }} />
                         <span>{t.nav.hubs[hub.id].label}</span>
                       </Link>
                     </SidebarMenuButton>
