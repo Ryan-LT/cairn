@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildMonthView, CategoryTile, liveItems, type BillLine, type BudgetLine } from "@/entities/expense";
 import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
-import { INCOME_SOURCES_SEED } from "@/entities/income";
+import { useIncomeSources } from "@/entities/income";
 import { TemplatePicker } from "@/features/expense-form";
 import { useRecordSpending } from "@/features/record-spending";
 import { useI18n } from "@/shared/i18n";
@@ -15,7 +15,7 @@ import { todayIso } from "@/shared/lib/date";
 import { formatDate, formatMoney, formatPercent } from "@/shared/lib/format";
 import { addMonths, monthKeyOf } from "@/shared/lib/month";
 import { useCreateParam } from "@/shared/lib/use-create-param";
-import { useTable } from "@/shared/storage";
+
 import { Callout } from "@/shared/ui/callout";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
@@ -105,7 +105,7 @@ export function CashflowMonthPage() {
   const editor = useExpenseEditor();
   const actions = useRecordSpending();
   const cash = useHouseholdCashflow();
-  const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [sources] = useIncomeSources();
   const now = new Date();
   const current = monthKeyOf(now);
   const [monthKey, setMonthKey] = useState(current);

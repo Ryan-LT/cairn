@@ -7,7 +7,7 @@ import { DEBTS_SEED } from "@/entities/debt";
 import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
 import { computeNetWorth } from "@/entities/portfolio";
 import { netWorthTrackingUnchanged, PREFERENCES_SEED, syncNetWorthTracking } from "@/entities/preferences";
-import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
+import { useSettingsAssets } from "@/entities/settings-asset";
 import { useInitialLoadDone, useTable } from "@/shared/storage";
 
 /**
@@ -18,7 +18,7 @@ import { useInitialLoadDone, useTable } from "@/shared/storage";
 export function useNetWorthTracking(): void {
   const initialLoadDone = useInitialLoadDone();
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
-  const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
+  const [settingsAssets] = useSettingsAssets();
   const [debts] = useTable("debts", DEBTS_SEED);
   const [personalLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);

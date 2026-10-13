@@ -30,3 +30,5 @@ export {
   resolveAssetCategoryEmoji,
   type DefaultAssetCategory,
 } from "@/entities/settings-asset/config/categories";
+export { resolveAssetValues } from "@/entities/settings-asset/lib/valuation";
+export { useSettingsAssets } from "@/entities/settings-asset/api/use-settings-assets";

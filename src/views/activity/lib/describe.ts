@@ -67,6 +67,10 @@ export type ValueView =
   | { kind: "frequency"; id: string }
   | { kind: "expenseKind"; id: string }
   | { kind: "rateKind"; id: string }
+  | { kind: "goldProduct"; id: string }
+  | { kind: "weightUnit"; id: string }
+  | { kind: "holdingKind"; id: string }
+  | { kind: "goldBasis"; id: string }
   | { kind: "text"; text: string };
 
 const sumAmounts = (list: unknown[]) =>
@@ -82,7 +86,7 @@ export function valueView(field: string, value: unknown): ValueView {
   }
   if (typeof value === "boolean") return { kind: "bool", value };
   if (typeof value === "number") {
-    if (field === "milestone.targetUsd") return { kind: "usd", amount: value };
+    if (field === "milestone.targetUsd" || field === "amountUsd" || field === "holding.amount") return { kind: "usd", amount: value };
     if (MONEY_FIELDS.has(field)) return { kind: "money", amount: value };
     if (PERCENT_FIELDS.has(field)) return { kind: "percent", value };
     return { kind: "number", value };
@@ -93,8 +97,14 @@ export function valueView(field: string, value: unknown): ValueView {
     if (field === "frequency") return { kind: "frequency", id: value };
     if (field === "kind" && (value === "bill" || value === "budget")) return { kind: "expenseKind", id: value };
     if (field === "rateKind" && (value === "Fixed" || value === "Variable")) return { kind: "rateKind", id: value };
+    if (field === "holding.product") return { kind: "goldProduct", id: value };
+    if (field === "holding.unit") return { kind: "weightUnit", id: value };
+    if (field === "holding.kind") return { kind: "holdingKind", id: value };
+    if (field === "currency.goldBasis") return { kind: "goldBasis", id: value };
     return { kind: "text", text: value };
   }
+  // Own gold prices: how many products have one.
+  if (field === "currency.goldPrices" && typeof value === "object") return { kind: "count", count: Object.keys(value as object).length };
   const json = JSON.stringify(value);
   return { kind: "text", text: json.length > 80 ? `${json.slice(0, 77)}…` : json };
 }

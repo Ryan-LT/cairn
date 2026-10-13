@@ -30,6 +30,8 @@ type AmountSheetProps = {
   children?: ReactNode;
   /** Allow confirming 0 (e.g. "spent nothing"). */
   allowZero?: boolean;
+  /** The ₫ / $ switch on the amount (off for prices and rates that are always in đồng). */
+  currencySwitch?: boolean;
   onConfirm: (amount: number, date: string) => void;
 };
 
@@ -42,6 +44,7 @@ function AmountSheetBody({
   confirmLabel,
   children,
   allowZero,
+  currencySwitch,
   onConfirm,
   onClose,
 }: Omit<AmountSheetProps, "open" | "onOpenChange" | "title" | "description"> & { onClose: () => void }) {
@@ -62,7 +65,15 @@ function AmountSheetBody({
       <DialogBody className="grid gap-4">
         <div className="grid gap-2">
           <Label htmlFor="amount-sheet-input">{amountLabel ?? t.common.amount}</Label>
-          <MoneyInput id="amount-sheet-input" value={amount} onChange={setAmount} min={0} autoFocus className="h-12 text-lg font-semibold" />
+          <MoneyInput
+            id="amount-sheet-input"
+            value={amount}
+            onChange={setAmount}
+            min={0}
+            autoFocus
+            currencySwitch={currencySwitch}
+            className="h-12 text-lg font-semibold"
+          />
           {presets?.length ? (
             <div className="flex flex-wrap gap-2">
               {presets.map((p) => (

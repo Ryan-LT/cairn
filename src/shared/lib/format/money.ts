@@ -1,3 +1,5 @@
+import { displayCurrency } from "@/shared/lib/currency/display";
+
 import { formatLocale } from "./locale";
 import { formatNumber, MINUS, signPrefix, type SignDisplay } from "./number";
 
@@ -7,11 +9,60 @@ export type MoneyFormatOptions = {
   signDisplay?: SignDisplay;
   /** Append " ₫" (default true). */
   symbol?: boolean;
+  /**
+   * Amounts are VND. `display` (default) shows them in the chosen display
+   * currency (USD at today's rate); `VND` always shows đồng (inputs, exports).
+   */
+  currency?: "display" | "VND";
 };
 
-/** Full VND amount: `1.245.670.000 ₫`, `−25.000 ₫`, `+1.000 ₫`. */
+/** Rate to show `amount` (VND) in USD, or null to show đồng. */
+function usdRate(opts: MoneyFormatOptions): number | null {
+  if (opts.currency === "VND") return null;
+  const d = displayCurrency();
+  return d.currency === "USD" ? d.vndPerUsd : null;
+}
+
+/** `$1.234`, `$12,50`, `−$25` (cents only under $100). */
+export function formatUsdAmount(usd: number, opts: { signDisplay?: SignDisplay; symbol?: boolean } = {}): string {
+  const { signDisplay = "auto", symbol = true } = opts;
+  if (!Number.isFinite(usd)) return symbol ? "$—" : "—";
+  const abs = Math.abs(usd);
+  const digits = abs < 100 && Math.round(abs * 100) % 100 !== 0 ? 2 : 0;
+  const zero = Number(abs.toFixed(digits)) === 0;
+  const sign = signPrefix(usd < 0 && !zero, zero, signDisplay);
+  const n = formatNumber(abs, { maximumFractionDigits: digits, minimumFractionDigits: digits });
+  return symbol ? `${sign}$${n}` : `${sign}${n}`;
+}
+
+const USD_UNITS = [
+  { value: 1e12, suffix: "T" },
+  { value: 1e9, suffix: "B" },
+  { value: 1e6, suffix: "M" },
+  { value: 1e3, suffix: "K" },
+] as const;
+
+/** `$4,82M`, `$32,5K`, `$850` — the dollar sign stays even on chart axes, so the unit is never ambiguous. */
+function formatUsdCompact3(usd: number, signDisplay: SignDisplay): string {
+  if (!Number.isFinite(usd)) return "$—";
+  const abs = Math.abs(usd);
+  if (abs < 1000) return formatUsdAmount(Math.round(usd), { signDisplay });
+  const sign = signPrefix(usd < 0, false, signDisplay);
+  let i = USD_UNITS.findIndex((u) => abs >= u.value);
+  let rounded = roundSignificant(abs / USD_UNITS[i].value, 3);
+  if (rounded >= 1000 && i > 0) {
+    i -= 1;
+    rounded = roundSignificant(abs / USD_UNITS[i].value, 3);
+  }
+  const intDigits = Math.floor(rounded).toString().length;
+  return `${sign}$${formatNumber(rounded, { maximumFractionDigits: Math.max(0, 3 - intDigits) })}${USD_UNITS[i].suffix}`;
+}
+
+/** Full VND amount: `1.245.670.000 ₫`, `−25.000 ₫`, `+1.000 ₫` (or USD when that's the display currency). */
 export function formatMoney(amount: number, opts: MoneyFormatOptions = {}): string {
   const { signDisplay = "auto", symbol = true } = opts;
+  const rate = usdRate(opts);
+  if (rate) return formatUsdAmount(amount / rate, { signDisplay, symbol });
   if (!Number.isFinite(amount)) return symbol ? `— ${SYMBOL}` : "—";
   const n = formatNumber(Math.round(amount), { signDisplay });
   return symbol ? `${n} ${SYMBOL}` : n;
@@ -31,6 +82,8 @@ const UNITS = [
  */
 export function formatMoneyCompact(amount: number, opts: MoneyFormatOptions = {}): string {
   const { signDisplay = "auto", symbol = true } = opts;
+  const rate = usdRate(opts);
+  if (rate) return formatUsdCompact3(amount / rate, signDisplay);
   if (!Number.isFinite(amount)) return symbol ? `— ${SYMBOL}` : "—";
   const abs = Math.abs(amount);
   const zero = Math.round(abs) === 0;

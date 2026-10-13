@@ -29,6 +29,7 @@ import { TabContent, useOnline, useShell } from "@/widgets/app-shell";
 
 import { downloadBackup } from "../lib/export-backup";
 import { ChangePasswordForm } from "./change-password-form";
+import { CurrencySection } from "./currency-section";
 import { RestoreBackupDialog } from "./restore-backup-dialog";
 import { MilestoneForm } from "./milestone-form";
 
@@ -80,6 +81,8 @@ export function SettingsPage() {
           <Switch id="privacy-mode" checked={hidden} onCheckedChange={togglePrivacy} />
         </div>
       </Section>
+
+      <CurrencySection />
 
       <div id="milestone" className="scroll-mt-20">
         <Section title={s.milestone.title} description={s.milestone.description}>

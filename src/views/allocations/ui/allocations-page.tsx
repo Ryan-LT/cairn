@@ -6,7 +6,7 @@ import { useMemo } from "react";
 
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { GOALS_SEED, resolveMonthlyShares } from "@/entities/goal";
-import { INCOME_SOURCES_SEED } from "@/entities/income";
+import { useIncomeSources } from "@/entities/income";
 import { buildAllocationReportForTables, filterAllocationRowsByBand } from "@/entities/portfolio";
 import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
 import {
@@ -15,7 +15,7 @@ import {
   resolveAllocationsBandFilter,
   type AllocationsBandFilter,
 } from "@/entities/preferences";
-import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
+import { useSettingsAssets } from "@/entities/settings-asset";
 import { useI18n } from "@/shared/i18n";
 import { formatMoney, formatPercent } from "@/shared/lib/format";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
@@ -37,8 +37,8 @@ import { SourceItem, SourceMatrix } from "./source-matrix";
 export function AllocationsPage() {
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
-  const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
-  const [incomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [settingsAssets] = useSettingsAssets();
+  const [incomeSources] = useIncomeSources();
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   // The matrix needs a wide screen (one column per plan); below that, one card per asset.
   const compact = useMediaQuery("(max-width: 1279px)");

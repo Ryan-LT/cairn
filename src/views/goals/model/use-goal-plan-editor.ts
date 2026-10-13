@@ -14,7 +14,7 @@ import {
   type GoalProfile,
 } from "@/entities/goal";
 import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
-import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
+import { useSettingsAssets } from "@/entities/settings-asset";
 import { flushTablesNow, useTable } from "@/shared/storage";
 
 /**
@@ -24,7 +24,7 @@ import { flushTablesNow, useTable } from "@/shared/storage";
 export function useGoalPlanEditor() {
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
-  const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
+  const [settingsAssets] = useSettingsAssets();
   const cashflow = useHouseholdCashflow();
 
   const seedOptions = useMemo(() => buildGoalStartingOptions(assets, settingsAssets), [assets, settingsAssets]);

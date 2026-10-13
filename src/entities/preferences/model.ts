@@ -1,3 +1,5 @@
+import type { CurrencyPrefs } from "@/shared/lib/currency/rates";
+
 /** Monthly net worth snapshots for charts / rollover ({@link syncNetWorthTracking}). */
 export type NetWorthMonthSnapshot = {
   monthKey: string;
@@ -57,6 +59,9 @@ export type Preferences = {
 
   /** First-run setup guide: dismissed, and "I have no debts" (that step counts as done). */
   setup?: { dismissedAt?: string; noDebts?: boolean };
+
+  /** Display currency, own USD rate / gold prices, and the gold valuation basis. */
+  currency?: CurrencyPrefs;
 
   /** Net-worth milestone (dashboard card, Settings → Milestone goal): birth date, USD target and age. */
   milestone?: {

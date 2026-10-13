@@ -9,6 +9,11 @@ export type IncomeSource = {
   details: string;
   icon: string;
   monthly: number;
+  /**
+   * Paid in US dollars: the monthly amount in USD. `monthly` then follows
+   * today's rate (see `useIncomeSources`) and keeps the VND at the last save.
+   */
+  amountUsd?: number;
   /** Day-of-month (1-31) the payment lands. */
   paymentDay?: number;
   paymentEntity?: string;

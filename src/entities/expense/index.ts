@@ -71,3 +71,4 @@ export { resolveMonthlySpending, type SpendingResolution, type SpendingSource } 
 export { CategoryTile, EXPENSE_CATEGORY_ICONS } from "./ui/category-icon";
 export { BILL_STATUS_TONE, BUDGET_STATUS_TONE, billDateText, billStatusText, budgetStatusText, scheduleText } from "./ui/text";
 export { expenseRecords, type ExpenseRecord } from "./lib/csv-records";
+export { resolveExpenseValues } from "./lib/valuation";

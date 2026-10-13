@@ -10,6 +10,7 @@ import { AllocateSourcesDialog } from "@/features/allocate-sources";
 import type { GoalProfile, GoalSeedLine, GoalStartingOption } from "@/entities/goal";
 import { totalCapitalAmount, wrapIncomeSourceAsProfile, type IncomeSource } from "@/entities/income";
 import { useI18n, type Messages } from "@/shared/i18n";
+import { useCurrency } from "@/shared/lib/currency/provider";
 import { DayOfMonthField, MoneyField, SegmentedField, SelectField, TextField } from "@/shared/ui/form";
 import { ICON_OPTIONS, RegistryIcon } from "@/shared/ui/icon-registry";
 import { Button } from "@/shared/ui/kit/button";
@@ -25,6 +26,7 @@ const makeSchema = (t: Messages) =>
     details: z.string().max(160),
     icon: z.string(),
     monthly: z.number().min(0),
+    currency: z.enum(["VND", "USD"]),
     paymentEntity: z.string().max(80).optional(),
     paymentDay: z.number().int().min(1).max(31).optional(),
   });
@@ -72,6 +74,7 @@ function IncomeSourceForm({
   onSubmit,
 }: Omit<IncomeSourceFormDialogProps, "open" | "onOpenChange" | "source"> & { source: IncomeSource; onCancel: () => void }) {
   const { t } = useI18n();
+  const rate = useCurrency()?.rates.vndPerUsd ?? null;
   const [capitalLines, setCapitalLines] = useState<GoalSeedLine[]>(source.capitalLines ?? []);
   const [capitalOpen, setCapitalOpen] = useState(false);
 
@@ -82,13 +85,16 @@ function IncomeSourceForm({
       name: source.name,
       details: source.details,
       icon: source.icon || "work",
-      monthly: source.monthly,
+      // Paid in USD: the field holds dollars.
+      monthly: source.amountUsd ?? source.monthly,
+      currency: source.amountUsd ? "USD" : "VND",
       paymentEntity: source.paymentEntity ?? "",
       paymentDay: source.paymentDay,
     },
   });
 
   const name = useWatch({ control: form.control, name: "name" });
+  const currency = useWatch({ control: form.control, name: "currency" });
   const iconOptions = useMemo(() => {
     const opts = ICON_OPTIONS.map((o) => ({
       value: o.value,
@@ -124,7 +130,12 @@ function IncomeSourceForm({
     <Form {...form}>
       <form
         className="flex min-h-0 flex-1 flex-col"
-        onSubmit={form.handleSubmit((v) => onSubmit({ ...source, ...v, capitalLines }))}
+        onSubmit={form.handleSubmit(({ currency: cur, monthly, ...v }) => {
+          const usd = cur === "USD" ? Math.round(monthly * 100) / 100 : undefined;
+          // VND at today's rate (the last saved amount if no rate is known).
+          const vnd = usd === undefined ? monthly : rate ? Math.round(usd * rate) : source.monthly;
+          onSubmit({ ...source, ...v, monthly: vnd, amountUsd: usd, capitalLines });
+        })}
       >
         <DialogHeader>
           <DialogTitle>{mode === "create" ? t.income.form.addTitle : t.income.form.editTitle}</DialogTitle>
@@ -143,7 +154,13 @@ function IncomeSourceForm({
           <TextField control={form.control} name="name" label={t.income.form.name} placeholder={t.income.form.namePlaceholder} autoFocus={mode === "create"} />
           <TextField control={form.control} name="details" label={t.income.form.details} placeholder={t.income.form.detailsPlaceholder} />
           <div className="grid gap-4 sm:grid-cols-2">
-            <MoneyField control={form.control} name="monthly" label={t.income.form.monthly} />
+            <MoneyField
+              control={form.control}
+              name="monthly"
+              label={t.income.form.monthly}
+              currency={currency}
+              onCurrencyChange={(c) => form.setValue("currency", c)}
+            />
             <SelectField control={form.control} name="icon" label={t.income.form.icon} options={iconOptions} />
           </div>
           <div className="grid gap-1.5">

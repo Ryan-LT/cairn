@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Trash2 } from "lucide-react";
+import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -15,6 +16,7 @@ import {
   type ExpenseItem,
 } from "@/entities/expense";
 import { useI18n } from "@/shared/i18n";
+import { useCurrency } from "@/shared/lib/currency/provider";
 import { cn } from "@/shared/lib/cn";
 import { DayOfMonthField, MoneyField, SegmentedField, SelectField, SwitchField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/kit/button";
@@ -28,6 +30,7 @@ const schema = z.object({
   category: z.enum(EXPENSE_CATEGORY_IDS),
   kind: z.enum(["bill", "budget"]),
   amount: z.number().min(0),
+  currency: z.enum(["VND", "USD"]),
   frequency: z.enum(EXPENSE_FREQUENCIES),
   dueDay: z.number().int().min(1).max(31).optional(),
   dueMonth: z.string(),
@@ -124,7 +127,9 @@ function ExpenseForm({
 }: Omit<ExpenseFormSheetProps, "open" | "onOpenChange" | "item"> & { item: ExpenseItem; onCancel: () => void }) {
   const { t } = useI18n();
   const f = t.expenses.form;
+  const rate = useCurrency()?.rates.vndPerUsd ?? null;
   const initialDebt = item.debtId ? debts.find((d) => d.id === item.debtId) : undefined;
+  const inUsd = Boolean(item.amountUsd) && !initialDebt;
 
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -132,7 +137,9 @@ function ExpenseForm({
       name: item.name,
       category: item.category,
       kind: item.kind,
-      amount: initialDebt?.monthlyPayment ?? item.amount,
+      // Charged in USD: the field holds dollars.
+      amount: inUsd ? item.amountUsd! : (initialDebt?.monthlyPayment ?? item.amount),
+      currency: inUsd ? "USD" : "VND",
       frequency: item.frequency,
       dueDay: item.dueDay,
       dueMonth: item.dueMonth ? String(item.dueMonth) : NONE,
@@ -145,20 +152,30 @@ function ExpenseForm({
     },
   });
 
-  const [category, kind, frequency, debtId] = useWatch({ control: form.control, name: ["category", "kind", "frequency", "debtId"] });
+  const [category, kind, frequency, debtId, currency] = useWatch({ control: form.control, name: ["category", "kind", "frequency", "debtId", "currency"] });
   const linkedDebt = debtId !== NONE ? debts.find((d) => d.id === debtId) : undefined;
   const showDebt = debts.length > 0 && (category === "debt" || category === "housing" || debtId !== NONE);
+  // Linking a debt makes the amount its (đồng) payment.
+  useEffect(() => {
+    if (!linkedDebt || form.getValues("currency") !== "USD") return;
+    form.setValue("currency", "VND");
+    form.setValue("amount", linkedDebt.monthlyPayment ?? (rate ? Math.round(form.getValues("amount") * rate) : 0));
+  }, [linkedDebt, form, rate]);
   const amountLabel = kind === "budget" ? (frequency === "monthly" ? f.amountBudget : f.amount) : frequency === "monthly" ? f.amountMonthly : f.amount;
 
   const submit = (v: Values) => {
     const linked = v.debtId !== NONE ? debts.find((d) => d.id === v.debtId) : undefined;
+    // A debt's payment is in đồng; otherwise USD items keep their dollars and today's đồng.
+    const usd = v.currency === "USD" && !linked ? Math.round(v.amount * 100) / 100 : undefined;
+    const amount = usd === undefined ? v.amount : rate ? Math.round(usd * rate) : item.amount;
     const next: ExpenseItem = {
       ...item,
       // No name: use the category's ("Ăn uống").
       name: v.name.trim() || t.expenses.categories[v.category],
       category: v.category,
       kind: v.kind,
-      amount: v.amount,
+      amount,
+      amountUsd: usd,
       frequency: linked ? "monthly" : v.frequency,
       dueDay: v.frequency === "weekly" ? undefined : v.dueDay,
       dueMonth: ["quarterly", "semiannual", "yearly"].includes(v.frequency) && v.dueMonth !== NONE ? Number(v.dueMonth) : undefined,
@@ -221,7 +238,15 @@ function ExpenseForm({
             />
           ) : null}
           <div className="grid gap-4 sm:grid-cols-2">
-            <MoneyField control={form.control} name="amount" label={amountLabel} description={linkedDebt ? f.amountFromDebt : undefined} />
+            <MoneyField
+              control={form.control}
+              name="amount"
+              label={amountLabel}
+              description={linkedDebt ? f.amountFromDebt : undefined}
+              currency={linkedDebt ? "VND" : currency}
+              onCurrencyChange={(c) => form.setValue("currency", c)}
+              currencySwitch={!linkedDebt}
+            />
             {linkedDebt ? null : (
               <SelectField
                 control={form.control}

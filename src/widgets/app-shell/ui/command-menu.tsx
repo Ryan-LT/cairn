@@ -22,9 +22,9 @@ import { useSignOut } from "@/features/sign-out";
 import { useSyncNow } from "@/features/sync-now";
 import { DEBTS_SEED } from "@/entities/debt";
 import { GOALS_SEED } from "@/entities/goal";
-import { INCOME_SOURCES_SEED } from "@/entities/income";
+import { useIncomeSources } from "@/entities/income";
 import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
-import { assetCategoryLabel, SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
+import { assetCategoryLabel, useSettingsAssets } from "@/entities/settings-asset";
 import { NAV_HUBS, QUICK_ADD } from "@/shared/config";
 import { usePrivacyMode } from "@/shared/lib/privacy";
 import { formatMoneyCompact } from "@/shared/lib/format";
@@ -81,8 +81,8 @@ export function CommandMenu() {
   const { signOut } = useSignOut();
   const [hidden, togglePrivacy] = usePrivacyMode();
 
-  const [assets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
-  const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [assets] = useSettingsAssets();
+  const [sources] = useIncomeSources();
   const [debts] = useTable("debts", DEBTS_SEED);
   const [loans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
   const [goals, setGoals] = useTable("goals", GOALS_SEED);

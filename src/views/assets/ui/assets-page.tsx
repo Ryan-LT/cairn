@@ -1,12 +1,12 @@
 "use client";
 
-import { Clock, History, Pencil, Plus, RefreshCw, Search, Trash2, Zap } from "lucide-react";
+import { Clock, History, Pencil, Plus, RefreshCw, Search, Trash2, TrendingUp, Zap } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { GOALS_SEED } from "@/entities/goal";
-import { INCOME_SOURCES_SEED } from "@/entities/income";
+import { useIncomeSources } from "@/entities/income";
 import { assetTotalsByCategory, legacyHoldingsCount, migrateLegacyHoldings } from "@/entities/portfolio";
 import { PREFERENCES_SEED, registerExtraAssetCategory } from "@/entities/preferences";
 import {
@@ -17,13 +17,14 @@ import {
   resolveAssetCategoryEmoji,
   resolveSettingsAssetLiquidity,
   sanitizeSettingsAsset,
-  SETTINGS_ASSETS_SEED,
+  useSettingsAssets,
   type SettingsAsset,
 } from "@/entities/settings-asset";
 import { LiquidityBadge } from "@/entities/settings-asset/ui";
-import { useI18n } from "@/shared/i18n";
+import { useI18n, type Messages } from "@/shared/i18n";
 import { todayIso } from "@/shared/lib/date";
-import { formatRelative } from "@/shared/lib/format";
+import type { AssetHolding } from "@/shared/lib/currency/holding";
+import { formatNumber, formatRelative, formatUsdAmount } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
 import { AmountSheet } from "@/shared/ui/amount-sheet";
@@ -64,10 +65,10 @@ function EmojiTile({ emoji }: { emoji: string }) {
 
 /** Net worth › Assets: everything owned, grouped by category, with quick value updates. */
 export function AssetsPage() {
-  const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
+  const [assets, setAssets] = useSettingsAssets();
   const [legacy, setLegacy] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
-  const [incomeSources, setIncomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [incomeSources, setIncomeSources] = useIncomeSources();
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   const { t } = useI18n();
   const m = t.assets;
@@ -110,10 +111,13 @@ export function AssetsPage() {
     assets.filter((a) => resolveSettingsAssetLiquidity(a.liquidity) === "instant").reduce((s, a) => s + Math.max(0, a.currentValue), 0) +
     legacy.cashAccounts.reduce((s, c) => s + Math.max(0, c.balance), 0);
   const total = byCategory.reduce((s, c) => s + c.value, 0);
-  const stale = assets.filter((a) => (daysSince(a.updatedAt) ?? Infinity) > STALE_DAYS && a.currentValue > 0).length;
+  // Assets held in USD or gold follow the market, so they never go stale.
+  const stale = assets.filter((a) => !a.holding && (daysSince(a.updatedAt) ?? Infinity) > STALE_DAYS && a.currentValue > 0).length;
+  /** Live assets are updated by editing the dollars or the weight, not the đồng value. */
+  const updateValue = (asset: SettingsAsset) => (asset.holding ? openEdit(asset) : setUpdating(asset));
 
   const actionsFor = (asset: SettingsAsset): RowAction[] => [
-    { label: w.updateValue, icon: RefreshCw, onSelect: () => setUpdating(asset) },
+    { label: w.updateValue, icon: RefreshCw, onSelect: () => updateValue(asset) },
     { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(asset) },
     "separator",
     { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(asset) },
@@ -212,7 +216,7 @@ export function AssetsPage() {
               >
                 {g.items.map((a) => {
                   const days = daysSince(a.updatedAt);
-                  const isStale = days === null || days > STALE_DAYS;
+                  const isStale = !a.holding && (days === null || days > STALE_DAYS);
                   return (
                     <ListRow
                       key={a.id}
@@ -221,9 +225,16 @@ export function AssetsPage() {
                       subtitle={
                         <span className="flex flex-wrap items-center gap-1.5">
                           <LiquidityBadge liquidity={a.liquidity} />
-                          <span className={isStale ? "text-warning" : undefined}>
-                            {a.updatedAt ? w.updatedAgo({ ago: formatRelative(new Date(`${a.updatedAt}T12:00:00`)) }) : w.neverUpdated}
-                          </span>
+                          {a.holding ? (
+                            <span className="inline-flex items-center gap-1 font-medium text-foreground/80" data-private>
+                              <TrendingUp className="size-3.5 text-success" aria-hidden />
+                              {holdingText(t, a.holding)}
+                            </span>
+                          ) : (
+                            <span className={isStale ? "text-warning" : undefined}>
+                              {a.updatedAt ? w.updatedAgo({ ago: formatRelative(new Date(`${a.updatedAt}T12:00:00`)) }) : w.neverUpdated}
+                            </span>
+                          )}
                         </span>
                       }
                       trailing={<Money value={a.currentValue} compact interactive={false} />}
@@ -231,7 +242,7 @@ export function AssetsPage() {
                       label={a.name}
                       actions={
                         <>
-                          <Button variant="ghost" size="icon-sm" aria-label={`${w.updateValue}: ${a.name}`} onClick={() => setUpdating(a)} className="text-muted-foreground">
+                          <Button variant="ghost" size="icon-sm" aria-label={`${w.updateValue}: ${a.name}`} onClick={() => updateValue(a)} className="text-muted-foreground">
                             <RefreshCw />
                           </Button>
                           <RowActions label={t.common.actionsFor({ name: a.name })} actions={actionsFor(a)} />
@@ -270,7 +281,7 @@ export function AssetsPage() {
         categoryOptions={categoryOptions}
         onSubmit={(draft) => {
           const prev = assets.find((a) => a.id === draft.id);
-          const valueChanged = !prev || prev.currentValue !== draft.currentValue;
+          const valueChanged = !prev || prev.currentValue !== draft.currentValue || JSON.stringify(prev.holding ?? null) !== JSON.stringify(draft.holding ?? null);
           const next = { ...sanitizeSettingsAsset(draft), updatedAt: valueChanged ? todayIso() : prev?.updatedAt };
           const custom = customCategoryToRegister(next.category);
           if (custom) setPrefs((p) => registerExtraAssetCategory(p, custom));
@@ -302,4 +313,15 @@ export function AssetsPage() {
       />
     </TabContent>
   );
+}
+
+/** "$5.000" or "2 chỉ Vàng 18K (750)". */
+function holdingText(t: Messages, holding: AssetHolding): string {
+  const h = t.currency.holding;
+  if (holding.kind === "usd") return h.usdShort({ amount: formatUsdAmount(holding.amount) });
+  return h.goldShort({
+    weight: formatNumber(holding.weight, { maximumFractionDigits: 4 }),
+    unit: t.currency.gold.unitsShort[holding.unit],
+    product: t.currency.gold.products[holding.product],
+  });
 }

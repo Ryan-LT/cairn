@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { cn } from "@/shared/lib/cn";
+import { useCurrency } from "@/shared/lib/currency/provider";
 import { formatMoney, formatMoneyCompact } from "@/shared/lib/format";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/kit/tooltip";
 
@@ -40,10 +41,13 @@ export function moneyToneClass(tone: MoneyTone, value: number): string | undefin
   }
 }
 
-/** Every VND amount in the UI goes through this component. */
+/** Every VND amount in the UI goes through this component (shown in the display currency). */
 export function Money({ value, compact, signed, tone = "none", strike, interactive = true, className }: MoneyProps) {
   const signDisplay = signed ? "exceptZero" : "auto";
+  // Subscribing re-renders amounts when the display currency or rate changes.
+  const inUsd = useCurrency()?.display === "USD";
   const full = formatMoney(value, { signDisplay });
+  const vnd = inUsd ? formatMoney(value, { signDisplay, currency: "VND" }) : null;
   const [expanded, setExpanded] = useState(false);
   const classes = cn(
     "whitespace-nowrap tabular-nums",
@@ -94,6 +98,11 @@ export function Money({ value, compact, signed, tone = "none", strike, interacti
       </TooltipTrigger>
       <TooltipContent>
         <span data-private>{full}</span>
+        {vnd ? (
+          <span className="block text-xs opacity-80" data-private>
+            {vnd}
+          </span>
+        ) : null}
       </TooltipContent>
     </Tooltip>
   );

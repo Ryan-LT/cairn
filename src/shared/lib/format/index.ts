@@ -3,6 +3,7 @@ export {
   formatMoney,
   formatMoneyCompact,
   formatUsd,
+  formatUsdAmount,
   formatUsdCompact,
   type MoneyFormatOptions,
 } from "./money";
