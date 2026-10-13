@@ -1,1 +1,1 @@
-export { WealthHubSummary } from "./ui/hub-summary";
+export { WealthHubSummary } from "./ui/wealth-summary";

@@ -88,6 +88,9 @@ export function HomePage() {
         <p className="text-sm text-muted-foreground first-letter:uppercase">{formatDate(now)}</p>
       </header>
 
+      {/* Actionable while setting up, so it comes first; hidden once done or dismissed. */}
+      <SetupGuide />
+
       <div className="grid gap-4 md:gap-6 xl:grid-cols-12">
         <NetWorthHero
           className="xl:col-span-7"
@@ -99,8 +102,6 @@ export function HomePage() {
         />
         <MonthGlance className="xl:col-span-5" month={month} cash={summary} />
       </div>
-
-      <SetupGuide />
 
       <div className="grid items-start gap-4 md:gap-6 xl:grid-cols-12">
         <DueBills className="xl:col-span-7" lines={due} monthKey={monthKey} actions={actions} />

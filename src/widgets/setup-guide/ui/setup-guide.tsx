@@ -64,7 +64,7 @@ export function SetupGuide({ className }: { className?: string }) {
             <li key={step.id}>
               <div
                 className={cn(
-                  "flex h-full flex-col gap-2 rounded-lg border p-3",
+                  "flex h-full flex-col gap-2 rounded-lg border p-3 max-sm:py-2.5",
                   step.done ? "border-transparent bg-muted/60" : next ? "border-primary/50 bg-primary-soft/50" : "bg-card",
                 )}
               >
@@ -78,10 +78,17 @@ export function SetupGuide({ className }: { className?: string }) {
                   >
                     {step.done ? <Check className="size-3.5" /> : i + 1}
                   </span>
-                  <span className={cn("text-sm font-medium", step.done && "text-muted-foreground line-through decoration-muted-foreground/50")}>{label.label}</span>
+                  {step.done ? (
+                    <span className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/50">{label.label}</span>
+                  ) : (
+                    <Link href={step.href} className="min-w-0 flex-1 text-sm font-medium underline-offset-4 hover:underline">
+                      {label.label}
+                    </Link>
+                  )}
                 </div>
                 {step.done ? null : (
-                  <>
+                  // On phones only the next step shows its details; the others are one tappable line.
+                  <div className={cn("grid gap-2", !next && "max-sm:hidden")}>
                     <p className="text-xs text-muted-foreground">{label.hint}</p>
                     <div className="mt-auto flex flex-wrap items-center gap-2">
                       <Button asChild size="sm" variant={next ? "default" : "outline"}>
@@ -96,7 +103,7 @@ export function SetupGuide({ className }: { className?: string }) {
                         </Button>
                       ) : null}
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </li>
