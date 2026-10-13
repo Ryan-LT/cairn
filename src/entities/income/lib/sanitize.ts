@@ -27,6 +27,9 @@ export function sanitizeIncomeSource(draft: IncomeSource): IncomeSource {
     name: draft.name.trim(),
     details: draft.details.trim(),
     monthly: Number.isFinite(draft.monthly) ? Math.max(0, draft.monthly) : 0,
+    accountId: draft.accountId || undefined,
+    autoReceive: draft.autoReceive ? true : undefined,
+    autoSince: draft.autoReceive && draft.autoSince ? draft.autoSince : undefined,
     amountUsd: typeof draft.amountUsd === "number" && Number.isFinite(draft.amountUsd) && draft.amountUsd > 0 ? Math.round(draft.amountUsd * 100) / 100 : undefined,
     capitalLines: cleanLines.length > 0 ? cleanLines : undefined,
     paymentEntity:

@@ -54,8 +54,15 @@ export type ExpenseItem = {
   dueWeekday?: number;
   /** Linked debt: its `monthlyPayment` is the amount and its payment day the default due day. */
   debtId?: string;
-  /** Paid automatically (direct debit): counts as paid at the planned amount once due. */
+  /** Paid automatically (direct debit): recorded at the planned amount on each due date. */
   autopay?: boolean;
+  /**
+   * Account (asset) its payments or spending come out of by default.
+   * Autopay bills are taken from it on the due date; others when ticked off.
+   */
+  accountId?: string;
+  /** `YYYY-MM-DD` from which autopay payments are recorded in the ledger (earlier months stay as they were). */
+  autoSince?: string;
   /** Need (true) or want (false); unset follows the category. */
   essential?: boolean;
   note?: string;
@@ -77,7 +84,14 @@ export type ExpensesDoc = {
   legacyEstimate?: { retiredAt: string; amount: number };
 };
 
-export type BillPayment = { amount: number; date: string };
+export type BillPayment = {
+  amount: number;
+  date: string;
+  /** The ledger entry behind it (payments recorded since the ledger). */
+  txnId?: string;
+  /** Recorded by autopay. */
+  auto?: boolean;
+};
 
 export type ExpenseMonthEntry = {
   /** Bills: each recorded payment (one per occurrence). */
@@ -93,6 +107,11 @@ export type ExpenseMonthEntry = {
 export type ExpenseLogDoc = {
   /** `YYYY-MM` → item id → entry. Postgres jsonb reorders keys: always sort before iterating. */
   months: Record<string, Record<string, ExpenseMonthEntry>>;
+  /**
+   * Derived, never stored: spending outside the plan per `YYYY-MM` (from the
+   * ledger), so month totals include it.
+   */
+  unplanned?: Record<string, number>;
 };
 
 export const EXPENSES_SEED: ExpensesDoc = { items: [] };

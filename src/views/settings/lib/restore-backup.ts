@@ -1,6 +1,7 @@
 import { sanitizeExpenseLog, sanitizeExpensesDoc } from "@/entities/expense";
+import { sanitizeLedgerMonth } from "@/entities/ledger/lib/sanitize";
 import { flushTablesNow, readTable, writeTable } from "@/shared/storage/store";
-import { TABLE_KEYS, type TableKey } from "@/shared/storage/table-keys";
+import { isLedgerKey, TABLE_KEYS, type StoredKey, type TableKey } from "@/shared/storage/table-keys";
 
 import { TABLE_SEEDS } from "./table-seeds";
 
@@ -9,16 +10,19 @@ export const MAX_BACKUP_CHARS = 5_000_000;
 /** Same cap the server enforces per table. */
 const MAX_TABLE_CHARS = 1_000_000;
 
+/** The monthly ledger tables count as one entry ("ledger") in the summary. */
+export type BackupPart = TableKey | "ledger";
+
 export type BackupSummary = {
   exportedAt: string | null;
   /** Tables in the file with how many records each holds. */
-  tables: { key: TableKey; count: number }[];
+  tables: { key: BackupPart; count: number }[];
   /** Tables the file doesn't have: left as they are on restore. */
-  missing: TableKey[];
+  missing: BackupPart[];
 };
 
 export type ParsedBackup =
-  | { ok: true; tables: Partial<Record<TableKey, unknown>>; summary: BackupSummary }
+  | { ok: true; tables: Partial<Record<StoredKey, unknown>>; summary: BackupSummary }
   | { ok: false; code: "invalid_json" | "not_backup" | "too_large" | "invalid_table"; table?: TableKey };
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -85,7 +89,7 @@ export function parseBackup(text: string, today: string): ParsedBackup {
   }
   if (!isRecord(raw) || !isRecord(raw.tables)) return { ok: false, code: "not_backup" };
   const source = raw.tables;
-  const tables: Partial<Record<TableKey, unknown>> = {};
+  const tables: Partial<Record<StoredKey, unknown>> = {};
   const summary: BackupSummary = { exportedAt: typeof raw.exportedAt === "string" ? raw.exportedAt : null, tables: [], missing: [] };
   for (const key of TABLE_KEYS) {
     if (!(key in source) || source[key] === undefined || source[key] === null) {
@@ -98,6 +102,20 @@ export function parseBackup(text: string, today: string): ParsedBackup {
     tables[key] = checked.value;
     summary.tables.push({ key, count: checked.count });
   }
+  // Money in and out, one table per month.
+  let ledgerCount = 0;
+  let ledgerMonths = 0;
+  for (const key of Object.keys(source).filter(isLedgerKey).sort()) {
+    const value = source[key];
+    if (!isRecord(value) || !Array.isArray(value.txns)) return { ok: false, code: "invalid_table" };
+    const month = sanitizeLedgerMonth(value);
+    if (JSON.stringify(month).length > MAX_TABLE_CHARS) return { ok: false, code: "too_large" };
+    tables[key] = month;
+    ledgerCount += month.txns.length;
+    ledgerMonths += 1;
+  }
+  if (ledgerMonths) summary.tables.push({ key: "ledger", count: ledgerCount });
+  else summary.missing.push("ledger");
   if (summary.tables.length === 0) return { ok: false, code: "not_backup" };
   return { ok: true, tables, summary };
 }
@@ -106,10 +124,10 @@ export function parseBackup(text: string, today: string): ParsedBackup {
  * Replace the tables found in the backup (others stay as they are) and push
  * them to the server. Returns the previous values, for undo.
  */
-export async function applyBackup(tables: Partial<Record<TableKey, unknown>>): Promise<{ previous: Partial<Record<TableKey, unknown>>; synced: boolean }> {
-  const previous: Partial<Record<TableKey, unknown>> = {};
-  for (const key of Object.keys(tables) as TableKey[]) {
-    previous[key] = readTable(key, TABLE_SEEDS[key]);
+export async function applyBackup(tables: Partial<Record<StoredKey, unknown>>): Promise<{ previous: Partial<Record<StoredKey, unknown>>; synced: boolean }> {
+  const previous: Partial<Record<StoredKey, unknown>> = {};
+  for (const key of Object.keys(tables) as StoredKey[]) {
+    previous[key] = readTable(key, isLedgerKey(key) ? { txns: [] } : TABLE_SEEDS[key as TableKey]);
     writeTable(key, tables[key]);
   }
   const synced = await flushTablesNow();

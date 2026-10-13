@@ -12,6 +12,7 @@ export const nav: Messages["nav"] = {
     cashflowMonth: { label: "Tháng này", description: "Hóa đơn cần trả, ngân sách và số tiền còn lại tháng này" },
     cashflowSpending: { label: "Chi tiêu", description: "Mọi hóa đơn và ngân sách, theo danh mục" },
     cashflowIncome: { label: "Thu nhập", description: "Lương, thu nhập phụ và thu nhập thụ động" },
+    cashflowHistory: { label: "Lịch sử", description: "Mọi khoản đã chi và đã nhận, theo từng ngày" },
     wealthAssets: { label: "Tài sản", description: "Mọi thứ bạn sở hữu và tốc độ có thể dùng đến" },
     wealthDebts: { label: "Khoản nợ", description: "Khoản vay, thẻ tín dụng, ngày trả xong và tiền lãi" },
     wealthLoans: { label: "Cho vay", description: "Tiền cho người quen vay hoặc vay của người quen" },
@@ -22,6 +23,7 @@ export const nav: Messages["nav"] = {
   },
   quickAdd: {
     record: { label: "Ghi khoản đã chi", short: "Ghi chi", keywords: "trả hóa đơn đã trả chi tiêu ghi chép pay bill paid spent" },
+    spendNow: { label: "Chi ngay (ngoài kế hoạch)", short: "Chi ngay", keywords: "chi ngay chi bất chợt ngoài kế hoạch tiêu tiền spend now unplanned expense" },
     bill: { label: "Thêm hóa đơn, ngân sách", short: "Hóa đơn", keywords: "tạo mới hóa đơn ngân sách chi tiêu tiền ra create bill budget expense" },
     income: { label: "Thêm thu nhập", short: "Thu nhập", keywords: "tạo mới thu nhập lương tiền vào create income salary" },
     asset: { label: "Thêm tài sản", short: "Tài sản", keywords: "tạo mới tài sản create new asset" },

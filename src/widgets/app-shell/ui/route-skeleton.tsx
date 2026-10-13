@@ -312,7 +312,7 @@ function CashflowMonthSkeleton() {
 function CashflowSpendingSkeleton() {
   return (
     <>
-      <ToolbarSkeleton actions={["w-9 md:w-28", "w-9 md:w-36", "w-24"]} />
+      <ToolbarSkeleton actions={["w-9 md:w-36", "w-9 md:w-28", "w-9 md:w-36", "w-24"]} />
       <div className="grid gap-4 md:gap-6 xl:grid-cols-5">
         <Card className="bg-hero gap-5 px-5 xl:col-span-3">
           <div className="grid gap-1.5">
@@ -367,7 +367,7 @@ function CashflowSpendingSkeleton() {
 function CashflowIncomeSkeleton() {
   return (
     <>
-      <ToolbarSkeleton actions={["w-44"]} />
+      <ToolbarSkeleton actions={["w-9 md:w-36", "w-44"]} />
       <ListGroupSkeleton rows={2} />
       <ListGroupSkeleton rows={1} />
     </>
@@ -632,7 +632,59 @@ function SettingsActivitySkeleton() {
   );
 }
 
+/** Cashflow › History: view switch, three summary cards, filters, a month of rows. */
+function CashflowHistorySkeleton() {
+  return (
+    <div className="flex flex-col gap-5 md:gap-6">
+      <TabToolbar actions={<Skeleton className="h-9 w-28 rounded-md" />}>
+        <Skeleton className="h-9 w-44 rounded-lg" />
+      </TabToolbar>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {Array.from({ length: 3 }, (_, i) => (
+          <Card key={i} className="gap-2 px-5 py-4">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-7 w-28" />
+            <Skeleton className="h-3 w-20" />
+          </Card>
+        ))}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Skeleton className="h-9 min-w-48 flex-1 rounded-md" />
+        <Skeleton className="h-9 w-36 rounded-md max-sm:flex-1" />
+        <Skeleton className="h-9 w-32 rounded-md max-sm:flex-1" />
+        <Skeleton className="h-9 w-36 rounded-md max-sm:flex-1" />
+      </div>
+      <section className="grid gap-2">
+        <div className="flex items-center justify-between px-1 py-1.5">
+          <Skeleton className="h-5 w-24" />
+          <Skeleton className="h-4 w-36" />
+        </div>
+        {[3, 2].map((rows, g) => (
+          <div key={g} className="grid gap-1.5">
+            <Skeleton className="ml-1 h-3 w-16" />
+            <Card className="gap-0 overflow-hidden py-0">
+              <div className="divide-y">
+                {Array.from({ length: rows }, (_, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-3">
+                    <Skeleton className="size-9 shrink-0 rounded-lg" />
+                    <div className="grid flex-1 gap-1.5">
+                      <Skeleton className="h-4 w-36 max-w-[60%]" />
+                      <Skeleton className="h-3 w-48 max-w-[75%]" />
+                    </div>
+                    <Skeleton className="h-4 w-20 shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}
+
 const TAB_SKELETONS: Record<TabId, () => React.ReactNode> = {
+  cashflowHistory: CashflowHistorySkeleton,
   cashflowMonth: CashflowMonthSkeleton,
   cashflowSpending: CashflowSpendingSkeleton,
   cashflowIncome: CashflowIncomeSkeleton,

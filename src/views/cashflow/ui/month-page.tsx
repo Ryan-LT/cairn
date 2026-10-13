@@ -30,6 +30,7 @@ import { TabContent, TabToolbar } from "@/widgets/app-shell";
 
 import { useExpenseEditor } from "../model/use-expense-editor";
 import { CalendarStrip } from "./calendar-strip";
+import { MonthLedger } from "./month-ledger";
 
 /** "Record a payment": pick an open bill or a budget, then the pay / spend sheet opens. */
 function RecordPicker({
@@ -167,7 +168,9 @@ export function CashflowMonthPage() {
             <TemplatePicker debts={editor.debts} onAdd={editor.addMany} />
           </div>
         </Card>
-      ) : (
+      ) : null}
+      {!hasItems ? <MonthLedger monthKey={monthKey} /> : null}
+      {!hasItems ? null : (
         <>
           <Card className="bg-hero gap-4 px-5">
             <div className="flex items-center gap-4 md:gap-6">
@@ -231,6 +234,8 @@ export function CashflowMonthPage() {
           ) : null}
 
           {view.lines.length ? <MonthGroups view={view} actions={actions} onEdit={editor.openEdit} day={day} /> : <p className="px-1 text-sm text-muted-foreground">{m.nothing}</p>}
+
+          <MonthLedger monthKey={monthKey} />
 
           {cash.spending.unitemized > 0 ? (
             <Link href="/cashflow/spending" className="px-1 text-sm text-muted-foreground underline-offset-4 hover:underline">

@@ -23,6 +23,7 @@ import { settings } from "./settings";
 import { activity } from "./activity";
 import { assist } from "./assist";
 import { currency } from "./currency";
+import { ledger } from "./ledger";
 
 /** Vietnamese messages. */
 export const vi: Messages = {
@@ -49,4 +50,5 @@ export const vi: Messages = {
   activity,
   assist,
   currency,
+  ledger,
 };

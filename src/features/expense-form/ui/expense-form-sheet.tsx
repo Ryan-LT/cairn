@@ -15,9 +15,11 @@ import {
   type ExpenseCategoryId,
   type ExpenseItem,
 } from "@/entities/expense";
+import { AccountSelect } from "@/entities/settings-asset/ui";
 import { useI18n } from "@/shared/i18n";
 import { useCurrency } from "@/shared/lib/currency/provider";
 import { cn } from "@/shared/lib/cn";
+import { todayIso } from "@/shared/lib/date";
 import { DayOfMonthField, MoneyField, SegmentedField, SelectField, SwitchField, TextField } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/kit/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/kit/dialog";
@@ -37,6 +39,7 @@ const schema = z.object({
   dueWeekday: z.string(),
   debtId: z.string(),
   autopay: z.boolean(),
+  accountId: z.string(),
   essential: z.boolean(),
   note: z.string().max(200),
   paused: z.boolean(),
@@ -146,6 +149,7 @@ function ExpenseForm({
       dueWeekday: item.dueWeekday ? String(item.dueWeekday) : NONE,
       debtId: item.debtId ?? NONE,
       autopay: item.autopay ?? false,
+      accountId: item.accountId ?? NONE,
       essential: item.essential ?? EXPENSE_CATEGORY_META[item.category].essential,
       note: item.note ?? "",
       paused: item.paused ?? false,
@@ -182,6 +186,9 @@ function ExpenseForm({
       dueWeekday: v.frequency === "weekly" && v.dueWeekday !== NONE ? Number(v.dueWeekday) : undefined,
       debtId: linked?.id,
       autopay: v.autopay || undefined,
+      accountId: v.accountId !== NONE ? v.accountId : undefined,
+      // Autopay records payments from the start of the month it's turned on (keeps its start while on).
+      autoSince: v.autopay && v.kind === "bill" ? (item.autopay && item.autoSince ? item.autoSince : `${todayIso().slice(0, 7)}-01`) : undefined,
       // Only store "essential" when it differs from the category's default.
       essential: v.essential === EXPENSE_CATEGORY_META[v.category].essential ? undefined : v.essential,
       note: v.note.trim() || undefined,
@@ -279,7 +286,20 @@ function ExpenseForm({
             ) : null}
           </div>
           <div className="grid gap-2">
-            {kind === "bill" ? <SwitchField control={form.control} name="autopay" label={f.autopay} description={f.autopayHint} /> : null}
+            <FormField
+              control={form.control}
+              name="accountId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t.ledger.account.from}</FormLabel>
+                  <FormControl>
+                    <AccountSelect value={field.value === NONE ? undefined : field.value} onChange={(v) => field.onChange(v ?? NONE)} />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">{t.ledger.account.hintExpense}</p>
+                </FormItem>
+              )}
+            />
+            {kind === "bill" ? <SwitchField control={form.control} name="autopay" label={f.autopay} description={t.ledger.timing.autopayHint} /> : null}
             <SwitchField control={form.control} name="essential" label={f.essential} description={f.essentialHint} />
             {mode === "edit" ? <SwitchField control={form.control} name="paused" label={f.paused} description={f.pausedHint} /> : null}
           </div>

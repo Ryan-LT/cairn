@@ -2,7 +2,7 @@ import { requireActiveUser } from "@/shared/api/account";
 import { saveTablesWithAudit } from "@/shared/api/audit-log";
 import { getSql } from "@/shared/api/db";
 import { isCrossSiteRequest } from "@/shared/api/request-guard";
-import { isTableKey, type TableKey } from "@/shared/storage/table-keys";
+import { isStoredKey, type StoredKey } from "@/shared/storage/table-keys";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
 
     const tables: Record<string, unknown> = {};
     for (const row of rows) {
-      if (isTableKey(row.key)) {
+      if (isStoredKey(row.key)) {
         tables[row.key] = row.value;
       }
     }
@@ -86,7 +86,7 @@ export async function PUT(req: Request) {
   }
 
   const entries = Object.entries(tables as Record<string, unknown>).filter(
-    (e): e is [TableKey, unknown] => isTableKey(e[0]) && e[1] !== undefined,
+    (e): e is [StoredKey, unknown] => isStoredKey(e[0]) && e[1] !== undefined,
   );
 
   const saves = entries.map(([key, value]) => ({ key, value, payload: JSON.stringify(value) }));

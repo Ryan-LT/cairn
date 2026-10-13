@@ -12,6 +12,7 @@ import {
   History,
   Landmark,
   Loader2,
+  Receipt,
   RotateCw,
   Search,
   Settings,
@@ -68,6 +69,7 @@ const ENTITY_ICONS: Record<AuditEntityType, LucideIcon> = {
   goal_plan: Target,
   goal_primary: Target,
   settings: Settings,
+  transaction: Receipt,
 };
 
 const ACTION_TONE: Record<ActivityEntry["action"], StatusTone> = { add: "success", update: "info", remove: "danger" };

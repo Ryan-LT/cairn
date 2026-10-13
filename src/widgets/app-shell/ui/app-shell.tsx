@@ -15,6 +15,7 @@ import { SidebarInset, SidebarProvider } from "@/shared/ui/kit/sidebar";
 import { retryInitialLoad, useAppDataState, useAppSync, type AppDataState } from "../model/app-data";
 import { useNavigationSkeletonPath } from "../model/navigation";
 import { ShellProvider } from "../model/shell-context";
+import { useLedgerAutomation } from "../model/use-ledger-automation";
 import { useNetWorthTracking } from "../model/use-net-worth-tracking";
 import { AppErrorScreen } from "./app-error-screen";
 import { AppSidebar } from "./app-sidebar";
@@ -53,6 +54,7 @@ function AppShellFrame({ authEnabled, children }: AppShellProps) {
   useAppSync(dataState);
   useFollowAccountLanguage();
   useNetWorthTracking();
+  useLedgerAutomation();
   const { t } = useI18n();
   const sidebarOpen = useSidebarOpenPreference();
 

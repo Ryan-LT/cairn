@@ -93,6 +93,8 @@ export type MonthView = {
     budgetsSpent: number;
     /** Spending above budgets. */
     overBudget: number;
+    /** Spent outside the plan (instant spending); already in `settled`. */
+    unplanned: number;
   };
   calendar: MonthCalendarDay[];
 };
@@ -124,8 +126,10 @@ function billLine(
   const skipped = entry?.skipped === true;
 
   // Autopay settles each occurrence on its due day (an undated one only once the month is over).
+  // From `autoSince` on, autopay payments are real ledger entries, so nothing is assumed.
+  const recorded = Boolean(item.autoSince && monthKey >= item.autoSince.slice(0, 7));
   const passed = ctx.isPast ? occurrences : dueDates.filter((d) => d <= ctx.todayIso).length;
-  const autoCount = item.autopay && !skipped ? Math.max(0, Math.min(occurrences, passed) - paidCount) : 0;
+  const autoCount = item.autopay && !skipped && !recorded ? Math.max(0, Math.min(occurrences, passed) - paidCount) : 0;
   const covered = paidCount + autoCount;
 
   const settled = skipped ? 0 : paid + autoCount * perOccurrence;
@@ -134,7 +138,7 @@ function billLine(
 
   let status: BillStatus;
   if (skipped) status = "skipped";
-  else if (covered >= occurrences) status = autoCount > 0 ? "autopaid" : "paid";
+  else if (covered >= occurrences) status = autoCount > 0 || (paidCount > 0 && payments.every((p) => p.auto)) ? "autopaid" : "paid";
   else if (ctx.isFuture) status = "upcoming";
   else if (nextDue && item.createdAt && nextDue < item.createdAt) status = "unconfirmed";
   else if (nextDue) {
@@ -229,7 +233,8 @@ export function buildMonthView(input: {
   const budgetsPlanned = sum(budgets.map((b) => b.planned));
   const budgetsSpent = sum(budgets.map((b) => b.spent));
   const remaining = sum(bills.map((b) => b.remaining)) + sum(budgets.map((b) => Math.max(0, b.remaining)));
-  const settled = billsSettled + budgetsSpent;
+  const unplanned = Math.max(0, log.unplanned?.[monthKey] ?? 0);
+  const settled = billsSettled + budgetsSpent + unplanned;
 
   const paydays = input.paydays ?? [];
   const calendar: MonthCalendarDay[] = Array.from({ length: daysInMonth(monthKey) }, (_, i) => {
@@ -268,6 +273,7 @@ export function buildMonthView(input: {
       budgetsPlanned,
       budgetsSpent,
       overBudget: sum(budgets.map((b) => Math.max(0, b.spent - b.planned))),
+      unplanned,
     },
     calendar,
   };

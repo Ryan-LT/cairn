@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, Link2Off, Plus, Sparkles, Zap } from "lucide-react";
+import { Download, Link2Off, Plus, ScrollText, Sparkles, Zap } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -187,6 +188,12 @@ export function SpendingPage() {
       <TabToolbar
         actions={
           <>
+            <Button variant="outline" asChild>
+              <Link href="/cashflow/history">
+                <ScrollText />
+                <span className="max-sm:sr-only">{t.ledger.history.openHistoryExpense}</span>
+              </Link>
+            </Button>
             <Button variant="outline" onClick={() => setCsvOpen(true)}>
               <Download />
               <span className="max-sm:sr-only">{sp.exportCsv}</span>
