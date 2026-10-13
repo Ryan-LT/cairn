@@ -121,3 +121,10 @@ CREATE TABLE IF NOT EXISTS wealthtracker_feedback (
 
 CREATE INDEX IF NOT EXISTS wealthtracker_feedback_created_idx ON wealthtracker_feedback (created_at DESC);
 CREATE INDEX IF NOT EXISTS wealthtracker_feedback_status_idx ON wealthtracker_feedback (status, created_at DESC);
+
+-- Last good live rates (USD/VND, gold per chỉ) for when every source is down; GET /api/rates fills it.
+CREATE TABLE IF NOT EXISTS wealthtracker_rates_cache (
+  id TEXT PRIMARY KEY,
+  payload JSONB NOT NULL,
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
