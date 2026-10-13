@@ -35,6 +35,7 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
 
   return (
     <Section
+      help="checkpoints"
       title={c.title}
       description={c.description}
       actions={

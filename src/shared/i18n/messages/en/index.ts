@@ -23,6 +23,7 @@ import { assist } from "./assist";
 import { currency } from "./currency";
 import { ledger } from "./ledger";
 import { health } from "./health";
+import { help } from "./help";
 
 /** English messages: the source of truth. Every other language must match this shape exactly. */
 export const en = {
@@ -51,6 +52,7 @@ export const en = {
   currency,
   ledger,
   health,
+  help,
 };
 
 export type Messages = typeof en;

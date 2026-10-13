@@ -34,6 +34,7 @@ import { Button } from "@/shared/ui/kit/button";
 import { Card } from "@/shared/ui/kit/card";
 import { ListGroup, ListRow } from "@/shared/ui/list";
 import { Money } from "@/shared/ui/money";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
 import { TabContent, TabToolbar } from "@/widgets/app-shell";
 
@@ -115,10 +116,11 @@ export function DebtsPage() {
       ) : (
         <>
           <StatGrid className="xl:grid-cols-3">
-            <StatCard label={t.debts.kpi.avgRate.label} icon={Percent} value={formatPercent(weightedAverageRate(debts))} hint={t.debts.kpi.avgRate.hint} />
-            <StatCard label={t.debts.kpi.interest.label} icon={Flame} value={<Money value={totalMonthlyInterest(debts)} compact />} hint={t.debts.kpi.interest.hint} />
+            <StatCard help="debtAvgRate" label={t.debts.kpi.avgRate.label} icon={Percent} value={formatPercent(weightedAverageRate(debts))} hint={t.debts.kpi.avgRate.hint} />
+            <StatCard help="debtInterest" label={t.debts.kpi.interest.label} icon={Flame} value={<Money value={totalMonthlyInterest(debts)} compact />} hint={t.debts.kpi.interest.hint} />
             <StatCard
               className="max-xl:col-span-2"
+              help="debtMonthly"
               label={t.debts.form.monthlyPayment}
               icon={TrendingDown}
               value={<Money value={monthlyTotal} compact />}
@@ -127,10 +129,11 @@ export function DebtsPage() {
           </StatGrid>
 
           {target && debts.length > 1 ? (
-            <Card className="gap-2 border-capstone/50 bg-capstone-soft px-5">
+            <Card className="gap-2 border-capstone/50 bg-capstone-soft px-5" data-help="debtPriority">
               <p className="flex items-center gap-2 text-sm font-semibold text-capstone-ink">
                 <Flame className="size-4" aria-hidden />
                 {w.priority}: {target.name} · {formatPercent(target.ratePct)}
+                <HelpHint topic="debtPriority" className="-my-1" />
               </p>
               <p className="text-sm">{w.priorityHint}</p>
               {impact && impact.monthsSaved > 0 ? (
@@ -141,7 +144,7 @@ export function DebtsPage() {
             </Card>
           ) : null}
 
-          <ListGroup title={t.debts.allDebts} aside={<Money value={debts.reduce((s, d) => s + Math.max(0, d.balance), 0)} compact interactive={false} />}>
+          <ListGroup title={t.debts.allDebts} help="debtList" aside={<Money value={debts.reduce((s, d) => s + Math.max(0, d.balance), 0)} compact interactive={false} />}>
             {sorted.map((d) => {
               const sub = debtSubtitle(t, d);
               const bill = billForDebt(expenses.items, d.id);

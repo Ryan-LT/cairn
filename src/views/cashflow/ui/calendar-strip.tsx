@@ -43,7 +43,7 @@ export function CalendarStrip({
   }, [view.monthKey]);
 
   return (
-    <section aria-label={t.cashflow.month.calendar}>
+    <section aria-label={t.cashflow.month.calendar} data-help="monthCalendar">
       <ol ref={ref} className="no-scrollbar flex gap-1.5 overflow-x-auto scroll-smooth pb-1 motion-reduce:scroll-auto">
         {view.calendar.map((d) => {
           const isToday = d.iso === todayIso;

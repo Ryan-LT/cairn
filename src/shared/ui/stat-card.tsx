@@ -2,7 +2,9 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import type { HelpTopic } from "@/shared/config/help";
 import { cn } from "@/shared/lib/cn";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { Card } from "@/shared/ui/kit/card";
 import { Skeleton } from "@/shared/ui/kit/skeleton";
 
@@ -19,11 +21,13 @@ type StatCardProps = {
   loading?: boolean;
   /** `hero`: the page's headline figure (larger, with the soft glow). */
   variant?: "default" | "hero";
+  /** A "?" beside the label explaining the figure (also found by "explain this screen"). */
+  help?: HelpTopic;
   className?: string;
 };
 
 /** KPI tile with a single fixed type scale. */
-export function StatCard({ label, value, icon: Icon, hint, aside, href, loading, variant = "default", className }: StatCardProps) {
+export function StatCard({ label, value, icon: Icon, hint, aside, href, loading, variant = "default", help, className }: StatCardProps) {
   const hero = variant === "hero";
   return (
     <Card
@@ -33,8 +37,10 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
         href && "transition-colors focus-within:border-ring hover:border-foreground/20 hover:bg-accent/30",
         className,
       )}
+      data-help={help}
     >
       <div className="flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-start gap-0.5">
         {href ? (
           // Stretched link: the whole card is clickable without nesting the value's button inside a link.
           <Link
@@ -46,6 +52,8 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
         ) : (
           <p className="line-clamp-2 text-sm leading-snug font-medium text-muted-foreground">{label}</p>
         )}
+        {help ? <HelpHint topic={help} className="-my-0.5" /> : null}
+        </div>
         {Icon ? <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground max-sm:hidden" aria-hidden /> : null}
       </div>
       {/* Big standalone numbers use proportional figures (tabular only in columns). */}

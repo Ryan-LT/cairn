@@ -8,6 +8,7 @@ import { GoalStatusBadge } from "@/entities/goal/ui";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { formatDate, formatPercent } from "@/shared/lib/format";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { Card } from "@/shared/ui/kit/card";
 import { Money } from "@/shared/ui/money";
 import { ProgressRing } from "@/shared/ui/progress-ring";
@@ -65,8 +66,11 @@ export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposing
   const { t } = useI18n();
   const rows = usePlanRows(goals, seedOptions, monthlyNet);
   return (
-    <Card className="gap-0 py-2">
-      <p className="px-4 pt-2 pb-2 text-xs font-medium text-muted-foreground">{t.goals.list.count({ count: goals.profiles.length })}</p>
+    <Card className="gap-0 py-2" data-help="planList">
+      <p className="flex items-center gap-1 px-4 pt-2 pb-2 text-xs font-medium text-muted-foreground">
+        {t.goals.list.count({ count: goals.profiles.length })}
+        <HelpHint topic="planList" className="-my-1" />
+      </p>
       <ul className="grid gap-1 px-2">
         {isComposingNew ? (
           <li>
@@ -91,7 +95,7 @@ export function PlanSwitcher({ goals, seedOptions, monthlyNet, activeId, isCompo
   const { t } = useI18n();
   const rows = usePlanRows(goals, seedOptions, monthlyNet);
   return (
-    <ul className="no-scrollbar -mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1" aria-label={t.goals.list.choosePlan}>
+    <ul className="no-scrollbar -mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1" aria-label={t.goals.list.choosePlan} data-help="planList">
       {rows.map((r) => (
         <li key={r.key} className="w-64 shrink-0 snap-start">
           <PlanButton compact row={r} active={!isComposingNew && r.planId === activeId} onSelect={() => r.planId && onSelect(r.planId)} />

@@ -35,6 +35,7 @@ import type { StatusTone } from "@/shared/lib/tone";
 import { Callout } from "@/shared/ui/callout";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { IconTile } from "@/shared/ui/icon-tile";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { Button } from "@/shared/ui/kit/button";
 import { Input } from "@/shared/ui/kit/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
@@ -321,8 +322,11 @@ export function ActivityPage() {
 
   return (
     <TabContent className="max-w-3xl">
-      <div ref={rootRef}>
-        <p className="text-sm text-muted-foreground">{a.intro}</p>
+      <div ref={rootRef} data-help="activityLog">
+        <p className="text-sm text-muted-foreground">
+          {a.intro}
+          <HelpHint topic="activityLog" className="ml-1 align-middle" />
+        </p>
         <p className="mt-1 text-xs text-muted-foreground">{a.syncNote}</p>
       </div>
 

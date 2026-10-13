@@ -3,6 +3,7 @@
 import { ChevronRight, Plus, Search } from "lucide-react";
 import Link from "next/link";
 
+import { HelpMenu } from "@/features/explain";
 import { PrivacyToggle } from "@/features/privacy-mode";
 import { findNavMatch, QUICK_ADD } from "@/shared/config";
 import { useI18n } from "@/shared/i18n";
@@ -88,6 +89,7 @@ export function TopBar() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <HelpMenu />
           <CurrencyToggle />
           <PrivacyToggle />
           <ThemeToggle className="max-md:hidden" />

@@ -17,6 +17,7 @@ import { cn } from "@/shared/lib/cn";
 import { todayIso } from "@/shared/lib/date";
 import { useTable } from "@/shared/storage";
 import { CairnStones } from "@/shared/ui/cairn-stones";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { Button } from "@/shared/ui/kit/button";
 import { Card } from "@/shared/ui/kit/card";
 import { ProgressRing } from "@/shared/ui/progress-ring";
@@ -46,11 +47,14 @@ export function SetupGuide({ className }: { className?: string }) {
   const setSetup = (patch: NonNullable<typeof prefs.setup>) => setPrefs((p) => ({ ...p, setup: { ...p.setup, ...patch } }));
 
   return (
-    <Card className={cn("gap-4 border-capstone/40 px-5", className)}>
+    <Card className={cn("gap-4 border-capstone/40 px-5", className)} data-help="setupGuide">
       <div className="flex items-start gap-4">
         <CairnStones className="h-12 w-14 shrink-0 max-sm:hidden" />
         <div className="grid min-w-0 flex-1 gap-1">
-          <h2 className="text-base font-semibold">{s.title}</h2>
+          <div className="flex items-center gap-1">
+            <h2 className="text-base font-semibold">{s.title}</h2>
+            <HelpHint topic="setupGuide" />
+          </div>
           <p className="text-sm text-muted-foreground">{s.description({ done: progress.done, total: progress.total })}</p>
         </div>
         <ProgressRing value={progress.done / progress.total} size={44} stroke={5} tone="capstone" label={s.description({ done: progress.done, total: progress.total })}>

@@ -57,6 +57,7 @@ export function CurrencySection() {
     <div id="currency" className="scroll-mt-20">
       <Section
         title={s.title}
+      help="settingsCurrency"
         description={s.description}
         actions={
           <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>

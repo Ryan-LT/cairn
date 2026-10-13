@@ -45,6 +45,7 @@ import { Card } from "@/shared/ui/kit/card";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/kit/dialog";
 import { ListGroup, ListRow } from "@/shared/ui/list";
 import { Money } from "@/shared/ui/money";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { Section } from "@/shared/ui/section";
 import { StackedBar } from "@/shared/ui/stacked-bar";
 import { TabContent, TabToolbar } from "@/widgets/app-shell";
@@ -211,9 +212,12 @@ export function SpendingPage() {
       />
 
       <div className="grid gap-4 md:gap-6 xl:grid-cols-5">
-        <Card className="bg-hero gap-5 px-5 xl:col-span-3">
+        <Card className="bg-hero gap-5 px-5 xl:col-span-3" data-help="spendingTotal">
           <div className="grid gap-1">
-            <p className="text-sm text-muted-foreground">{sp.monthlyTitle}</p>
+            <p className="flex items-center gap-1 text-sm text-muted-foreground">
+              {sp.monthlyTitle}
+              <HelpHint topic="spendingTotal" className="-my-1" />
+            </p>
             <p className="text-display font-semibold md:text-hero">
               <Money value={spending.total} compact />
             </p>
@@ -261,7 +265,7 @@ export function SpendingPage() {
           </div>
         </Card>
 
-        <Section title={sp.byCategory} className="xl:col-span-2">
+        <Section title={sp.byCategory} className="xl:col-span-2" help="spendingByCategory">
           <ul className="grid gap-3">
             {categories.slice(0, TOP_CATEGORIES).map((c) => (
               <li key={c.category} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">

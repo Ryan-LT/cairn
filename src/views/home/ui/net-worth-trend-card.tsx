@@ -26,6 +26,7 @@ export function NetWorthTrendCard({ history, netWorth }: { history: NetWorthMont
 
   return (
     <Section
+      help="netWorthTrend"
       title={m.title}
       description={
         points.length > 1 ? (

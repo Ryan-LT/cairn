@@ -38,6 +38,7 @@ export function StartingBalancesCard({ draft, savedPlans, seedOptions, total, on
     <Section
       title={m.title}
       description={m.description}
+      help="startingBalances"
       actions={
         <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
           <Pencil />

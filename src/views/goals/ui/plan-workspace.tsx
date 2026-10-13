@@ -26,6 +26,7 @@ import { Card } from "@/shared/ui/kit/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/shared/ui/kit/dropdown-menu";
 import { Money } from "@/shared/ui/money";
 import { ProgressRing } from "@/shared/ui/progress-ring";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
 
 import type { GoalPlanEditor } from "../model/use-goal-plan-editor";
@@ -211,13 +212,16 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
         </div>
       </div>
 
-      <Card className="bg-hero gap-3 px-5">
+      <Card className="bg-hero gap-3 px-5" data-help="planHero">
         <div className="flex items-center gap-4 md:gap-6">
           <ProgressRing value={status.progress} size={84} stroke={9} tone={RING_TONE[status.tone]} complete={status.progress >= 1} label={g.hero.ringLabel({ pct })}>
             <span className="text-sm">{pct}</span>
           </ProgressRing>
           <div className="grid min-w-0 flex-1 gap-1">
-            <p className="text-sm text-muted-foreground">{g.hero.setAside}</p>
+            <p className="flex items-center gap-1 text-sm text-muted-foreground">
+              {g.hero.setAside}
+              <HelpHint topic="planHero" className="-my-1" />
+            </p>
             <p className="text-display font-semibold">
               <Money value={startingBalance} compact />
               {draft.targetAmount > 0 ? (
@@ -237,6 +241,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
 
       <StatGrid className="xl:grid-cols-3">
         <StatCard
+          help="planProjected"
           label={g.workspace.kpi.projected}
           icon={TrendingUp}
           value={<Money value={projection.projectedAtTarget} compact />}
@@ -244,6 +249,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
           aside={draft.targetAmount > 0 ? <span>{g.workspace.kpi.vsTarget}</span> : null}
         />
         <StatCard
+          help="planMonthly"
           label={g.workspace.kpi.monthly}
           icon={Wallet}
           value={projection.applyMonthlyIncome ? <Money value={projection.effectiveMonthlyContribution} compact signed tone="auto" /> : g.status.excluded}
@@ -251,6 +257,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
         />
         <StatCard
           className="max-xl:col-span-2"
+          help="planTimeLeft"
           label={g.hero.timeLeft}
           icon={Hourglass}
           value={projection.pastDue ? g.status.datePassed : draft.targetDate ? formatMonths(projection.monthsToTarget) : "—"}
