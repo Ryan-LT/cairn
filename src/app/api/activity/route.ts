@@ -1,6 +1,6 @@
 import { requireActiveUser } from "@/shared/api/account";
-import { readActivity } from "@/shared/api/audit-log";
-import { AUDIT_ENTITY_TYPES } from "@/shared/lib/audit-diff";
+import { readActivity, summarizeActivity } from "@/shared/api/audit-log";
+import { AUDIT_ACTIONS, AUDIT_ENTITY_TYPES } from "@/shared/lib/audit-diff";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,10 @@ function jsonError(message: string, status: number, code?: string) {
 
 /**
  * The signed-in user's change log, newest first.
- * Query: `limit` (≤ 200), `before` (id cursor), `types` (comma-separated entity types), `entity` (one record id).
+ * Query: `limit` (≤ 200), `before` (id cursor), `types` (comma-separated entity types),
+ * `actions` (add / update / remove), `entity` (one record id), `q` (name contains),
+ * `until` (ISO instant: only entries saved before it). The first page (no cursor)
+ * also returns `summary`: how many entries match and when the oldest was saved.
  */
 export async function GET(req: Request) {
   try {
@@ -27,13 +30,23 @@ export async function GET(req: Request) {
     const known = new Set<string>(AUDIT_ENTITY_TYPES);
     const entityTypes = (params.get("types") ?? "").split(",").filter((t) => known.has(t));
     const entityId = params.get("entity")?.slice(0, 200) || undefined;
+    const knownActions = new Set<string>(AUDIT_ACTIONS);
+    const actions = (params.get("actions") ?? "").split(",").filter((a) => knownActions.has(a));
+    const search = params.get("q")?.slice(0, 100) || undefined;
+    const untilRaw = params.get("until");
+    const until = untilRaw && !Number.isNaN(Date.parse(untilRaw)) ? new Date(untilRaw).toISOString() : undefined;
+    const filters = { entityTypes, entityId, actions, search };
 
     // One extra row tells whether there is another page.
-    const rows = await readActivity(user.sub, { limit: limit + 1, before, entityTypes, entityId });
-    if (rows === null) return Response.json({ available: false, entries: [], nextBefore: null });
+    const [rows, summary] = await Promise.all([
+      readActivity(user.sub, { ...filters, limit: limit + 1, before, until }),
+      before === undefined ? summarizeActivity(user.sub, filters) : null,
+    ]);
+    if (rows === null) return Response.json({ available: false, entries: [], nextBefore: null, summary: null });
     const page = rows.slice(0, limit);
     return Response.json({
       available: true,
+      summary,
       entries: page.map((r) => ({
         id: r.id,
         at: new Date(r.occurred_at).toISOString(),

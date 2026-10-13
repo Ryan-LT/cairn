@@ -74,6 +74,16 @@ export function SpendingPage() {
   const paused = expenses.items.filter((i) => !i.archivedAt && i.paused);
   const spending = cash.spending;
   const categories = useMemo(() => spendingByCategory(expenses.items, debts), [expenses.items, debts]);
+  const byKind = useMemo(() => {
+    let bills = 0;
+    let budgets = 0;
+    for (const item of liveItems(expenses.items)) {
+      const monthly = monthlyEquivalent(item, linkedDebt(item, debts));
+      if (item.kind === "bill") bills += monthly;
+      else budgets += monthly;
+    }
+    return { bills, budgets };
+  }, [expenses.items, debts]);
   const split = useMemo(
     () => needsWantsSavings({ items: expenses.items, debts, income: cash.totalIncome, unclassified: spending.unitemized }),
     [expenses.items, debts, cash.totalIncome, spending.unitemized],
@@ -204,6 +214,20 @@ export function SpendingPage() {
               {sp.itemsCount({ count: live.length })} · {sp.monthlyHint}
             </p>
           </div>
+          <dl aria-label={sp.mix.label} className="grid grid-cols-3 gap-3 rounded-xl border bg-background/60 p-3">
+            {[
+              { key: "bills", label: sp.mix.bills, value: byKind.bills },
+              { key: "budgets", label: sp.mix.budgets, value: byKind.budgets },
+              { key: "day", label: sp.mix.perDay, value: (spending.total * 12) / 365 },
+            ].map((s) => (
+              <div key={s.key} className="grid min-w-0 gap-0.5">
+                <dt className="truncate text-xs text-muted-foreground">{s.label}</dt>
+                <dd className="font-semibold">
+                  <Money value={s.value} compact interactive={false} />
+                </dd>
+              </div>
+            ))}
+          </dl>
           {/* Pinned to the bottom: the card matches the category list's height. */}
           <div className="mt-auto grid gap-2">
             <p className="text-sm font-medium">{sp.split.title}</p>

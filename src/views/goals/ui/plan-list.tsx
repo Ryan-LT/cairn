@@ -45,7 +45,7 @@ function PlanButton({ row, active, onSelect, compact }: { row: GoalPlanWithStatu
         compact && active && "border-primary bg-primary-soft",
       )}
     >
-      <ProgressRing value={row.status.progress} size={44} stroke={5} tone={ringTone(row)} label={t.goals.hero.ringLabel({ pct })}>
+      <ProgressRing value={row.status.progress} size={44} stroke={5} tone={ringTone(row)} complete={row.status.progress >= 1} label={t.goals.hero.ringLabel({ pct })}>
         <span className="text-xs">{pct}</span>
       </ProgressRing>
       <span className="grid min-w-0 flex-1 gap-1">

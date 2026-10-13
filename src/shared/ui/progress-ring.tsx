@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/shared/lib/cn";
@@ -22,12 +23,14 @@ type ProgressRingProps = {
   /** Accessible description, e.g. "40 % of target". */
   label: string;
   className?: string;
+  /** Reached: a full green ring with a check in the middle replaces the centre label. */
+  complete?: boolean;
   children?: ReactNode;
 };
 
 /** Circular progress with an optional centre label. */
-export function ProgressRing({ value, size = 56, stroke = 6, tone = "primary", label, className, children }: ProgressRingProps) {
-  const v = Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
+export function ProgressRing({ value, size = 56, stroke = 6, tone = "primary", label, className, complete, children }: ProgressRingProps) {
+  const v = complete ? 1 : Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   return (
@@ -48,12 +51,19 @@ export function ProgressRing({ value, size = 56, stroke = 6, tone = "primary", l
           style={{ "--ring-c": c } as CSSProperties}
           className={cn(
             "transition-[stroke-dashoffset] duration-700 ease-out motion-safe:animate-ring-fill motion-reduce:transition-none",
-            TONES[tone],
+            TONES[complete ? "success" : tone],
             v === 0 && "opacity-0",
           )}
         />
       </svg>
-      {children ? <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold tabular-nums">{children}</span> : null}
+      {complete ? (
+        // A soft disc inside the ring; the check pops in once the ring has filled.
+        <span className="absolute flex items-center justify-center rounded-full bg-success/12 text-success" style={{ inset: stroke + 2 }}>
+          <Check className="size-[58%] [animation-delay:700ms] motion-safe:animate-check-pop motion-safe:[animation-fill-mode:backwards]" strokeWidth={3} aria-hidden />
+        </span>
+      ) : children ? (
+        <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold tabular-nums">{children}</span>
+      ) : null}
     </div>
   );
 }

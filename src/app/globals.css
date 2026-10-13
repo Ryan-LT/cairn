@@ -313,8 +313,10 @@
   *::-webkit-scrollbar-track {
     background: transparent;
   }
+  /* Room for the scrollbar is kept even when nothing scrolls, so pages don't jump sideways when it comes and goes. */
   html {
     @apply overflow-x-hidden;
+    scrollbar-gutter: stable;
     font-family: var(--font-sans);
     -webkit-tap-highlight-color: transparent;
   }
@@ -336,6 +338,8 @@
   html:has([data-app-shell]) body {
     height: 100%;
     overflow: hidden;
+    /* The content area scrolls (and keeps its own gutter), not the document. */
+    scrollbar-gutter: auto;
     overscroll-behavior: none;
   }
 

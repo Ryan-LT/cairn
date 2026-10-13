@@ -110,7 +110,7 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
 
 function DialogBody({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="dialog-body" className={cn("min-h-0 flex-1 overflow-y-auto px-5 pt-1 pb-5", className)} {...props} />
+    <div data-slot="dialog-body" className={cn("min-h-0 flex-1 overflow-y-auto px-5 pt-1 pb-5 [scrollbar-gutter:stable]", className)} {...props} />
   );
 }
 

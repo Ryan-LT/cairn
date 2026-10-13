@@ -1,6 +1,7 @@
 import { getSql } from "@/shared/api/db";
 import { ensureSchema } from "@/shared/api/lazy-schema";
 import { diffTable, expenseNamesOf, type AuditChange, type AuditContext } from "@/shared/lib/audit-diff";
+import { FOLD_FROM, FOLD_TO, foldSearch } from "@/shared/lib/search-fold";
 import type { TableKey } from "@/shared/storage/table-keys";
 
 /** Optimistic tries (another save kept landing in between) before the locking fallback. */
@@ -139,12 +140,20 @@ export async function saveTablesWithAudit(userId: string, saves: Save[], userAge
   }
 }
 
-export type ActivityQuery = {
+export type ActivityFilters = {
+  entityTypes?: string[];
+  entityId?: string;
+  actions?: string[];
+  /** Name contains this (case and Vietnamese accents ignored). */
+  search?: string;
+};
+
+export type ActivityQuery = ActivityFilters & {
   limit: number;
   /** Entries older than this id (cursor from the previous page). */
   before?: number;
-  entityTypes?: string[];
-  entityId?: string;
+  /** Entries saved before this instant (ISO): "jump to a month". */
+  until?: string;
 };
 
 export type ActivityRow = {
@@ -161,18 +170,48 @@ export type ActivityRow = {
   after: unknown;
 };
 
+/** `LIKE` pattern for "contains", taking the user's `%`, `_` and backslash literally. */
+function containsPattern(search: string | undefined): string | null {
+  const folded = search ? foldSearch(search) : "";
+  return folded ? `%${folded.replace(/[\\%_]/g, "\\$&")}%` : null;
+}
+
 /** The user's change log, newest first. `null` when the log table isn't available. */
 export async function readActivity(userId: string, q: ActivityQuery): Promise<ActivityRow[] | null> {
   if (!(await ensureSchema("audit"))) return null;
   const types = q.entityTypes?.length ? q.entityTypes : null;
+  const actions = q.actions?.length ? q.actions : null;
+  const pattern = containsPattern(q.search);
   return (await getSql()`
     SELECT id::text, occurred_at, batch_id, table_key, entity_type, entity_id, entity_name, action, changes, before, after
     FROM wealthtracker_audit_log
     WHERE user_id = ${userId}
       AND (${q.before ?? null}::bigint IS NULL OR id < ${q.before ?? null}::bigint)
+      AND (${q.until ?? null}::timestamptz IS NULL OR occurred_at < ${q.until ?? null}::timestamptz)
       AND (${types}::text[] IS NULL OR entity_type = ANY(${types}::text[]))
+      AND (${actions}::text[] IS NULL OR action = ANY(${actions}::text[]))
       AND (${q.entityId ?? null}::text IS NULL OR entity_id = ${q.entityId ?? null}::text)
+      AND (${pattern}::text IS NULL OR lower(translate(normalize(coalesce(entity_name, ''), NFC), ${FOLD_FROM}, ${FOLD_TO})) LIKE ${pattern}::text ESCAPE '\\')
     ORDER BY id DESC
     LIMIT ${q.limit}
   `) as ActivityRow[];
+}
+
+/** How many entries match (ignoring the cursor and month jump) and when the oldest was saved. */
+export async function summarizeActivity(userId: string, q: ActivityFilters): Promise<{ total: number; oldest: string | null } | null> {
+  if (!(await ensureSchema("audit"))) return null;
+  const types = q.entityTypes?.length ? q.entityTypes : null;
+  const actions = q.actions?.length ? q.actions : null;
+  const pattern = containsPattern(q.search);
+  const rows = (await getSql()`
+    SELECT count(*)::int AS total, min(occurred_at) AS oldest
+    FROM wealthtracker_audit_log
+    WHERE user_id = ${userId}
+      AND (${types}::text[] IS NULL OR entity_type = ANY(${types}::text[]))
+      AND (${actions}::text[] IS NULL OR action = ANY(${actions}::text[]))
+      AND (${q.entityId ?? null}::text IS NULL OR entity_id = ${q.entityId ?? null}::text)
+      AND (${pattern}::text IS NULL OR lower(translate(normalize(coalesce(entity_name, ''), NFC), ${FOLD_FROM}, ${FOLD_TO})) LIKE ${pattern}::text ESCAPE '\\')
+  `) as { total: number; oldest: string | Date | null }[];
+  const oldest = rows[0]?.oldest;
+  return { total: rows[0]?.total ?? 0, oldest: oldest ? new Date(oldest).toISOString() : null };
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import type { MouseEvent, ReactNode } from "react";
+import { createContext, useContext, useState, type MouseEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import { findNavMatch, NAV_HUBS, type HubId } from "@/shared/config";
 import { useI18n } from "@/shared/i18n";
@@ -8,6 +9,9 @@ import { cn } from "@/shared/lib/cn";
 import { TabLinks } from "@/shared/ui/tab-links";
 
 import { useOptimisticNavigation } from "../model/navigation";
+
+/** Desktop: where a tab's main actions go (the right end of the sticky tab bar). */
+const HubActionsSlot = createContext<HTMLElement | null>(null);
 
 type HubFrameProps = {
   hub: HubId;
@@ -28,6 +32,7 @@ type HubFrameProps = {
  */
 export function HubFrame({ hub, activePath, onNavigate, summary, skeleton, children }: HubFrameProps) {
   const { t } = useI18n();
+  const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null);
   const nav = NAV_HUBS.find((h) => h.id === hub);
   const match = findNavMatch(activePath);
   const activeTab = match?.hub.id === hub ? match.tab : undefined;
@@ -49,11 +54,13 @@ export function HubFrame({ hub, activePath, onNavigate, summary, skeleton, child
       </header>
       {summary}
       {tabs.length > 1 ? (
-        <div className="sticky top-0 z-20 -mx-4 bg-background/90 px-4 py-2 backdrop-blur-md md:-mx-6 md:px-6">
-          <TabLinks tabs={tabs} label={t.shell.sectionTabs} onNavigate={onNavigate} />
+        <div className="sticky top-0 z-20 -mx-4 flex items-center gap-3 bg-background/90 px-4 py-2 backdrop-blur-md md:-mx-6 md:px-6">
+          <TabLinks tabs={tabs} label={t.shell.sectionTabs} onNavigate={onNavigate} className="min-w-0" />
+          {/* Desktop: the tab's actions (Add, Export…) sit here, so they stay at hand while scrolling. */}
+          <div ref={setActionsSlot} className="ml-auto hidden shrink-0 items-center gap-2 md:flex" />
         </div>
       ) : null}
-      {children}
+      <HubActionsSlot.Provider value={actionsSlot}>{children}</HubActionsSlot.Provider>
     </div>
   );
 }
@@ -73,8 +80,26 @@ export function TabContent({ className, children }: { className?: string; childr
   return <div className={cn("stagger-in flex min-w-0 flex-col gap-5 md:gap-6", className)}>{children}</div>;
 }
 
-/** A tab's first row: context on the left, its main actions on the right. */
+/**
+ * A tab's first row: context on the left (month, search), its main actions on
+ * the right. Inside a section with tabs, desktop shows the actions in the tab
+ * bar instead, and a toolbar with nothing on the left takes no row at all;
+ * phones keep the row, with the buttons filling it.
+ */
 export function TabToolbar({ children, actions, className }: { children?: ReactNode; actions?: ReactNode; className?: string }) {
+  const slot = useContext(HubActionsSlot);
+  const hasContext = children !== undefined && children !== null && children !== false;
+  if (slot && actions) {
+    return (
+      <>
+        {createPortal(actions, slot)}
+        <div className={cn("flex flex-wrap items-center justify-between gap-3", !hasContext && "md:hidden", className)}>
+          {hasContext ? <div className="min-w-0 flex-1">{children}</div> : null}
+          <div className={cn("flex shrink-0 flex-wrap items-center gap-2 md:hidden", !hasContext && "w-full [&>*:last-child]:flex-1")}>{actions}</div>
+        </div>
+      </>
+    );
+  }
   return (
     <div className={cn("flex flex-wrap items-center justify-between gap-3", className)}>
       <div className="min-w-0 flex-1">{children}</div>

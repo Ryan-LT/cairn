@@ -181,7 +181,7 @@ export function GoalsGlance({ plans, onOpen, className }: { plans: GoalPlanWithS
                   onClick={() => p.planId && onOpen(p.planId)}
                   className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring"
                 >
-                  <ProgressRing value={p.status.progress} size={48} stroke={5} tone={RING[p.status.tone]} label={t.goals.hero.ringLabel({ pct })}>
+                  <ProgressRing value={p.status.progress} size={48} stroke={5} tone={RING[p.status.tone]} complete={p.status.progress >= 1} label={t.goals.hero.ringLabel({ pct })}>
                     <span className="text-xs">{pct}</span>
                   </ProgressRing>
                   <span className="grid min-w-0 flex-1 gap-1">
