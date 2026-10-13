@@ -148,7 +148,6 @@ function ScrollArea({ dataState, children }: { dataState: AppDataState; children
       ref={ref}
       aria-busy={skeletonPath !== null || dataState === "loading" || undefined}
       // `relative`: absolutely positioned descendants (sr-only text) must be clipped here, or they stretch the frame and it scrolls.
-      data-app-scroll
       // Bottom room for the tab bar (phones) and the floating assistant buttons.
       className="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[calc(8.5rem+env(safe-area-inset-bottom))] md:pb-24"
     >
