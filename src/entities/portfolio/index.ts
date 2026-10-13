@@ -29,3 +29,16 @@ export {
 export { legacyHoldingsCount, migrateLegacyHoldings, type LegacyMigration } from "@/entities/portfolio/lib/legacy-migration";
 export { buildInsights, INSIGHT_RULES, type Insight, type InsightCode, type InsightSeverity } from "@/entities/portfolio/lib/insights";
 export { computeSetupProgress, SETUP_STEPS, type SetupProgress, type SetupStepId } from "@/entities/portfolio/lib/setup-progress";
+export {
+  computeHealthReport,
+  gradeOf,
+  HEALTH_WEIGHTS,
+  linearScore,
+  monthlyDebtPayments,
+  type HealthArea,
+  type HealthGrade,
+  type HealthMetric,
+  type HealthMetricId,
+  type HealthReport,
+  type HealthValue,
+} from "@/entities/portfolio/lib/health-report";

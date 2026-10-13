@@ -24,6 +24,7 @@ import { activity } from "./activity";
 import { assist } from "./assist";
 import { currency } from "./currency";
 import { ledger } from "./ledger";
+import { health } from "./health";
 
 /** Vietnamese messages. */
 export const vi: Messages = {
@@ -51,4 +52,5 @@ export const vi: Messages = {
   assist,
   currency,
   ledger,
+  health,
 };
