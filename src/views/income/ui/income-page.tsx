@@ -111,6 +111,7 @@ export function IncomePage() {
             <ListGroup
               key={kind}
               title={kind === "active" ? t.income.activeTitle : t.income.passiveTitle}
+              help={kind === "active" ? "incomeActive" : "incomePassive"}
               aside={
                 <span>
                   <Money value={kind === "active" ? cash.activeIncome : cash.passiveIncome} compact interactive={false} /> {t.expenses.per.monthly}

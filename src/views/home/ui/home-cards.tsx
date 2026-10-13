@@ -10,6 +10,7 @@ import type { GoalPlanWithStatus } from "@/entities/goal";
 import { GoalStatusBadge } from "@/entities/goal/ui";
 import type { CashflowSummary, FinancialHealth, HealthGrade } from "@/entities/portfolio";
 import type { NetWorthMonthSnapshot } from "@/entities/preferences";
+import type { HelpTopic } from "@/shared/config/help";
 import { buildNetWorthTrend } from "@/entities/preferences";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
@@ -17,6 +18,7 @@ import { formatDate, formatMoneyCompact, formatMonths, formatNumber, formatPerce
 import { monthsToReach } from "@/shared/lib/growth";
 import type { StatusTone } from "@/shared/lib/tone";
 import { AnimatedMoney } from "@/shared/ui/animated-money";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { Sparkline } from "@/shared/ui/chart";
 import { Button } from "@/shared/ui/kit/button";
 import { Card } from "@/shared/ui/kit/card";
@@ -25,10 +27,13 @@ import { ProgressRing } from "@/shared/ui/progress-ring";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { BillRow, type RecordActions } from "@/widgets/bill-list";
 
-function CardHeading({ title, href, linkLabel }: { title: string; href?: string; linkLabel?: string }) {
+function CardHeading({ title, href, linkLabel, help }: { title: string; href?: string; linkLabel?: string; help?: HelpTopic }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <h2 className="text-base font-semibold">{title}</h2>
+      <div className="flex min-w-0 items-center gap-1">
+        <h2 className="text-base font-semibold">{title}</h2>
+        {help ? <HelpHint topic={help} /> : null}
+      </div>
       {href ? (
         <Link href={href} className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground" aria-label={linkLabel ?? title}>
           {linkLabel ? <span className="max-sm:hidden">{linkLabel}</span> : null}
@@ -93,9 +98,12 @@ export function NetWorthHero({
   const values = trend.map((p) => p.value);
   const change = values.length > 1 ? values[values.length - 1] - values[0] : 0;
   return (
-    <Card className={cn("bg-hero gap-4 px-5", className)}>
+    <Card className={cn("bg-hero gap-4 px-5", className)} data-help="netWorth">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-sm font-medium text-muted-foreground">{h.netWorth}</p>
+        <p className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
+          {h.netWorth}
+          <HelpHint topic="netWorth" className="-my-1" />
+        </p>
         {Math.abs(mtdPct) >= 0.05 ? (
           <StatusBadge tone={mtdPct >= 0 ? "success" : "danger"}>
             {formatPercent(mtdPct, { signDisplay: "exceptZero", maximumFractionDigits: 1 })} {h.thisMonthChange}
@@ -144,8 +152,8 @@ export function MonthGlance({ month, cash, className }: { month: MonthView; cash
     </div>
   );
   return (
-    <Card className={cn("gap-4 px-5", className)}>
-      <CardHeading title={h.title} href="/cashflow" linkLabel={h.open} />
+    <Card className={cn("gap-4 px-5", className)} data-help="monthGlance">
+      <CardHeading title={h.title} href="/cashflow" linkLabel={h.open} help="monthGlance" />
       <div className="flex items-center gap-4">
         <ProgressRing value={share} size={64} stroke={7} label={t.cashflow.month.ringLabel({ pct: formatPercent(share * 100, { maximumFractionDigits: 0 }) })}>
           {formatPercent(Math.min(999, share * 100), { maximumFractionDigits: 0 })}
@@ -195,9 +203,9 @@ export function DueBills({
   const later = upcoming.slice(0, Math.max(0, 3 - lines.length));
   // A card like its neighbours (title inside), so a row of cards shares one top and bottom edge.
   return (
-    <Card className={cn("gap-0 py-0", className)}>
+    <Card className={cn("gap-0 py-0", className)} data-help="dueBills">
       <div className="px-4 pt-4 pb-2">
-        <CardHeading title={h.title} href="/cashflow" linkLabel={h.viewAll} />
+        <CardHeading title={h.title} href="/cashflow" linkLabel={h.viewAll} help="dueBills" />
       </div>
       {lines.length ? (
         <ul className="divide-y border-t">
@@ -317,8 +325,8 @@ export function GoalsGlance({ plans, onOpen, className }: { plans: GoalPlanWithS
     </div>
   );
   return (
-    <Card className={cn("gap-3 px-5", className)}>
-      <CardHeading title={h.title} href="/goals" linkLabel={h.viewAll} />
+    <Card className={cn("gap-3 px-5", className)} data-help="goalsGlance">
+      <CardHeading title={h.title} href="/goals" linkLabel={h.viewAll} help="goalsGlance" />
       {plans.length === 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">{h.empty}</p>
@@ -406,7 +414,7 @@ export function HealthTiles({
   const e = health.emergencyMonths;
   const d = health.debtToAssets;
   return (
-    <Card className={cn("gap-3 px-5", className)}>
+    <Card className={cn("gap-3 px-5", className)} data-help="healthScore">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           {score ? (
@@ -417,7 +425,10 @@ export function HealthTiles({
             </button>
           ) : null}
           <div className="min-w-0">
-            <h2 className="text-base font-semibold">{h.title}</h2>
+            <div className="flex items-center gap-1">
+              <h2 className="text-base font-semibold">{h.title}</h2>
+              <HelpHint topic="healthScore" />
+            </div>
             {score ? <p className="truncate text-xs text-muted-foreground">{t.health.grades[score.grade]}</p> : null}
           </div>
         </div>

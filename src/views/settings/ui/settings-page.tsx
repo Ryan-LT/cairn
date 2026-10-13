@@ -85,7 +85,7 @@ export function SettingsPage() {
       <CurrencySection />
 
       <div id="milestone" className="scroll-mt-20">
-        <Section title={s.milestone.title} description={s.milestone.description}>
+        <Section title={s.milestone.title} description={s.milestone.description} help="settingsMilestone">
           <MilestoneForm
             value={prefs.milestone}
             onSave={(milestone) => {
@@ -97,7 +97,7 @@ export function SettingsPage() {
       </div>
 
       <div id="calculation" className="scroll-mt-20">
-        <Section title={s.calculation.title} description={s.calculation.description}>
+        <Section title={s.calculation.title} description={s.calculation.description} help="settingsCalculation">
           <div className="flex items-start justify-between gap-4">
             <div className="grid gap-1">
               <Label htmlFor="loans-in-net-worth">{t.loans.netWorth.label}</Label>
@@ -118,6 +118,7 @@ export function SettingsPage() {
 
       <Section
         title={s.data.title}
+        help="settingsData"
         description={s.data.description}
         actions={
           <Button variant="outline" size="sm" onClick={() => void syncNow()} disabled={syncing || !online}>

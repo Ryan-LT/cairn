@@ -8,17 +8,15 @@ import { cn } from "@/shared/lib/cn";
 import { Button } from "@/shared/ui/kit/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/shared/ui/kit/dropdown-menu";
 
-import { helpSeen } from "../model/store";
+import { helpSeen, subscribeExplain } from "../model/store";
 import { startExplain, startPageTour } from "../model/tour";
-
-const noop = () => () => {};
 
 /** Top-bar "?" menu: explain this screen, or take its tour. Glows until first used on this device. */
 export function HelpMenu({ className }: { className?: string }) {
   const { t } = useI18n();
   const u = t.help.ui;
-  // Read once on the client; the server render assumes "seen" (no glow).
-  const seen = useSyncExternalStore(noop, helpSeen, () => true);
+  // Re-read whenever help starts (that's when it becomes "seen"); the server render assumes seen.
+  const seen = useSyncExternalStore(subscribeExplain, helpSeen, () => true);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

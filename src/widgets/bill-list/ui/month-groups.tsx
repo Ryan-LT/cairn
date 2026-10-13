@@ -4,6 +4,7 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 import type { BillLine, MonthView } from "@/entities/expense";
+import type { HelpTopic } from "@/shared/config/help";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { ListGroup } from "@/shared/ui/list";
@@ -30,12 +31,13 @@ export function MonthGroups({ view, actions, onEdit, day }: MonthGroupsProps) {
   const readOnly = view.isFuture;
   const pick = (lines: BillLine[]) => (day ? lines.filter((l) => l.dueDates.includes(day)) : lines);
 
-  const billGroup = (key: string, title: string, lines: BillLine[], description?: string) =>
+  const billGroup = (key: string, title: string, lines: BillLine[], description?: string, help?: HelpTopic) =>
     lines.length ? (
       <ListGroup
         key={key}
         title={title}
         description={description}
+        help={help}
         aside={<Money value={lines.reduce((s, l) => s + (l.remaining || l.planned), 0)} compact interactive={false} />}
       >
         {lines.map((l) => (
@@ -50,11 +52,12 @@ export function MonthGroups({ view, actions, onEdit, day }: MonthGroupsProps) {
   return (
     <div className="grid gap-5">
       {billGroup("overdue", g.overdue, pick(view.groups.overdue))}
-      {billGroup("confirm", g.needsConfirm, pick(view.groups.needsConfirm), t.cashflow.month.needsConfirmHint)}
+      {billGroup("confirm", g.needsConfirm, pick(view.groups.needsConfirm), t.cashflow.month.needsConfirmHint, "monthNeedsConfirm")}
       {billGroup("soon", g.dueSoon, pick(view.groups.dueSoon))}
       {budgets.length ? (
         <ListGroup
           title={g.budgets}
+          help="monthBudgets"
           aside={
             <span>
               <Money value={view.totals.budgetsSpent} compact interactive={false} /> / <Money value={view.totals.budgetsPlanned} compact interactive={false} />

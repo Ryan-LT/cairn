@@ -69,6 +69,7 @@ export function ProjectionCard(props: ProjectionCardProps) {
 
   return (
     <Section
+      help="projection"
       title={p.title}
       description={summary}
       actions={<ChartViewToggle value={view} onChange={setView} />}
@@ -199,7 +200,7 @@ export function StartingOnlyCard({ startingBalance, targetAmount }: { startingBa
   const m = t.goals.startingOnly;
   const s = evaluateStartingOnlyStatus(startingBalance, targetAmount);
   return (
-    <Section title={m.title} description={m.description}>
+    <Section title={m.title} description={m.description} help="projection">
       {s.kind === "no_target" ? (
         <EmptyState title={m.empty} className="py-8" />
       ) : (

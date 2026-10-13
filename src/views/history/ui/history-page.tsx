@@ -20,6 +20,7 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { IconTile } from "@/shared/ui/icon-tile";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { Card } from "@/shared/ui/kit/card";
 import { Input } from "@/shared/ui/kit/input";
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
@@ -167,20 +168,29 @@ export function HistoryPage() {
       </TabToolbar>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Card className="gap-1 px-5 py-4">
-          <p className="text-sm text-muted-foreground">{h.summaryThisMonth}</p>
+        <Card className="gap-1 px-5 py-4" data-help="historyThisMonth">
+          <p className="flex items-center gap-1 text-sm text-muted-foreground">
+            {h.summaryThisMonth}
+            <HelpHint topic="historyThisMonth" className="-my-1" />
+          </p>
           <p className="text-2xl font-semibold tracking-tight">
             <Money value={summary.thisMonth.total} compact tone={isExpense ? "none" : "success"} />
           </p>
           <p className="text-xs text-muted-foreground">{h.summaryCount({ count: summary.thisMonth.count })}</p>
         </Card>
-        <Card className="gap-1 px-5 py-4">
-          <p className="text-sm text-muted-foreground">{h.summaryAverage}</p>
+        <Card className="gap-1 px-5 py-4" data-help="historyAverage">
+          <p className="flex items-center gap-1 text-sm text-muted-foreground">
+            {h.summaryAverage}
+            <HelpHint topic="historyAverage" className="-my-1" />
+          </p>
           <p className="text-2xl font-semibold tracking-tight">{summary.average ? <Money value={summary.average.value} compact /> : "—"}</p>
           <p className="text-xs text-muted-foreground">{summary.average ? h.averageHint({ months: summary.average.months }) : " "}</p>
         </Card>
-        <Card className="gap-1 px-5 py-4">
-          <p className="text-sm text-muted-foreground">{isExpense ? h.summaryTop : h.summaryTopIncome}</p>
+        <Card className="gap-1 px-5 py-4" data-help="historyTop">
+          <p className="flex items-center gap-1 text-sm text-muted-foreground">
+            {isExpense ? h.summaryTop : h.summaryTopIncome}
+            <HelpHint topic="historyTop" className="-my-1" />
+          </p>
           <div className="flex min-w-0 items-center gap-2">
             {top?.category ? <CategoryTile category={top.category} size="sm" /> : null}
             <p className="truncate text-lg font-semibold">{top ? (top.category ? t.expenses.categories[top.category] : (top.label ?? l.kinds.extra)) : "—"}</p>

@@ -20,15 +20,17 @@ function set(next: ExplainState) {
   for (const l of listeners) l();
 }
 
-function subscribe(listener: () => void) {
+export function subscribeExplain(listener: () => void) {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 const OFF: ExplainState = { mode: "off" };
 
 export function useExplainState(): ExplainState {
-  return useSyncExternalStore(subscribe, () => state, () => OFF);
+  return useSyncExternalStore(subscribeExplain, () => state, () => OFF);
 }
 
 export const explain = {

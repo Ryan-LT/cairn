@@ -6,6 +6,7 @@
  */
 export const HELP_TOPICS = [
   // Overview
+  "setupGuide",
   "netWorth",
   "monthGlance",
   "dueBills",
@@ -14,53 +15,61 @@ export const HELP_TOPICS = [
   "healthScore",
   "netWorthTrend",
   "milestone",
-  "setupGuide",
+  // Cash flow (above every tab)
+  "cashIn",
+  "cashOut",
+  "cashLeft",
   // Cash flow · this month
-  "monthIn",
-  "monthOut",
-  "monthLeft",
-  "monthBills",
+  "monthProgress",
+  "monthCalendar",
+  "monthNeedsConfirm",
   "monthBudgets",
   "monthIncome",
   "monthUnplanned",
   // Cash flow · spending
-  "spendingMix",
-  "spendingList",
+  "spendingTotal",
   "spendingByCategory",
   "planVsActual",
-  "legacyEstimate",
   // Cash flow · income
-  "incomeTotals",
-  "incomeList",
+  "incomeActive",
+  "incomePassive",
   // Cash flow · history
-  "historyTotals",
-  "historyList",
-  // Wealth
-  "wealthNetWorth",
+  "historyThisMonth",
+  "historyAverage",
+  "historyTop",
+  // Wealth (above every tab)
   "wealthAssets",
   "wealthDebts",
+  "wealthNetWorth",
+  // Wealth · assets
   "assetInstant",
   "assetNotInstant",
   "assetsByCategory",
-  "assetList",
+  // Wealth · debts
   "debtAvgRate",
   "debtInterest",
-  "debtFreeDate",
+  "debtMonthly",
+  "debtPriority",
   "debtList",
-  "loansLent",
-  "loansOwed",
+  // Wealth · loans
+  "loansOwedToYou",
+  "loansYouOwe",
   "loansNet",
-  "loanList",
+  "loanLog",
   // Goals
   "planList",
-  "planSaved",
+  "planHero",
+  "planProjected",
   "planMonthly",
-  "planStatus",
-  "planDetails",
+  "planTimeLeft",
+  "projection",
   "startingBalances",
   "checkpoints",
-  "projection",
-  "fundingPools",
+  // Goals · funding
+  "fundingInstant",
+  "fundingNotInstant",
+  "fundingCustom",
+  "fundingPlans",
   "fundingMatrix",
   // Settings
   "settingsCurrency",

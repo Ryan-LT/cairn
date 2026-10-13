@@ -28,10 +28,10 @@ export function Section({ title, description, actions, flush, variant = "card", 
       <section className={cn("grid gap-3", className)} data-help={help}>
         <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 px-1">
           <div className="grid min-w-0 gap-0.5">
-            <h2 className="flex items-center gap-1 text-base leading-snug font-semibold">
-              {title}
+            <div className="flex items-center gap-1">
+              <h2 className="text-base leading-snug font-semibold">{title}</h2>
               {help ? <HelpHint topic={help} /> : null}
-            </h2>
+            </div>
             {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
           </div>
           {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}

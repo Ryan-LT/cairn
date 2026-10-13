@@ -24,6 +24,7 @@ import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, Dia
 import { ListGroup, ListRow } from "@/shared/ui/list";
 import { Money } from "@/shared/ui/money";
 import { MonthSwitcher } from "@/shared/ui/month-switcher";
+import { HelpHint } from "@/shared/ui/help-hint";
 import { ProgressRing } from "@/shared/ui/progress-ring";
 import { MonthGroups } from "@/widgets/bill-list";
 import { TabContent, TabToolbar } from "@/widgets/app-shell";
@@ -172,7 +173,7 @@ export function CashflowMonthPage() {
       {!hasItems ? <MonthLedger monthKey={monthKey} /> : null}
       {!hasItems ? null : (
         <>
-          <Card className="bg-hero gap-4 px-5">
+          <Card className="bg-hero gap-4 px-5" data-help="monthProgress">
             <div className="flex items-center gap-4 md:gap-6">
               <span ref={ringRef} className="shrink-0">
                 <ProgressRing value={share} size={76} stroke={8} label={m.ringLabel({ pct: formatPercent(share * 100, { maximumFractionDigits: 0 }) })}>
@@ -180,7 +181,10 @@ export function CashflowMonthPage() {
                 </ProgressRing>
               </span>
               <div className="grid min-w-0 flex-1 gap-1">
-                <p className="text-sm text-muted-foreground">{m.settled}</p>
+                <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                  {m.settled}
+                  <HelpHint topic="monthProgress" className="-my-1" />
+                </p>
                 <p className="text-display font-semibold">
                   <Money value={totals.settled} compact />
                   <span className="text-base font-normal text-muted-foreground">

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import type { HelpTopic } from "@/shared/config/help";
 import { cn } from "@/shared/lib/cn";
+import { HelpHint } from "@/shared/ui/help-hint";
 
 type ListGroupProps = {
   title?: ReactNode;
@@ -11,18 +13,25 @@ type ListGroupProps = {
   /** Shown instead of rows when there are none. */
   empty?: ReactNode;
   className?: string;
+  /** A "?" beside the title (also found by "explain this screen"). */
+  help?: HelpTopic;
   children?: ReactNode;
 };
 
 /** A titled card of rows separated by hairlines: the app's main way of showing records. */
-export function ListGroup({ title, description, aside, empty, className, children }: ListGroupProps) {
+export function ListGroup({ title, description, aside, empty, className, help, children }: ListGroupProps) {
   const hasRows = Array.isArray(children) ? children.some(Boolean) : Boolean(children);
   return (
-    <section className={cn("grid gap-2", className)}>
+    <section className={cn("grid gap-2", className)} data-help={help}>
       {title || aside ? (
         <header className="flex items-end justify-between gap-3 px-1">
           <div className="min-w-0">
-            {title ? <h2 className="text-sm font-semibold">{title}</h2> : null}
+            {title ? (
+              <div className="flex items-center gap-1">
+                <h2 className="text-sm font-semibold">{title}</h2>
+                {help ? <HelpHint topic={help} className="-my-1" /> : null}
+              </div>
+            ) : null}
             {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
           </div>
           {aside ? <div className="flex shrink-0 items-center gap-2 text-sm text-muted-foreground">{aside}</div> : null}

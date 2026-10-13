@@ -63,12 +63,14 @@ export function AllocationsPage() {
     <TabContent>
       <StatGrid className="xl:grid-cols-3">
         <StatCard
+          help="fundingInstant"
           label={m.kpi.instantPool.label}
           icon={Zap}
           value={<Money value={report.totals.instantRemainingPool} compact />}
           hint={m.kpi.instantPool.hint}
         />
         <StatCard
+          help="fundingNotInstant"
           label={m.kpi.notInstantPool.label}
           icon={Clock}
           value={<Money value={report.totals.notInstantRemainingPool} compact />}
@@ -76,6 +78,7 @@ export function AllocationsPage() {
         />
         <StatCard
           className="max-xl:col-span-2"
+          help="fundingCustom"
           label={m.kpi.custom.label}
           icon={PencilRuler}
           value={<Money value={report.totals.customReservedStored} compact />}
@@ -97,7 +100,7 @@ export function AllocationsPage() {
           />
         </Card>
       ) : (
-        <ListGroup title={m.plans.title} description={m.plans.description}>
+        <ListGroup title={m.plans.title} description={m.plans.description} help="fundingPlans">
           {report.plans.map((p) => {
             const share = shares.byPlan.get(p.id) ?? 0;
             return (
@@ -130,6 +133,7 @@ export function AllocationsPage() {
       )}
 
       <Section
+        help="fundingMatrix"
         title={m.matrix.title}
         description={m.matrix.description}
         actions={

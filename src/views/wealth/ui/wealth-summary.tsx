@@ -38,9 +38,9 @@ export function WealthHubSummary() {
   return (
     <SummaryStrip
       items={[
-        { key: "a", icon: Landmark, tone: "text-success", label: s.assets, value: <AnimatedMoney value={gross} id="wealth-assets" /> },
-        { key: "d", icon: TrendingDown, tone: "text-danger", label: s.debts, value: <AnimatedMoney value={owed} id="wealth-debts" /> },
-        { key: "n", icon: Scale, tone: "text-primary", label: s.netWorth, value: <AnimatedMoney value={net} id="wealth-net" tone={net < 0 ? "danger" : "none"} /> },
+        { key: "a", help: "wealthAssets", icon: Landmark, tone: "text-success", label: s.assets, value: <AnimatedMoney value={gross} id="wealth-assets" /> },
+        { key: "d", help: "wealthDebts", icon: TrendingDown, tone: "text-danger", label: s.debts, value: <AnimatedMoney value={owed} id="wealth-debts" /> },
+        { key: "n", help: "wealthNetWorth", icon: Scale, tone: "text-primary", label: s.netWorth, value: <AnimatedMoney value={net} id="wealth-net" tone={net < 0 ? "danger" : "none"} /> },
       ]}
       footer={
         gross > 0 ? (

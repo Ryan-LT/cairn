@@ -73,7 +73,7 @@ export function MonthLedger({ monthKey }: { monthKey: string }) {
   return (
     <>
       {incomes.length || extras.length ? (
-        <ListGroup title={l.month.incomeTitle} description={l.month.incomeHint}>
+        <ListGroup title={l.month.incomeTitle} description={l.month.incomeHint} help="monthIncome">
           {incomes.map(({ source: s, payDate, got, status }) => {
             const receivedTotal = got.reduce((sum, x) => sum + x.amount, 0);
             return (
@@ -143,6 +143,7 @@ export function MonthLedger({ monthKey }: { monthKey: string }) {
 
       <ListGroup
         title={l.month.unplannedTitle}
+        help="monthUnplanned"
         description={l.month.unplannedHint}
         aside={
           <>

@@ -186,13 +186,15 @@ export function LoansPage() {
 
       <StatGrid className="xl:grid-cols-3">
         <StatCard
+          help="loansOwedToYou"
           label={t.loans.kpi.owedToYou.label}
           icon={ArrowUpRight}
           value={<Money value={owedToYou} compact tone="success" />}
           hint={t.loans.kpi.owedToYou.hint}
         />
-        <StatCard label={t.loans.kpi.youOwe.label} icon={ArrowDownLeft} value={<Money value={youOwe} compact tone="danger" />} hint={t.loans.kpi.youOwe.hint} />
+        <StatCard help="loansYouOwe" label={t.loans.kpi.youOwe.label} icon={ArrowDownLeft} value={<Money value={youOwe} compact tone="danger" />} hint={t.loans.kpi.youOwe.hint} />
         <StatCard
+          help="loansNet"
           label={t.loans.kpi.net.label}
           icon={Scale}
           value={<Money value={owedToYou - youOwe} compact signed tone="auto" />}
@@ -208,7 +210,7 @@ export function LoansPage() {
         </Link>
       </p>
 
-      <Section title={t.loans.log.title} description={t.loans.log.description} flush>
+      <Section title={t.loans.log.title} description={t.loans.log.description} flush help="loanLog">
         <div className="border-b px-5 py-3">
           <DataTableToolbar search={search} onSearchChange={setSearch} placeholder={t.loans.log.searchPlaceholder}>
             <SegmentedControl<DirectionFilter>

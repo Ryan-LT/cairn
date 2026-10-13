@@ -18,10 +18,11 @@ export function CashflowHubSummary() {
   return (
     <SummaryStrip
       items={[
-        { key: "in", icon: ArrowDownLeft, tone: "text-success", label: s.moneyIn, value: <AnimatedMoney value={cash.totalIncome} id="cashflow-in" />, sub: s.perMonth },
-        { key: "out", icon: ArrowUpRight, tone: "text-danger", label: s.moneyOut, value: <AnimatedMoney value={cash.averageSpending} id="cashflow-out" />, sub: s.perMonth },
+        { key: "in", help: "cashIn", icon: ArrowDownLeft, tone: "text-success", label: s.moneyIn, value: <AnimatedMoney value={cash.totalIncome} id="cashflow-in" />, sub: s.perMonth },
+        { key: "out", help: "cashOut", icon: ArrowUpRight, tone: "text-danger", label: s.moneyOut, value: <AnimatedMoney value={cash.averageSpending} id="cashflow-out" />, sub: s.perMonth },
         {
           key: "left",
+          help: "cashLeft",
           icon: over ? TriangleAlert : PiggyBank,
           tone: over ? "text-danger" : "text-primary",
           label: s.left,

@@ -32,7 +32,7 @@ export function PlanVsActualCard({ data, onUpdatePlan }: { data: PlanVsActual; o
           : h.driftDown({ amount: formatMoney(-data.drift) });
 
   return (
-    <Section title={h.title} description={h.description}>
+    <Section title={h.title} description={h.description} help="planVsActual">
       <div className="grid gap-4">
         <p className="text-sm" data-private>
           {summary}
