@@ -1,7 +1,7 @@
 "use client";
 
 import { MessageSquareHeart, Sparkles } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useSonner } from "sonner";
 
 import { FeedbackDialog } from "@/features/send-feedback";
@@ -15,34 +15,10 @@ import { useShell } from "../model/shell-context";
 import { AiChatPanel } from "./ai-chat-panel";
 import { useOnline } from "./offline-strip";
 
-/** Scroll distance that hides (down) or brings back (up) the dock on phones. */
-const SCROLL_HIDE_PX = 12;
-
 /**
- * Hide while scrolling down through a page (the buttons never sit on top of
- * what you're reading), show again on any scroll up or near the top.
+ * Floating "Hỏi AI" and "Góp ý" buttons, above the bottom bar on phones. Always
+ * in view (pages leave room at the bottom so nothing stays stuck under them).
  */
-function useHideOnScroll(disabled: boolean): boolean {
-  const [hidden, setHidden] = useState(false);
-  const last = useRef(0);
-  useEffect(() => {
-    const el = document.querySelector<HTMLElement>("[data-app-scroll]");
-    if (!el || disabled) return;
-    last.current = el.scrollTop;
-    const onScroll = () => {
-      const y = el.scrollTop;
-      const delta = y - last.current;
-      if (Math.abs(delta) < SCROLL_HIDE_PX) return;
-      setHidden(delta > 0 && y > 120 && y + el.clientHeight < el.scrollHeight - 24);
-      last.current = y;
-    };
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, [disabled]);
-  return hidden && !disabled;
-}
-
-/** Floating "Hỏi AI" and "Góp ý" buttons, above the bottom bar on phones. */
 export function AssistDock() {
   const { t } = useI18n();
   const a = t.assist;
@@ -50,7 +26,6 @@ export function AssistDock() {
   const online = useOnline();
   const [aiOpen, setAiOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const hidden = useHideOnScroll(aiOpen || feedbackOpen);
   const feedbackButton = useRef<HTMLButtonElement>(null);
   // Step up above a toast (they share the bottom corner) until it goes away.
   const lifted = useSonner().toasts.length > 0;
@@ -63,8 +38,8 @@ export function AssistDock() {
             role="group"
             aria-label={a.dockLabel}
             className={cn(
-              "fixed right-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 flex flex-col items-end gap-2 transition-[transform,opacity] duration-300 ease-out md:right-6 md:bottom-6",
-              hidden ? "pointer-events-none translate-x-[calc(100%+1rem)] opacity-0" : lifted && "-translate-y-[4.5rem]",
+              "fixed right-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 flex flex-col items-end gap-2 transition-transform duration-300 ease-out md:right-6 md:bottom-6",
+              lifted && "-translate-y-[4.5rem]",
             )}
           >
             <Tooltip>
