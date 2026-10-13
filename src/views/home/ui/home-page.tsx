@@ -10,7 +10,7 @@ import { buildGoalPlanStatuses, buildGoalStartingOptions, GOALS_SEED, resolveMon
 import { useIncomeSources } from "@/entities/income";
 import { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
 import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
-import { buildInsights, computeDashboardSummary, computeFinancialHealth } from "@/entities/portfolio";
+import { buildInsights, computeDashboardSummary, computeFinancialHealth, computeHealthReport } from "@/entities/portfolio";
 import { monthToDateNetWorthChangePercent, PREFERENCES_SEED } from "@/entities/preferences";
 import { useSettingsAssets } from "@/entities/settings-asset";
 import { useRecordSpending } from "@/features/record-spending";
@@ -23,7 +23,7 @@ import { InsightsFeed } from "@/widgets/insights-feed";
 import { PageContainer, useOptimisticNavigation, useShell } from "@/widgets/app-shell";
 import { SetupGuide } from "@/widgets/setup-guide";
 
-import { FinancialHealthCard } from "./financial-health-card";
+import { HealthReportView } from "./health-report";
 import { DueBills, GoalsGlance, HealthTiles, MonthGlance, NetWorthHero } from "./home-cards";
 import { MilestoneCard } from "./milestone-card";
 import { NetWorthTrendCard } from "./net-worth-trend-card";
@@ -79,6 +79,22 @@ export function HomePage() {
       }),
     [now, summary, health, month, history, debts, expenses, plans, goals.profiles, settingsAssets],
   );
+  const report = useMemo(
+    () =>
+      computeHealthReport({
+        summary,
+        health,
+        debts,
+        expenses,
+        history,
+        netWorthHistory: prefs.netWorthMonthlyHistory ?? [],
+        settingsAssets,
+        legacyAssets: assets,
+        plans,
+        now,
+      }),
+    [summary, health, debts, expenses, history, prefs.netWorthMonthlyHistory, settingsAssets, assets, plans, now],
+  );
   const due = [...month.groups.overdue, ...month.groups.needsConfirm, ...month.groups.dueSoon].slice(0, 5);
 
   return (
@@ -97,6 +113,7 @@ export function HomePage() {
           netWorth={summary.netWorth}
           grossAssets={summary.grossAssets}
           liabilities={summary.liabilities}
+          instantAssets={health.instantAssets}
           mtdPct={monthToDateNetWorthChangePercent(prefs, summary.netWorth)}
           history={prefs.netWorthMonthlyHistory ?? []}
         />
@@ -104,7 +121,16 @@ export function HomePage() {
       </div>
 
       <div className="grid gap-4 md:gap-6 xl:grid-cols-12">
-        <DueBills className="xl:col-span-7" lines={due} monthKey={monthKey} actions={actions} />
+        <DueBills
+          className="xl:col-span-7"
+          lines={due}
+          upcoming={month.groups.upcoming}
+          billsCount={month.totals.billsCount}
+          billsDone={month.totals.billsDone}
+          hasBills={expenses.items.some((i) => i.kind === "bill" && !i.archivedAt)}
+          monthKey={monthKey}
+          actions={actions}
+        />
         <InsightsFeed className="xl:col-span-5" insights={insights} />
       </div>
 
@@ -117,7 +143,13 @@ export function HomePage() {
             navigate("/goals");
           }}
         />
-        <HealthTiles className="xl:col-span-5" health={health} cash={summary} onDetails={() => setHealthOpen(true)} />
+        <HealthTiles
+          className="xl:col-span-5"
+          health={health}
+          cash={summary}
+          score={report.score !== null && report.grade ? { value: report.score, grade: report.grade } : null}
+          onDetails={() => setHealthOpen(true)}
+        />
       </div>
 
       {/* Same 7 / 5 split as the rows above; the wrappers pass the row height on to the cards. */}
@@ -133,11 +165,11 @@ export function HomePage() {
       <Dialog open={healthOpen} onOpenChange={setHealthOpen}>
         <DialogContent size="xl">
           <DialogHeader>
-            <DialogTitle>{t.dashboard.health.title}</DialogTitle>
-            <DialogDescription>{t.dashboard.health.description}</DialogDescription>
+            <DialogTitle>{t.health.title}</DialogTitle>
+            <DialogDescription>{t.health.description}</DialogDescription>
           </DialogHeader>
           <DialogBody>
-            <FinancialHealthCard health={health} annualRealRate={annualRealRate} bare />
+            <HealthReportView report={report} />
           </DialogBody>
         </DialogContent>
       </Dialog>

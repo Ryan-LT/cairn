@@ -39,6 +39,10 @@ export function SetupGuide({ className }: { className?: string }) {
   );
   if (!progress.visible) return null;
 
+  const done = progress.steps.filter((x) => x.done);
+  const todo = progress.steps.filter((x) => !x.done);
+  // One step left: a single wide row instead of a tall card.
+  const single = todo.length === 1;
   const setSetup = (patch: NonNullable<typeof prefs.setup>) => setPrefs((p) => ({ ...p, setup: { ...p.setup, ...patch } }));
 
   return (
@@ -56,55 +60,59 @@ export function SetupGuide({ className }: { className?: string }) {
           <X />
         </Button>
       </div>
-      <ol className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
-        {progress.steps.map((step, i) => {
+      {done.length ? (
+        // Finished steps shrink to one line of ticks, so what's left gets the room.
+        <ul className="flex flex-wrap gap-x-4 gap-y-1.5" aria-label={s.description({ done: progress.done, total: progress.total })}>
+          {done.map((step) => (
+            <li key={step.id} className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground" aria-hidden>
+                <Check className="size-3" />
+              </span>
+              <span className="line-through decoration-muted-foreground/50">{s.steps[step.id].label}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <ol className={cn("grid gap-2", single ? "" : "sm:grid-cols-2 xl:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]")}>
+        {todo.map((step) => {
           const label = s.steps[step.id];
           const next = step.id === progress.next;
+          const number = progress.steps.indexOf(step) + 1;
           return (
             <li key={step.id}>
               <div
                 className={cn(
                   "flex h-full flex-col gap-2 rounded-lg border p-3 max-sm:py-2.5",
-                  step.done ? "border-transparent bg-muted/60" : next ? "border-primary/50 bg-primary-soft/50" : "bg-card",
+                  single && "sm:flex-row sm:items-center sm:gap-4",
+                  next ? "border-primary/50 bg-primary-soft/50" : "bg-card",
                 )}
               >
-                <div className="flex items-center gap-2">
-                  <span
-                    className={cn(
-                      "flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                      step.done ? "bg-success text-success-foreground" : "bg-muted text-muted-foreground",
-                    )}
-                    aria-hidden
-                  >
-                    {step.done ? <Check className="size-3.5" /> : i + 1}
-                  </span>
-                  {step.done ? (
-                    <span className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/50">{label.label}</span>
-                  ) : (
+                <div className={cn("grid gap-1", single && "sm:min-w-0 sm:flex-1")}>
+                  <div className="flex items-center gap-2">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-muted-foreground" aria-hidden>
+                      {number}
+                    </span>
                     <Link href={step.href} className="min-w-0 flex-1 text-sm font-medium underline-offset-4 hover:underline">
                       {label.label}
                     </Link>
-                  )}
-                </div>
-                {step.done ? null : (
-                  // On phones only the next step shows its details; the others are one tappable line.
-                  <div className={cn("grid gap-2", !next && "max-sm:hidden")}>
-                    <p className="text-xs text-muted-foreground">{label.hint}</p>
-                    <div className="mt-auto flex flex-wrap items-center gap-2">
-                      <Button asChild size="sm" variant={next ? "default" : "outline"}>
-                        <Link href={step.href}>
-                          {s.start}
-                          <ChevronRight />
-                        </Link>
-                      </Button>
-                      {step.id === "debts" ? (
-                        <Button size="sm" variant="ghost" onClick={() => setSetup({ noDebts: true })}>
-                          {s.noDebts}
-                        </Button>
-                      ) : null}
-                    </div>
                   </div>
-                )}
+                  {/* On phones only the next step shows its details; the others are one tappable line. */}
+                  <p className={cn("text-xs text-muted-foreground", !next && "max-sm:hidden", single && "sm:pl-8")}>{label.hint}</p>
+                </div>
+                <div className={cn("mt-auto flex flex-wrap items-center gap-2", !next && "max-sm:hidden", single && "sm:mt-0 sm:shrink-0")}>
+                  <Button asChild size="sm" variant={next ? "default" : "outline"}>
+                    <Link href={step.href}>
+                      {s.start}
+                      <ChevronRight />
+                    </Link>
+                  </Button>
+                  {step.id === "debts" ? (
+                    // Wraps rather than spilling out of a narrow step card.
+                    <Button size="sm" variant="ghost" onClick={() => setSetup({ noDebts: true })} className="h-auto min-h-8 max-w-full shrink py-1.5 text-left whitespace-normal">
+                      {s.noDebts}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             </li>
           );
