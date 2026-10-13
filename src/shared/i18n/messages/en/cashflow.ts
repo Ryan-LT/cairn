@@ -69,6 +69,7 @@ export const cashflow = {
       noIncome: "Add income to see the split.",
     },
     byCategory: "By category",
+    otherCategories: (p: { count: number }) => (p.count === 1 ? "1 more category" : `${p.count} more categories`),
     paused: "Paused",
     unitemizedRow: "Not itemized yet (old estimate)",
     migration: {

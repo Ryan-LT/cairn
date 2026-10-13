@@ -90,6 +90,11 @@ export function SpendingPage() {
     return categories.map((c) => ({ ...c, items: (groups.get(c.category) ?? []).sort((a, b) => monthlyEquivalent(b, linkedDebt(b, debts)) - monthlyEquivalent(a, linkedDebt(a, debts))) }));
   }, [live, categories, debts]);
   const maxCategory = categories[0]?.monthly ?? 0;
+  // The top five, then everything else as one muted line (the full breakdown is in the list below).
+  const TOP_CATEGORIES = 5;
+  const rest = categories.slice(TOP_CATEGORIES);
+  const restMonthly = rest.reduce((s, c) => s + c.monthly, 0);
+  const restShare = rest.reduce((s, c) => s + c.share, 0);
 
   const row = (item: ExpenseItem) => {
     const debt = linkedDebt(item, debts);
@@ -199,7 +204,8 @@ export function SpendingPage() {
               {sp.itemsCount({ count: live.length })} · {sp.monthlyHint}
             </p>
           </div>
-          <div className="grid gap-2">
+          {/* Pinned to the bottom: the card matches the category list's height. */}
+          <div className="mt-auto grid gap-2">
             <p className="text-sm font-medium">{sp.split.title}</p>
             {cash.totalIncome > 0 ? (
               <StackedBar
@@ -226,7 +232,7 @@ export function SpendingPage() {
 
         <Section title={sp.byCategory} className="xl:col-span-2">
           <ul className="grid gap-3">
-            {categories.slice(0, 7).map((c) => (
+            {categories.slice(0, TOP_CATEGORIES).map((c) => (
               <li key={c.category} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">
                 <CategoryTile category={c.category} size="sm" />
                 <div className="grid gap-1">
@@ -241,6 +247,23 @@ export function SpendingPage() {
                 <Money value={c.monthly} compact interactive={false} className="text-sm font-medium" />
               </li>
             ))}
+            {rest.length ? (
+              <li className="grid grid-cols-[auto_1fr_auto] items-center gap-3 text-muted-foreground">
+                <span className="flex size-7 items-center justify-center rounded-md bg-muted text-xs font-medium" aria-hidden>
+                  +{rest.length}
+                </span>
+                <div className="grid gap-1">
+                  <div className="flex items-baseline justify-between gap-2 text-sm">
+                    <span className="truncate">{sp.otherCategories({ count: rest.length })}</span>
+                    <span className="text-xs tabular-nums">{pct(restShare)}</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
+                    <div className="h-full rounded-full bg-muted-foreground/40" style={{ width: `${maxCategory > 0 ? Math.min(1, restMonthly / maxCategory) * 100 : 0}%` }} />
+                  </div>
+                </div>
+                <Money value={restMonthly} compact interactive={false} className="text-sm font-medium" />
+              </li>
+            ) : null}
           </ul>
         </Section>
       </div>

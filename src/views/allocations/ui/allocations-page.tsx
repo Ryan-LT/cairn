@@ -40,7 +40,8 @@ export function AllocationsPage() {
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [incomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
-  const compact = useMediaQuery("(max-width: 1023px)");
+  // The matrix needs a wide screen (one column per plan); below that, one card per asset.
+  const compact = useMediaQuery("(max-width: 1279px)");
   const { t } = useI18n();
   const m = t.allocations;
   const { navigate } = useOptimisticNavigation();

@@ -97,7 +97,7 @@ export function InsightsFeed({ insights, limit = 4, className }: { insights: Ins
         </ul>
       )}
       {insights.length > limit ? (
-        <div className="border-t px-3 py-2">
+        <div className="mt-auto border-t px-3 py-2">
           <Button variant="ghost" size="sm" className="w-full" onClick={() => setAll((v) => !v)}>
             {all ? t.insights.showLess : t.insights.viewAll({ count: insights.length })}
           </Button>

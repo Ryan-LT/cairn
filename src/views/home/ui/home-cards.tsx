@@ -18,7 +18,6 @@ import { AnimatedMoney } from "@/shared/ui/animated-money";
 import { Sparkline } from "@/shared/ui/chart";
 import { Button } from "@/shared/ui/kit/button";
 import { Card } from "@/shared/ui/kit/card";
-import { ListGroup } from "@/shared/ui/list";
 import { Money } from "@/shared/ui/money";
 import { ProgressRing } from "@/shared/ui/progress-ring";
 import { StatusBadge } from "@/shared/ui/status-badge";
@@ -77,7 +76,7 @@ export function NetWorthHero({
           <Sparkline values={values} label={h.trendLabel({ change: formatMoneyCompact(change, { signDisplay: "exceptZero" }), months: values.length })} />
         </div>
       ) : null}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t pt-3 text-sm">
+      <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-1 border-t pt-3 text-sm">
         <span className="text-muted-foreground">
           {h.assets} <Money value={grossAssets} compact className="font-medium text-foreground" />
         </span>
@@ -118,7 +117,7 @@ export function MonthGlance({ month, cash, className }: { month: MonthView; cash
           {row(h.planned, <Money value={hasPlan ? month.totals.planned : cash.averageSpending} compact interactive={false} />)}
         </dl>
       </div>
-      <div className="flex items-center justify-between gap-3 rounded-lg bg-muted/60 px-3 py-2.5">
+      <div className="mt-auto flex items-center justify-between gap-3 rounded-lg bg-muted/60 px-3 py-2.5">
         <span className="flex items-center gap-2 text-sm">
           <PiggyBank className="size-4 text-primary" aria-hidden />
           {h.left}
@@ -133,27 +132,25 @@ export function MonthGlance({ month, cash, className }: { month: MonthView; cash
 export function DueBills({ lines, monthKey, actions, className }: { lines: BillLine[]; monthKey: string; actions: RecordActions; className?: string }) {
   const { t } = useI18n();
   const h = t.home.due;
+  // A card like its neighbours (title inside), so a row of cards shares one top and bottom edge.
   return (
-    <ListGroup
-      className={className}
-      title={h.title}
-      aside={
-        <Link href="/cashflow" className="flex items-center gap-1 hover:text-foreground">
-          {h.viewAll}
-          <ChevronRight className="size-4" aria-hidden />
-        </Link>
-      }
-      empty={
-        <p className="flex items-center gap-2 px-4 py-5 text-sm text-muted-foreground">
+    <Card className={cn("gap-0 py-0", className)}>
+      <div className="px-4 pt-4 pb-2">
+        <CardHeading title={h.title} href="/cashflow" linkLabel={h.viewAll} />
+      </div>
+      {lines.length ? (
+        <ul className="divide-y border-t">
+          {lines.map((l) => (
+            <BillRow key={l.item.id} line={l} monthKey={monthKey} actions={actions} />
+          ))}
+        </ul>
+      ) : (
+        <p className="flex flex-1 items-center justify-center gap-2 px-4 py-8 text-sm text-muted-foreground">
           <Sunrise className="size-4" aria-hidden />
           {h.empty}
         </p>
-      }
-    >
-      {lines.map((l) => (
-        <BillRow key={l.item.id} line={l} monthKey={monthKey} actions={actions} />
-      ))}
-    </ListGroup>
+      )}
+    </Card>
   );
 }
 
@@ -233,7 +230,7 @@ export function HealthTiles({ health, cash, onDetails, className }: { health: Fi
           <ChevronRight />
         </Button>
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid flex-1 auto-rows-fr grid-cols-2 gap-2">
         <Tile icon={LifeBuoy} label={h.emergency} value={e === null ? "—" : h.months({ value: formatNumber(e, { maximumFractionDigits: 1 }) })} tone={e === null ? "neutral" : e >= 6 ? "success" : e >= 3 ? "warning" : "danger"} />
         <Tile icon={Scale} label={h.debtRatio} value={d === null ? "—" : formatPercent(d * 100, { maximumFractionDigits: 0 })} tone={d === null ? "neutral" : d <= 0.3 ? "success" : d <= 0.5 ? "warning" : "danger"} />
         <Tile icon={PiggyBank} label={h.savingsRate} value={rate === null ? "—" : formatPercent(rate * 100, { maximumFractionDigits: 0 })} tone={rate === null ? "neutral" : rate >= 0.2 ? "success" : rate >= 0.1 ? "warning" : "danger"} />
