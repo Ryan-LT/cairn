@@ -73,7 +73,7 @@ export function SetupGuide({ className }: { className?: string }) {
           ))}
         </ul>
       ) : null}
-      <ol className={cn("grid gap-2", single ? "" : "sm:grid-cols-2 xl:grid-cols-[repeat(auto-fit,minmax(12.5rem,1fr))]")}>
+      <ol className={cn("grid gap-2", single ? "" : "sm:grid-cols-2 xl:grid-cols-[repeat(auto-fit,minmax(11rem,1fr))]")}>
         {todo.map((step) => {
           const label = s.steps[step.id];
           const next = step.id === progress.next;
@@ -107,7 +107,8 @@ export function SetupGuide({ className }: { className?: string }) {
                     </Link>
                   </Button>
                   {step.id === "debts" ? (
-                    <Button size="sm" variant="ghost" onClick={() => setSetup({ noDebts: true })}>
+                    // Wraps rather than spilling out of a narrow step card.
+                    <Button size="sm" variant="ghost" onClick={() => setSetup({ noDebts: true })} className="h-auto min-h-8 max-w-full shrink py-1.5 text-left whitespace-normal">
                       {s.noDebts}
                     </Button>
                   ) : null}
