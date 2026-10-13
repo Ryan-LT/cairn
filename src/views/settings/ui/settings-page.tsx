@@ -1,16 +1,21 @@
 "use client";
 
-import { Download, LogOut, RefreshCw } from "lucide-react";
+import { Download, FileUp, LogOut, RefreshCw, Sheet } from "lucide-react";
+import { useState } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
+import { DEBTS_SEED } from "@/entities/debt";
+import { useExpenses } from "@/entities/expense/api/use-expenses";
 import { PREFERENCES_SEED } from "@/entities/preferences";
+import { ExportSpendingDialog } from "@/features/export-spending-csv";
 import { useSignOut } from "@/features/sign-out";
 import { useSyncNow } from "@/features/sync-now";
 import { LanguageSwitcher } from "@/features/switch-language";
 import { BRAND } from "@/shared/config";
 import { useI18n } from "@/shared/i18n";
 import { formatRelative, formatTime } from "@/shared/lib/format";
+import { usePrivacyMode } from "@/shared/lib/privacy";
 import { useLastSyncedAt, useTable } from "@/shared/storage";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Button } from "@/shared/ui/kit/button";
@@ -24,6 +29,7 @@ import { PageContainer, useOnline, useShell } from "@/widgets/app-shell";
 
 import { downloadBackup } from "../lib/export-backup";
 import { ChangePasswordForm } from "./change-password-form";
+import { RestoreBackupDialog } from "./restore-backup-dialog";
 import { MilestoneForm } from "./milestone-form";
 
 type ThemeValue = "light" | "dark" | "system";
@@ -43,10 +49,38 @@ export function SettingsPage() {
   const { syncNow, syncing } = useSyncNow();
   const { signOut, pending } = useSignOut();
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+  const [debts] = useTable("debts", DEBTS_SEED);
+  const { expenses, log } = useExpenses();
+  const [hidden, togglePrivacy] = usePrivacyMode();
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
 
   return (
     <PageContainer className="max-w-3xl">
       <PageHeader title={t.nav.hubs.settings.label} description={s.description} />
+
+      <Section title={s.appearance.title} description={s.appearance.description({ brand: BRAND.name })}>
+        <SegmentedControl<ThemeValue>
+          aria-label={t.common.theme}
+          value={(theme as ThemeValue) ?? "system"}
+          onValueChange={setTheme}
+          options={themes}
+        />
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t pt-4">
+          <div className="min-w-0 flex-1 basis-56">
+            <p className="text-sm font-medium">{t.common.language}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{s.appearance.languageHint}</p>
+          </div>
+          <LanguageSwitcher ariaLabel={t.common.language} />
+        </div>
+        <div className="mt-4 flex items-start justify-between gap-4 border-t pt-4">
+          <div className="min-w-0 flex-1">
+            <Label htmlFor="privacy-mode">{s.appearance.privacy}</Label>
+            <p className="mt-0.5 text-xs text-muted-foreground">{s.appearance.privacyHint}</p>
+          </div>
+          <Switch id="privacy-mode" checked={hidden} onCheckedChange={togglePrivacy} />
+        </div>
+      </Section>
 
       <div id="milestone" className="scroll-mt-20">
         <Section title={s.milestone.title} description={s.milestone.description}>
@@ -79,21 +113,6 @@ export function SettingsPage() {
         </Section>
       </div>
 
-      <Section title={s.appearance.title} description={s.appearance.description({ brand: BRAND.name })}>
-        <SegmentedControl<ThemeValue>
-          aria-label={t.common.theme}
-          value={(theme as ThemeValue) ?? "system"}
-          onValueChange={setTheme}
-          options={themes}
-        />
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t pt-4">
-          <div className="min-w-0 flex-1 basis-56">
-            <p className="text-sm font-medium">{t.common.language}</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">{s.appearance.languageHint}</p>
-          </div>
-          <LanguageSwitcher ariaLabel={t.common.language} />
-        </div>
-      </Section>
 
       <Section
         title={s.data.title}
@@ -119,6 +138,26 @@ export function SettingsPage() {
                 </span>
               ) : (
                 s.data.notYet
+              ),
+            },
+            {
+              label: s.data.csv,
+              hint: s.data.csvHint,
+              value: (
+                <Button variant="outline" size="sm" onClick={() => setCsvOpen(true)}>
+                  <Sheet />
+                  {s.data.exportCsv}
+                </Button>
+              ),
+            },
+            {
+              label: s.data.restore,
+              hint: s.data.restoreHint,
+              value: (
+                <Button variant="outline" size="sm" onClick={() => setRestoreOpen(true)}>
+                  <FileUp />
+                  {s.data.restore}
+                </Button>
               ),
             },
             {
@@ -167,6 +206,8 @@ export function SettingsPage() {
         ) : null}
       </Section>
 
+      <RestoreBackupDialog open={restoreOpen} onOpenChange={setRestoreOpen} />
+      <ExportSpendingDialog open={csvOpen} onOpenChange={setCsvOpen} expenses={expenses} log={log} debts={debts} />
     </PageContainer>
   );
 }

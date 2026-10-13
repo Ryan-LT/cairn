@@ -71,7 +71,7 @@ describe("analyzeMilestone", () => {
       now,
     });
     expect(a).toEqual({ kind: "incomplete", targetUsd: 1_000, targetAge: 35, missing: "FX_RATE" });
-    expect(milestoneHint(a, fmt)).toContain("EXCHANGERATE_API_KEY");
+    expect(milestoneHint(a, fmt)).toContain("exchange rate");
   });
 
   it("achieved", () => {
