@@ -114,8 +114,9 @@ export function RegisterForm() {
                   return;
                 }
                 await clearTablesResponseCache();
-                // Full load so the new account starts with a clean in-memory store.
-                window.location.replace("/settings#milestone");
+                // Full load so the new account starts with a clean in-memory store;
+                // Home opens on the setup guide.
+                window.location.replace("/");
               } catch {
                 setServerError({ message: t.common.networkError });
                 setBusy(false);

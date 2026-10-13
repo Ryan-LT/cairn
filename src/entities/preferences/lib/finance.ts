@@ -15,9 +15,6 @@ export function legacySpendingEstimate(prefs: SpendingPrefs): number {
   return Math.max(0, Number.isFinite(raw) ? raw : 0);
 }
 
-/** @deprecated Use {@link legacySpendingEstimate}. */
-export const resolveAverageMonthlySpending = legacySpendingEstimate;
-
 export function monthCalendarKey(d: Date): string {
   const y = d.getFullYear();
   const m = d.getMonth() + 1;

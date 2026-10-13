@@ -7,8 +7,8 @@ import {
   fractionalMonthsUntilYearEnd,
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
+  legacySpendingEstimate,
   projectNetWorthEndOfYear,
-  resolveAverageMonthlySpending,
   syncNetWorthTracking,
 } from "@/entities/preferences/lib/finance";
 import { PREFERENCES_SEED } from "@/entities/preferences/model";
@@ -18,11 +18,11 @@ afterEach(() => {
 });
 
 describe("spending + cashflow", () => {
-  it("resolves average spending with legacy fallback", () => {
-    expect(resolveAverageMonthlySpending({ averageMonthlySpending: 10, monthOutflow: 99 })).toBe(10);
-    expect(resolveAverageMonthlySpending({ monthOutflow: 99 })).toBe(99);
-    expect(resolveAverageMonthlySpending({ averageMonthlySpending: -5, monthOutflow: 0 })).toBe(0);
-    expect(resolveAverageMonthlySpending({ averageMonthlySpending: Number.NaN, monthOutflow: 0 })).toBe(0);
+  it("reads the old spending estimate with legacy fallback", () => {
+    expect(legacySpendingEstimate({ averageMonthlySpending: 10, monthOutflow: 99 })).toBe(10);
+    expect(legacySpendingEstimate({ monthOutflow: 99 })).toBe(99);
+    expect(legacySpendingEstimate({ averageMonthlySpending: -5, monthOutflow: 0 })).toBe(0);
+    expect(legacySpendingEstimate({ averageMonthlySpending: Number.NaN, monthOutflow: 0 })).toBe(0);
   });
 
   it("monthly net is income − spending", () => {
