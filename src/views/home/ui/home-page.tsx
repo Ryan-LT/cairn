@@ -11,7 +11,7 @@ import { useIncomeSources } from "@/entities/income";
 import { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
 import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
 import { buildInsights, computeDashboardSummary, computeFinancialHealth, computeHealthReport } from "@/entities/portfolio";
-import { monthToDateNetWorthChangePercent, PREFERENCES_SEED } from "@/entities/preferences";
+import { buildNetWorthTrend, monthToDateNetWorthChangePercent, PREFERENCES_SEED } from "@/entities/preferences";
 import { useSettingsAssets } from "@/entities/settings-asset";
 import { useRecordSpending } from "@/features/record-spending";
 import { useI18n } from "@/shared/i18n";
@@ -95,6 +95,7 @@ export function HomePage() {
       }),
     [summary, health, debts, expenses, history, prefs.netWorthMonthlyHistory, settingsAssets, assets, plans, now],
   );
+  const hasTrend = useMemo(() => buildNetWorthTrend(prefs.netWorthMonthlyHistory ?? [], summary.netWorth).length > 1, [prefs.netWorthMonthlyHistory, summary.netWorth]);
   const due = [...month.groups.overdue, ...month.groups.needsConfirm, ...month.groups.dueSoon].slice(0, 5);
 
   return (
@@ -152,15 +153,20 @@ export function HomePage() {
         />
       </div>
 
-      {/* Same 7 / 5 split as the rows above; the wrappers pass the row height on to the cards. */}
-      <div className="grid gap-4 md:gap-6 xl:grid-cols-12">
-        <div className="flex min-w-0 xl:col-span-7 [&>*]:min-w-0 [&>*]:flex-1">
-          <NetWorthTrendCard history={prefs.netWorthMonthlyHistory ?? []} netWorth={summary.netWorth} />
+      {hasTrend ? (
+        // Same 7 / 5 split as the rows above; the wrappers pass the row height on to the cards.
+        <div className="grid gap-4 md:gap-6 xl:grid-cols-12">
+          <div className="flex min-w-0 xl:col-span-7 [&>*]:min-w-0 [&>*]:flex-1">
+            <NetWorthTrendCard history={prefs.netWorthMonthlyHistory ?? []} netWorth={summary.netWorth} />
+          </div>
+          <div className="flex min-w-0 xl:col-span-5 [&>*]:min-w-0 [&>*]:flex-1">
+            <MilestoneCard netWorth={summary.netWorth} monthlyNet={summary.monthlyNet} settings={prefs.milestone} configState={milestoneConfig} />
+          </div>
         </div>
-        <div className="flex min-w-0 xl:col-span-5 [&>*]:min-w-0 [&>*]:flex-1">
-          <MilestoneCard netWorth={summary.netWorth} monthlyNet={summary.monthlyNet} settings={prefs.milestone} configState={milestoneConfig} />
-        </div>
-      </div>
+      ) : (
+        // No trend to draw yet (the net worth card says when it starts): the milestone gets the row.
+        <MilestoneCard netWorth={summary.netWorth} monthlyNet={summary.monthlyNet} settings={prefs.milestone} configState={milestoneConfig} wide />
+      )}
 
       <Dialog open={healthOpen} onOpenChange={setHealthOpen}>
         <DialogContent size="xl">

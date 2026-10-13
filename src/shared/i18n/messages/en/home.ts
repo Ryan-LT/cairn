@@ -10,6 +10,7 @@ export const home = {
   trendLabel: (p: { change: string; months: number }) => `Net worth changed ${p.change} over ${p.months} months`,
   assets: "Assets",
   debts: "Debts",
+  trendSoon: "Your trend chart appears from next month.",
   split: {
     label: (p: { instant: string; other: string }) => `Instant-access assets ${p.instant}, the rest ${p.other}`,
     instant: "Instant access",
@@ -43,6 +44,9 @@ export const home = {
     needed: "Needed each month",
     deadline: "Target date",
     monthsLeft: (p: { months: string }) => `${p.months} left`,
+    stillNeeded: "Still needed",
+    reachBy: "On course to reach",
+    noSaving: "Nothing saved monthly yet",
     addAnother: "Add a goal",
   },
   health: {
