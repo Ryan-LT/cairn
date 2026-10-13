@@ -45,4 +45,17 @@ export const common: Messages["common"] = {
   themeDark: "Tối",
   themeSystem: "Theo hệ thống",
   networkError: "Không kết nối được máy chủ. Hãy kiểm tra mạng và thử lại.",
+  undo: "Hoàn tác",
+  viewAll: "Xem tất cả",
+  more: "Thêm",
+  thisMonth: "Tháng này",
+  previousMonth: "Tháng trước",
+  nextMonth: "Tháng sau",
+  privacy: {
+    hide: "Ẩn số tiền",
+    show: "Hiện số tiền",
+    hint: "Số tiền đang được ẩn trên thiết bị này. Nhấn giữ một số tiền để xem nhanh.",
+  },
+  amount: "Số tiền",
+  date: "Ngày",
 };

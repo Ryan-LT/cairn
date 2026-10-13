@@ -2,6 +2,7 @@
 
 import { ChevronRight, Search } from "lucide-react";
 
+import { PrivacyToggle } from "@/features/privacy-mode";
 import { useAppPathname } from "@/shared/lib/use-app-pathname";
 import { useI18n } from "@/shared/i18n";
 import { findNavItem } from "@/shared/config";
@@ -54,6 +55,7 @@ export function TopBar() {
           <Button variant="ghost" size="icon" className="md:hidden" aria-label={t.common.search} onClick={() => setCommandOpen(true)}>
             <Search />
           </Button>
+          <PrivacyToggle />
           <ThemeToggle />
         </div>
       </div>

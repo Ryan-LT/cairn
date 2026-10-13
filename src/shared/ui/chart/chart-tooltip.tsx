@@ -16,7 +16,9 @@ export function ChartTooltipCard({ title, rows }: { title: ReactNode; rows: Char
             <svg width="12" height="4" aria-hidden className="shrink-0">
               <line x1="0" y1="2" x2="12" y2="2" stroke={r.color} strokeWidth="2" strokeLinecap="round" strokeDasharray={r.dashed ? "3 2" : undefined} />
             </svg>
-            <span className="font-semibold tabular-nums">{r.value}</span>
+            <span className="font-semibold tabular-nums" data-private>
+              {r.value}
+            </span>
             <span className="ml-auto pl-3 text-muted-foreground">{r.name}</span>
           </li>
         ))}

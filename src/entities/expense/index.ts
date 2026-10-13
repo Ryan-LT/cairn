@@ -68,3 +68,4 @@ export {
 export { billForDebt, orphanedLinks, principalPart, suggestDebtBills } from "./lib/debt-links";
 export { sanitizeExpenseItem, sanitizeExpenseLog, sanitizeExpensesDoc } from "./lib/sanitize";
 export { resolveMonthlySpending, type SpendingResolution, type SpendingSource } from "./lib/spending";
+export { CategoryTile, EXPENSE_CATEGORY_ICONS } from "./ui/category-icon";

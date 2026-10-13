@@ -44,4 +44,17 @@ export const common = {
   themeDark: "Dark",
   themeSystem: "System",
   networkError: "Couldn't reach the server. Check your connection and try again.",
+  undo: "Undo",
+  viewAll: "View all",
+  more: "More",
+  thisMonth: "This month",
+  previousMonth: "Previous month",
+  nextMonth: "Next month",
+  privacy: {
+    hide: "Hide amounts",
+    show: "Show amounts",
+    hint: "Amounts are hidden on this device. Press and hold an amount to peek.",
+  },
+  amount: "Amount",
+  date: "Date",
 };

@@ -60,7 +60,11 @@ function Item({
     <CommandItem value={value} onSelect={onSelect}>
       <Icon />
       <span className="min-w-0 flex-1 truncate">{children}</span>
-      {meta ? <span className="shrink-0 text-xs text-muted-foreground tabular-nums">{meta}</span> : null}
+      {meta ? (
+        <span className="shrink-0 text-xs text-muted-foreground tabular-nums" data-private>
+          {meta}
+        </span>
+      ) : null}
     </CommandItem>
   );
 }

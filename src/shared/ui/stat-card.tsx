@@ -17,15 +17,19 @@ type StatCardProps = {
   aside?: ReactNode;
   href?: string;
   loading?: boolean;
+  /** `hero`: the page's headline figure (larger, with the soft glow). */
+  variant?: "default" | "hero";
   className?: string;
 };
 
 /** KPI tile with a single fixed type scale. */
-export function StatCard({ label, value, icon: Icon, hint, aside, href, loading, className }: StatCardProps) {
+export function StatCard({ label, value, icon: Icon, hint, aside, href, loading, variant = "default", className }: StatCardProps) {
+  const hero = variant === "hero";
   return (
     <Card
       className={cn(
         "relative h-full gap-2 px-4 py-4",
+        hero && "bg-hero gap-3 px-5 py-5",
         href && "transition-colors focus-within:border-ring hover:border-foreground/20 hover:bg-accent/30",
         className,
       )}
@@ -45,7 +49,7 @@ export function StatCard({ label, value, icon: Icon, hint, aside, href, loading,
         {Icon ? <Icon className="mt-0.5 size-4 shrink-0 text-muted-foreground max-sm:hidden" aria-hidden /> : null}
       </div>
       {/* Big standalone numbers use proportional figures (tabular only in columns). */}
-      <div className="mt-auto text-xl leading-tight font-semibold tracking-tight **:normal-nums md:text-2xl">
+      <div className={cn("mt-auto font-semibold **:normal-nums", hero ? "text-display md:text-hero" : "text-xl leading-tight tracking-tight md:text-2xl")}>
         {loading ? <Skeleton className="h-7 w-28" /> : value}
       </div>
       {hint || aside ? (
