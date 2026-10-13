@@ -1,4 +1,4 @@
-import type { TableKey } from "@/shared/storage/table-keys";
+import { isLedgerKey, type StoredKey } from "@/shared/storage/table-keys";
 
 /**
  * Change log ("nhật ký thay đổi"): what changed between two saved versions of
@@ -26,6 +26,7 @@ export const AUDIT_ENTITY_TYPES = [
   "goal_plan",
   "goal_primary",
   "settings",
+  "transaction",
 ] as const;
 export type AuditEntityType = (typeof AUDIT_ENTITY_TYPES)[number];
 
@@ -45,8 +46,8 @@ export type AuditChange = {
   after: unknown;
 };
 
-/** Extra facts some tables need: bill names for month check-offs. */
-export type AuditContext = { expenseNames?: ReadonlyMap<string, string> };
+/** Extra facts some tables need: bill names for month check-offs and transactions, income source names. */
+export type AuditContext = { expenseNames?: ReadonlyMap<string, string>; incomeNames?: ReadonlyMap<string, string> };
 
 /**
  * Preferences fields left out of the log: view state (which matrix filter or
@@ -95,10 +96,35 @@ export function expenseNamesOf(expensesDoc: unknown): Map<string, string> {
   return names;
 }
 
+/** Income source id → name, for naming money received. */
+export function incomeNamesOf(sources: unknown): Map<string, string> {
+  const names = new Map<string, string>();
+  for (const r of records(sources)) {
+    const n = str(r.name);
+    if (n) names.set(r.id as string, n);
+  }
+  return names;
+}
+
+/** A transaction's name: its own, else its bill / budget / income source's. */
+function transactionName(t: Obj, ctx: AuditContext): string | null {
+  const own = str(t.name);
+  if (own) return own;
+  const src = isObj(t.source) ? t.source : {};
+  if (typeof src.itemId === "string") return ctx.expenseNames?.get(src.itemId) ?? null;
+  if (typeof src.sourceId === "string") return ctx.incomeNames?.get(src.sourceId) ?? null;
+  return null;
+}
+
 /** Every trackable record of one table document, keyed `type:id`. */
-export function auditEntities(key: TableKey, doc: unknown, ctx: AuditContext = {}): Map<string, Entity> {
+export function auditEntities(key: StoredKey, doc: unknown, ctx: AuditContext = {}): Map<string, Entity> {
   const out = new Map<string, Entity>();
   if (doc === null || doc === undefined) return out;
+  if (isLedgerKey(key)) {
+    // A month of money in and out; the "don't recreate" list is bookkeeping.
+    if (isObj(doc)) addAll(out, "transaction", doc.txns, (r) => transactionName(r, ctx));
+    return out;
+  }
   switch (key) {
     case "settingsAssets":
       addAll(out, "asset", doc, (r) => str(r.name));
@@ -200,7 +226,7 @@ export function fieldChanges(before: unknown, after: unknown, prefix = "", depth
 }
 
 /** Log entries for saving `after` over `before` (either may be missing). */
-export function diffTable(key: TableKey, before: unknown, after: unknown, ctx: AuditContext = {}): AuditChange[] {
+export function diffTable(key: StoredKey, before: unknown, after: unknown, ctx: AuditContext = {}): AuditChange[] {
   const was = auditEntities(key, before, ctx);
   const now = auditEntities(key, after, ctx);
   const out: AuditChange[] = [];

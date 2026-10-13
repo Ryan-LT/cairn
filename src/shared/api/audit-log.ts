@@ -1,22 +1,22 @@
 import { getSql } from "@/shared/api/db";
 import { ensureSchema } from "@/shared/api/lazy-schema";
-import { diffTable, expenseNamesOf, type AuditChange, type AuditContext } from "@/shared/lib/audit-diff";
+import { diffTable, expenseNamesOf, incomeNamesOf, type AuditChange, type AuditContext } from "@/shared/lib/audit-diff";
 import { FOLD_FROM, FOLD_TO, foldSearch } from "@/shared/lib/search-fold";
-import type { TableKey } from "@/shared/storage/table-keys";
+import { isLedgerKey, type StoredKey } from "@/shared/storage/table-keys";
 
 /** Optimistic tries (another save kept landing in between) before the locking fallback. */
 const MAX_ATTEMPTS = 4;
 const MAX_USER_AGENT = 300;
 
 type Sql = ReturnType<typeof getSql>;
-type Save = { key: TableKey; value: unknown; payload: string };
+type Save = { key: StoredKey; value: unknown; payload: string };
 
-async function readTable(sql: Sql, userId: string, key: TableKey): Promise<unknown> {
+async function readTable(sql: Sql, userId: string, key: StoredKey): Promise<unknown> {
   const rows = (await sql`SELECT value FROM wealthtracker_kv WHERE user_id = ${userId} AND key = ${key}`) as { value: unknown }[];
   return rows[0]?.value ?? null;
 }
 
-async function plainUpsert(sql: Sql, userId: string, key: TableKey, payload: string) {
+async function plainUpsert(sql: Sql, userId: string, key: StoredKey, payload: string) {
   await sql`
     INSERT INTO wealthtracker_kv (user_id, key, value, updated_at)
     VALUES (${userId}, ${key}, ${payload}::jsonb, now())
@@ -29,7 +29,7 @@ async function plainUpsert(sql: Sql, userId: string, key: TableKey, payload: str
  * Overwrite the table and return what it held just before, atomically (the
  * row is locked, so a concurrent save can't slip in between).
  */
-async function swapTable(sql: Sql, userId: string, key: TableKey, payload: string): Promise<unknown> {
+async function swapTable(sql: Sql, userId: string, key: StoredKey, payload: string): Promise<unknown> {
   for (;;) {
     const updated = (await sql`
       UPDATE wealthtracker_kv AS k
@@ -82,15 +82,19 @@ export async function saveTablesWithAudit(userId: string, saves: Save[], userAge
   const batchId = crypto.randomUUID();
   const agent = userAgent ? userAgent.slice(0, MAX_USER_AGENT) : null;
 
-  // Check-offs are named after their bill: the bill list being saved, else the stored one.
+  // Check-offs and transactions are named after their bill or income source: the list being saved, else the stored one.
   let names: AuditContext["expenseNames"];
-  const contextFor = async (key: TableKey): Promise<AuditContext> => {
-    if (key !== "expenseLog") return {};
-    if (!names) {
-      const inBatch = saves.find((s) => s.key === "expenses");
-      names = expenseNamesOf(inBatch ? inBatch.value : await readTable(sql, userId, "expenses"));
-    }
-    return { expenseNames: names };
+  let incomeNames: AuditContext["incomeNames"];
+  const fromBatchOrStored = async (k: StoredKey) => {
+    const inBatch = saves.find((s) => s.key === k);
+    return inBatch ? inBatch.value : await readTable(sql, userId, k);
+  };
+  const contextFor = async (key: StoredKey): Promise<AuditContext> => {
+    const ledger = isLedgerKey(key);
+    if (key !== "expenseLog" && !ledger) return {};
+    names ??= expenseNamesOf(await fromBatchOrStored("expenses"));
+    if (ledger) incomeNames ??= incomeNamesOf(await fromBatchOrStored("incomeSources"));
+    return { expenseNames: names, incomeNames };
   };
 
   for (const { key, value, payload } of saves) {

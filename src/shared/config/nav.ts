@@ -9,9 +9,11 @@ import {
   PieChart,
   Plus,
   Receipt,
+  ScrollText,
   Settings,
   Target,
   TrendingUp,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -45,6 +47,7 @@ export const NAV_HUBS: NavHub[] = [
       { id: "cashflowMonth", href: "/cashflow", icon: CalendarCheck },
       { id: "cashflowSpending", href: "/cashflow/spending", icon: Receipt },
       { id: "cashflowIncome", href: "/cashflow/income", icon: TrendingUp },
+      { id: "cashflowHistory", href: "/cashflow/history", icon: ScrollText },
     ],
   },
   {
@@ -88,6 +91,7 @@ export type QuickAction = { id: QuickActionId; href: string; icon: LucideIcon };
 /** Create shortcuts: each page opens its sheet for `?new=1`. */
 export const QUICK_ADD: QuickAction[] = [
   { id: "record", href: "/cashflow?new=1", icon: CalendarCheck },
+  { id: "spendNow", href: "/cashflow/history?new=1", icon: Zap },
   { id: "bill", href: "/cashflow/spending?new=1", icon: Receipt },
   { id: "income", href: "/cashflow/income?new=1", icon: TrendingUp },
   { id: "asset", href: "/wealth?new=1", icon: Landmark },

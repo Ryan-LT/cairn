@@ -8,6 +8,7 @@ export const SHELL_ROUTES: readonly string[] = [
   "/cashflow",
   "/cashflow/spending",
   "/cashflow/income",
+  "/cashflow/history",
   "/wealth",
   "/wealth/debts",
   "/wealth/loans",

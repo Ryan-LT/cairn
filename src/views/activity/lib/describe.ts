@@ -19,8 +19,8 @@ export type ActivityEntry = {
 /** Filter chips → the record kinds each one shows (empty: everything). */
 export const ACTIVITY_FILTERS = {
   all: [],
-  spending: ["expense", "expense_month", "spending_estimate"],
-  income: ["income_source"],
+  spending: ["expense", "expense_month", "spending_estimate", "transaction"],
+  income: ["income_source", "transaction"],
   assets: ["asset", "legacy_real_estate", "legacy_cash", "legacy_investment"],
   debts: ["debt"],
   loans: ["personal_loan"],

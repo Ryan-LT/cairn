@@ -9,8 +9,10 @@ export {
   useInitialLoadDone,
   useLastSyncedAt,
   useTable,
+  useTableFamily,
+  readTableFamily,
   useHydrated,
   useSyncing,
 } from "./store";
 
-export { TABLE_KEYS, isTableKey, type TableKey } from "./table-keys";
+export { TABLE_KEYS, isTableKey, type TableKey, LEDGER_PREFIX, isLedgerKey, isStoredKey, ledgerKey, type LedgerKey, type StoredKey } from "./table-keys";

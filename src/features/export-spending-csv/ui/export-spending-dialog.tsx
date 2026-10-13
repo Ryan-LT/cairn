@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import type { Debt } from "@/entities/debt";
 import { expenseRecords, type BillStatus, type BudgetStatus, type ExpenseLogDoc, type ExpensesDoc } from "@/entities/expense";
+import { useLedger } from "@/entities/ledger";
 import { useI18n } from "@/shared/i18n";
 import { toCsv } from "@/shared/lib/csv";
 import { todayIso } from "@/shared/lib/date";
@@ -33,6 +34,7 @@ export function ExportSpendingDialog({
 }) {
   const { t } = useI18n();
   const c = t.cashflow.spending.csv;
+  const { txns } = useLedger();
   const [range, setRange] = useState<(typeof RANGES)[number]>("12");
   const [delimiter, setDelimiter] = useState<"," | ";">(",");
 
@@ -51,9 +53,16 @@ export function ExportSpendingDialog({
       unconfirmed: st.unconfirmed,
     };
     const status = (s: BillStatus | BudgetStatus) => (s in billStatus ? billStatus[s as BillStatus] : t.expenses.budgetStatus[s as BudgetStatus]);
+    // Spending outside the plan in the same months (oldest first).
+    const months = new Set(monthsEndingAt(monthKeyOf(today), Number(range)));
+    const unplanned = txns
+      .filter((x) => x.source.type === "instant" && months.has(x.date.slice(0, 7)))
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+      .map((x) => [x.date.slice(0, 7), x.date, x.name ?? t.expenses.categories[x.category ?? "other"], t.expenses.categories[x.category ?? "other"], t.ledger.kinds.instant, 0, x.amount, "", x.note ?? ""]);
     const rows = [
       [c.month, c.date, c.item, c.category, c.type, c.planned, c.actual, c.status, c.note],
       ...records.map((r) => [r.monthKey, r.date, r.name, t.expenses.categories[r.category], t.expenses.kinds[r.kind].label, r.planned, r.actual, status(r.status), r.note]),
+      ...unplanned,
     ];
     downloadText(`${c.fileName}-${todayIso()}.csv`, toCsv(rows, { delimiter }), "text/csv;charset=utf-8");
     onOpenChange(false);

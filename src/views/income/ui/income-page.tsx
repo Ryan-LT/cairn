@@ -1,6 +1,7 @@
 "use client";
 
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, ScrollText, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -73,10 +74,18 @@ export function IncomePage() {
     <TabContent>
       <TabToolbar
         actions={
-        <Button onClick={openCreate}>
-          <Plus />
-          {t.income.addSource}
-        </Button>
+          <>
+            <Button variant="outline" asChild>
+              <Link href="/cashflow/history?view=income">
+                <ScrollText />
+                <span className="max-sm:sr-only">{t.ledger.history.openHistoryIncome}</span>
+              </Link>
+            </Button>
+            <Button onClick={openCreate}>
+              <Plus />
+              {t.income.addSource}
+            </Button>
+          </>
         }
       />
 

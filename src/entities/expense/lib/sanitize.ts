@@ -63,6 +63,9 @@ export function sanitizeExpenseItem(raw: unknown, today: string): ExpenseItem | 
   if (dueWeekday !== undefined && frequency === "weekly") item.dueWeekday = dueWeekday;
   if (typeof raw.debtId === "string" && raw.debtId) item.debtId = raw.debtId;
   if (raw.autopay === true) item.autopay = true;
+  if (typeof raw.accountId === "string" && raw.accountId) item.accountId = raw.accountId;
+  const autoSince = isoDay(raw.autoSince);
+  if (autoSince) item.autoSince = autoSince;
   if (typeof raw.essential === "boolean") item.essential = raw.essential;
   const note = text(raw.note, 200);
   if (note) item.note = note;

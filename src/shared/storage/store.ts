@@ -4,7 +4,12 @@ import { useCallback, useSyncExternalStore } from "react";
 
 import { readSessionUser } from "@/shared/lib/session-user";
 
-import { isTableKey, TABLE_KEYS, type TableKey } from "./table-keys";
+import { isStoredKey, type StoredKey } from "./table-keys";
+
+/** Keys of `source` the store keeps (fixed tables and monthly ledger tables). */
+function storedKeysIn(source: object): StoredKey[] {
+  return Object.keys(source).filter(isStoredKey);
+}
 
 const tablesUrl = "/api/tables";
 /** Device cache, one per account: `wealthtracker:tables:v1:<userId>` (`:local` without login). */
@@ -92,7 +97,7 @@ function isBrowser(): boolean {
 }
 
 type StoredShape = {
-  tables?: Partial<Record<TableKey, unknown>>;
+  tables?: Partial<Record<StoredKey, unknown>>;
   lastSyncedAt?: number | null;
   /** Tables edited on this device but not yet saved to the server. */
   dirty?: string[];
@@ -106,14 +111,14 @@ function loadLocalCache(): void {
     window.localStorage.removeItem(LEGACY_LOCAL_CACHE_KEY);
     const raw = window.localStorage.getItem(localCacheKey());
     if (!raw) return;
-    const parsed = JSON.parse(raw) as StoredShape & Partial<Record<TableKey, unknown>>;
+    const parsed = JSON.parse(raw) as StoredShape & Partial<Record<StoredKey, unknown>>;
     if (!parsed || typeof parsed !== "object") return;
     // Detect shape: new envelope has a `tables` object; legacy stored table keys directly.
     const tables =
       parsed.tables && typeof parsed.tables === "object" && !Array.isArray(parsed.tables)
         ? parsed.tables
-        : (parsed as Partial<Record<TableKey, unknown>>);
-    for (const key of TABLE_KEYS) {
+        : (parsed as Partial<Record<StoredKey, unknown>>);
+    for (const key of storedKeysIn(tables)) {
       if (tables[key] !== undefined) {
         valueCache.set(key, tables[key]);
       }
@@ -124,7 +129,7 @@ function loadLocalCache(): void {
     // Unsynced edits survive a reload or app restart; the next sync keeps and pushes them.
     if (Array.isArray(parsed.dirty)) {
       for (const key of parsed.dirty) {
-        if (typeof key === "string" && isTableKey(key) && valueCache.has(key)) dirty.add(key);
+        if (typeof key === "string" && isStoredKey(key) && valueCache.has(key)) dirty.add(key);
       }
     }
   } catch {
@@ -136,10 +141,8 @@ function persistLocalCache(): void {
   if (!isBrowser() || disposed) return;
   try {
     const tables: Record<string, unknown> = {};
-    for (const key of TABLE_KEYS) {
-      if (valueCache.has(key)) {
-        tables[key] = valueCache.get(key);
-      }
+    for (const [key, value] of valueCache) {
+      if (isStoredKey(key)) tables[key] = value;
     }
     const envelope: StoredShape = { tables, lastSyncedAt, dirty: [...dirty] };
     window.localStorage.setItem(localCacheKey(), JSON.stringify(envelope));
@@ -158,6 +161,7 @@ function subscribe(listener: Listener): () => void {
 }
 
 function notify(): void {
+  familyVersion += 1;
   listeners.forEach((l) => l());
 }
 
@@ -177,13 +181,13 @@ function syncFromServer(): Promise<void> {
         if (res.status === 401) handleSignedOut();
         throw new Error(`GET ${tablesUrl} ${res.status}`);
       }
-      const data = (await res.json()) as { userId?: string; tables?: Partial<Record<TableKey, unknown>> };
+      const data = (await res.json()) as { userId?: string; tables?: Partial<Record<StoredKey, unknown>> };
       if (data.userId !== undefined && data.userId !== ownerId()) {
         handleAccountMismatch();
         throw new Error("Tables belong to a different account");
       }
       const remote = data.tables ?? {};
-      for (const key of TABLE_KEYS) {
+      for (const key of storedKeysIn(remote)) {
         if (dirty.has(key)) {
           continue;
         }
@@ -389,6 +393,46 @@ export function useTable<T>(name: string, seed: T) {
   );
 
   return [value, update, loadFinished] as const;
+}
+
+/** Version bumped on every change, so family snapshots are rebuilt only when something changed. */
+let familyVersion = 0;
+const familyCache = new Map<string, { version: number; value: Record<string, unknown> }>();
+
+function readFamily(prefix: string): Record<string, unknown> {
+  loadLocalCache();
+  const cached = familyCache.get(prefix);
+  if (cached && cached.version === familyVersion) return cached.value;
+  const value: Record<string, unknown> = {};
+  for (const [key, v] of [...valueCache.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+    if (key.startsWith(prefix)) value[key] = v;
+  }
+  // Same content as before: keep the old object so readers don't re-render.
+  if (cached && sameShallow(cached.value, value)) {
+    familyCache.set(prefix, { version: familyVersion, value: cached.value });
+    return cached.value;
+  }
+  familyCache.set(prefix, { version: familyVersion, value });
+  return value;
+}
+
+function sameShallow(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  const ka = Object.keys(a);
+  const kb = Object.keys(b);
+  return ka.length === kb.length && ka.every((k) => a[k] === b[k]);
+}
+
+const EMPTY_FAMILY: Record<string, unknown> = {};
+
+/** Every table whose key starts with `prefix` (e.g. the monthly ledger tables), as `{ key: value }`. */
+export function useTableFamily(prefix: string): Record<string, unknown> {
+  const getSnapshot = useCallback(() => readFamily(prefix), [prefix]);
+  return useSyncExternalStore(subscribe, getSnapshot, () => EMPTY_FAMILY);
+}
+
+/** Non-hook read of a table family (backups). */
+export function readTableFamily(prefix: string): Record<string, unknown> {
+  return readFamily(prefix);
 }
 
 /**

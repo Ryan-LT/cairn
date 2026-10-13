@@ -71,6 +71,7 @@ export const settings: Messages["settings"] = {
       personalLoans: "Khoản vay cá nhân",
       expenses: "Hóa đơn & ngân sách",
       expenseLog: "Lịch sử chi tiêu theo tháng",
+      ledger: "Lịch sử thu chi",
     },
   },
   password: {

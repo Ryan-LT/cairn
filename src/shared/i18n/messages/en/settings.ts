@@ -70,6 +70,7 @@ export const settings = {
       personalLoans: "Personal loans",
       expenses: "Bills & budgets",
       expenseLog: "Monthly spending record",
+      ledger: "Money in and out history",
     },
   },
   password: {

@@ -16,6 +16,12 @@ export type IncomeSource = {
   amountUsd?: number;
   /** Day-of-month (1-31) the payment lands. */
   paymentDay?: number;
+  /** Account (asset) the money goes into when it's received. */
+  accountId?: string;
+  /** Record it as received on the payment day by itself (otherwise you confirm each month). */
+  autoReceive?: boolean;
+  /** `YYYY-MM-DD` from which it is recorded automatically (set when turned on). */
+  autoSince?: string;
   paymentEntity?: string;
   /**
    * Capital (principal) backing this income — modelled as allocations from

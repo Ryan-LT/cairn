@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo } from "react";
 
+import { mergeLedgerIntoLog } from "@/entities/ledger/lib/merge";
+import { useLedger } from "@/entities/ledger/api/use-ledger";
 import { useCurrency } from "@/shared/lib/currency/provider";
 import { todayIso } from "@/shared/lib/date";
 import { useTable } from "@/shared/storage";
@@ -11,8 +13,10 @@ import { sanitizeExpenseLog, sanitizeExpensesDoc } from "../lib/sanitize";
 import { resolveExpenseValues } from "../lib/valuation";
 
 /**
- * The bill / budget list and the monthly check-off log, read tolerantly.
- * Updates take a function of the current (sanitized) document.
+ * The bill / budget list and the monthly log, read tolerantly. `log` has the
+ * payments and spending from the ledger merged in (what the views read);
+ * `storedLog` is the stored plan log (skips, planned amounts). Updates take a
+ * function of the current (sanitized, stored) document.
  */
 export function useExpenses() {
   const [rawExpenses, setExpenses] = useTable<unknown>("expenses", EXPENSES_SEED);
@@ -23,7 +27,10 @@ export function useExpenses() {
     const doc = sanitizeExpensesDoc(rawExpenses, todayIso());
     return rates ? resolveExpenseValues(doc, rates) : doc;
   }, [rawExpenses, rates]);
-  const log = useMemo(() => sanitizeExpenseLog(rawLog), [rawLog]);
+  const storedLog = useMemo(() => sanitizeExpenseLog(rawLog), [rawLog]);
+  // What was actually paid and spent comes from the ledger.
+  const { txns } = useLedger();
+  const log = useMemo(() => mergeLedgerIntoLog(storedLog, txns), [storedLog, txns]);
 
   const updateExpenses = useCallback(
     (fn: (doc: ExpensesDoc) => ExpensesDoc) => setExpenses((prev: unknown) => fn(sanitizeExpensesDoc(prev, todayIso()))),
@@ -34,5 +41,5 @@ export function useExpenses() {
     [setLog],
   );
 
-  return { expenses, log, updateExpenses, updateLog };
+  return { expenses, log, storedLog, updateExpenses, updateLog };
 }

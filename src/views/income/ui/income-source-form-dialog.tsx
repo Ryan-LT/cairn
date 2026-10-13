@@ -11,11 +11,13 @@ import type { GoalProfile, GoalSeedLine, GoalStartingOption } from "@/entities/g
 import { totalCapitalAmount, wrapIncomeSourceAsProfile, type IncomeSource } from "@/entities/income";
 import { useI18n, type Messages } from "@/shared/i18n";
 import { useCurrency } from "@/shared/lib/currency/provider";
-import { DayOfMonthField, MoneyField, SegmentedField, SelectField, TextField } from "@/shared/ui/form";
+import { todayIso } from "@/shared/lib/date";
+import { AccountSelect } from "@/entities/settings-asset/ui";
+import { DayOfMonthField, MoneyField, SegmentedField, SelectField, SwitchField, TextField } from "@/shared/ui/form";
 import { ICON_OPTIONS, RegistryIcon } from "@/shared/ui/icon-registry";
 import { Button } from "@/shared/ui/kit/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/kit/dialog";
-import { Form } from "@/shared/ui/kit/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/shared/ui/kit/form";
 import { Label } from "@/shared/ui/kit/label";
 import { Money } from "@/shared/ui/money";
 
@@ -27,6 +29,8 @@ const makeSchema = (t: Messages) =>
     icon: z.string(),
     monthly: z.number().min(0),
     currency: z.enum(["VND", "USD"]),
+    accountId: z.string().optional(),
+    autoReceive: z.boolean(),
     paymentEntity: z.string().max(80).optional(),
     paymentDay: z.number().int().min(1).max(31).optional(),
   });
@@ -88,6 +92,8 @@ function IncomeSourceForm({
       // Paid in USD: the field holds dollars.
       monthly: source.amountUsd ?? source.monthly,
       currency: source.amountUsd ? "USD" : "VND",
+      accountId: source.accountId,
+      autoReceive: source.autoReceive ?? false,
       paymentEntity: source.paymentEntity ?? "",
       paymentDay: source.paymentDay,
     },
@@ -130,11 +136,13 @@ function IncomeSourceForm({
     <Form {...form}>
       <form
         className="flex min-h-0 flex-1 flex-col"
-        onSubmit={form.handleSubmit(({ currency: cur, monthly, ...v }) => {
+        onSubmit={form.handleSubmit(({ currency: cur, monthly, accountId, autoReceive, ...v }) => {
           const usd = cur === "USD" ? Math.round(monthly * 100) / 100 : undefined;
           // VND at today's rate (the last saved amount if no rate is known).
           const vnd = usd === undefined ? monthly : rate ? Math.round(usd * rate) : source.monthly;
-          onSubmit({ ...source, ...v, monthly: vnd, amountUsd: usd, capitalLines });
+          // Automatic recording starts with the month it's turned on.
+          const autoSince = autoReceive ? (source.autoReceive && source.autoSince ? source.autoSince : `${todayIso().slice(0, 7)}-01`) : undefined;
+          onSubmit({ ...source, ...v, monthly: vnd, amountUsd: usd, accountId: accountId || undefined, autoReceive: autoReceive || undefined, autoSince, capitalLines });
         })}
       >
         <DialogHeader>
@@ -185,6 +193,20 @@ function IncomeSourceForm({
             <TextField control={form.control} name="paymentEntity" label={t.income.form.paidBy} placeholder={t.income.form.paidByPlaceholder} />
             <DayOfMonthField control={form.control} name="paymentDay" label={t.income.form.paymentDay} />
           </div>
+          <FormField
+            control={form.control}
+            name="accountId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t.ledger.account.into}</FormLabel>
+                <FormControl>
+                  <AccountSelect value={field.value} onChange={field.onChange} />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">{t.ledger.account.hintIncome}</p>
+              </FormItem>
+            )}
+          />
+          <SwitchField control={form.control} name="autoReceive" label={t.ledger.timing.autoReceive} description={t.ledger.timing.autoReceiveHint} />
         </DialogBody>
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onCancel}>

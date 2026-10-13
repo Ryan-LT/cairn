@@ -11,6 +11,7 @@ export const nav = {
     cashflowMonth: { label: "This month", description: "Bills to pay, budgets and what's left this month" },
     cashflowSpending: { label: "Spending", description: "Every bill and budget, by category" },
     cashflowIncome: { label: "Income", description: "Salary, side income and passive income" },
+    cashflowHistory: { label: "History", description: "Every payment out and in, day by day" },
     wealthAssets: { label: "Assets", description: "Everything you own and how fast you can use it" },
     wealthDebts: { label: "Debts", description: "Loans and cards, payoff dates and interest" },
     wealthLoans: { label: "Personal loans", description: "Money lent to or borrowed from people you know" },
@@ -21,6 +22,7 @@ export const nav = {
   },
   quickAdd: {
     record: { label: "Record a payment", short: "Pay", keywords: "pay bill paid spent spending log record" },
+    spendNow: { label: "Spend now (outside the plan)", short: "Spend now", keywords: "spend now unplanned expense quick purchase" },
     bill: { label: "Add a bill or budget", short: "Bill", keywords: "create new bill budget expense spending money out" },
     income: { label: "Add income", short: "Income", keywords: "create new income salary money in" },
     asset: { label: "Add asset", short: "Asset", keywords: "create new asset" },

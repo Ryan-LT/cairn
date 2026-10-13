@@ -21,8 +21,27 @@ describe("parseBackup", () => {
       { key: "expenseLog", count: 2 },
     ]);
     // Older backups don't have every table: those are left alone, not emptied.
-    expect(out.summary.missing).toEqual(["assets", "settingsAssets", "incomeSources", "personalLoans"]);
+    expect(out.summary.missing).toEqual(["assets", "settingsAssets", "incomeSources", "personalLoans", "ledger"]);
     expect(out.tables.assets).toBeUndefined();
+  });
+
+  it("restores the monthly money-in-and-out tables, sanitized", () => {
+    const out = parseBackup(
+      JSON.stringify({
+        tables: {
+          debts: fixtureDebts,
+          "ledger:2026-10": { txns: [{ id: "a", date: "2026-10-02", amount: 5000, source: { type: "instant" } }, { id: "bad" }] },
+          "ledger:2026-09": { txns: [{ id: "b", date: "2026-09-30", amount: 7, source: { type: "extra" } }] },
+          "ledger:nope": { txns: [] },
+        },
+      }),
+      TODAY,
+    );
+    expect(out.ok).toBe(true);
+    if (!out.ok) return;
+    expect(Object.keys(out.tables).sort()).toEqual(["debts", "ledger:2026-09", "ledger:2026-10"]);
+    expect(out.summary.tables).toContainEqual({ key: "ledger", count: 2 });
+    expect(parseBackup(JSON.stringify({ tables: { debts: fixtureDebts, "ledger:2026-10": "x" } }), TODAY)).toEqual({ ok: false, code: "invalid_table" });
   });
 
   it("drops rows without an id and fills a missing goals header", () => {

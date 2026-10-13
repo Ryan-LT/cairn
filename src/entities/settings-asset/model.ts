@@ -16,6 +16,12 @@ export type SettingsAsset = {
   /** `YYYY-MM-DD` the value was last changed (unset in older saves). */
   updatedAt?: string;
   /**
+   * When the value was last set by hand (ISO). Money recorded against this
+   * account after that moment moves its balance; anything before is assumed
+   * to be in the value already. Older saves fall back to `updatedAt`.
+   */
+  valueAsOf?: string;
+  /**
    * Held in US dollars or gold: the value follows today's rate (see
    * `useSettingsAssets`); `currentValue` keeps the VND value at the last save.
    */

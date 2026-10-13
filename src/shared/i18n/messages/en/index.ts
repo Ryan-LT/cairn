@@ -21,6 +21,7 @@ import { settings } from "./settings";
 import { activity } from "./activity";
 import { assist } from "./assist";
 import { currency } from "./currency";
+import { ledger } from "./ledger";
 
 /** English messages: the source of truth. Every other language must match this shape exactly. */
 export const en = {
@@ -47,6 +48,7 @@ export const en = {
   activity,
   assist,
   currency,
+  ledger,
 };
 
 export type Messages = typeof en;

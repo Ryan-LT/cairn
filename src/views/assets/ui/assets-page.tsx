@@ -1,11 +1,13 @@
 "use client";
 
-import { Clock, History, Pencil, Plus, RefreshCw, Search, Trash2, TrendingUp, Zap } from "lucide-react";
+import { ArrowLeftRight, Clock, History, Pencil, Plus, RefreshCw, ScrollText, Search, Trash2, TrendingUp, Zap } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { GOALS_SEED } from "@/entities/goal";
+import { accountActivity, isAccountAsset, useLedger } from "@/entities/ledger";
 import { useIncomeSources } from "@/entities/income";
 import { assetTotalsByCategory, legacyHoldingsCount, migrateLegacyHoldings } from "@/entities/portfolio";
 import { PREFERENCES_SEED, registerExtraAssetCategory } from "@/entities/preferences";
@@ -24,7 +26,8 @@ import { LiquidityBadge } from "@/entities/settings-asset/ui";
 import { useI18n, type Messages } from "@/shared/i18n";
 import { todayIso } from "@/shared/lib/date";
 import type { AssetHolding } from "@/shared/lib/currency/holding";
-import { formatNumber, formatRelative, formatUsdAmount } from "@/shared/lib/format";
+import { useCurrency } from "@/shared/lib/currency/provider";
+import { formatMoneyCompact, formatNumber, formatRelative, formatUsdAmount } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
 import { AmountSheet } from "@/shared/ui/amount-sheet";
@@ -65,7 +68,12 @@ function EmojiTile({ emoji }: { emoji: string }) {
 
 /** Net worth › Assets: everything owned, grouped by category, with quick value updates. */
 export function AssetsPage() {
-  const [assets, setAssets] = useSettingsAssets();
+  const [assets, setAssets, , storedAssets] = useSettingsAssets();
+  const { txns } = useLedger();
+  const router = useRouter();
+  const usdRate = useCurrency()?.rates.vndPerUsd ?? null;
+  // How much recorded money moved each account since its balance was last typed in.
+  const activity = useMemo(() => accountActivity(storedAssets, txns, todayIso(), usdRate), [storedAssets, txns, usdRate]);
   const [legacy, setLegacy] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
   const [incomeSources, setIncomeSources] = useIncomeSources();
@@ -112,19 +120,20 @@ export function AssetsPage() {
     legacy.cashAccounts.reduce((s, c) => s + Math.max(0, c.balance), 0);
   const total = byCategory.reduce((s, c) => s + c.value, 0);
   // Assets held in USD or gold follow the market, so they never go stale.
-  const stale = assets.filter((a) => !a.holding && (daysSince(a.updatedAt) ?? Infinity) > STALE_DAYS && a.currentValue > 0).length;
+  const stale = assets.filter((a) => !a.holding && !activity.get(a.id)?.count && (daysSince(a.updatedAt) ?? Infinity) > STALE_DAYS && a.currentValue > 0).length;
   /** Live assets are updated by editing the dollars or the weight, not the đồng value. */
   const updateValue = (asset: SettingsAsset) => (asset.holding ? openEdit(asset) : setUpdating(asset));
 
   const actionsFor = (asset: SettingsAsset): RowAction[] => [
     { label: w.updateValue, icon: RefreshCw, onSelect: () => updateValue(asset) },
+    ...(isAccountAsset(asset) ? [{ label: t.ledger.history.accountTransactions, icon: ScrollText, onSelect: () => router.push(`/cashflow/history?account=${encodeURIComponent(asset.id)}`) }] : []),
     { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(asset) },
     "separator",
     { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(asset) },
   ];
 
   const migrate = () => {
-    const out = migrateLegacyHoldings({ assets: legacy, catalog: assets, goals, incomeSources });
+    const out = migrateLegacyHoldings({ assets: legacy, catalog: storedAssets, goals, incomeSources });
     // All four tables go out in the same sync.
     setAssets(() => out.catalog);
     setGoals(() => out.goals);
@@ -216,7 +225,8 @@ export function AssetsPage() {
               >
                 {g.items.map((a) => {
                   const days = daysSince(a.updatedAt);
-                  const isStale = !a.holding && (days === null || days > STALE_DAYS);
+                  // Accounts that follow recorded money aren't stale while it keeps coming in.
+                  const isStale = !a.holding && !activity.get(a.id)?.count && (days === null || days > STALE_DAYS);
                   return (
                     <ListRow
                       key={a.id}
@@ -225,6 +235,12 @@ export function AssetsPage() {
                       subtitle={
                         <span className="flex flex-wrap items-center gap-1.5">
                           <LiquidityBadge liquidity={a.liquidity} />
+                          {activity.get(a.id)?.count ? (
+                            <span title={t.ledger.account.movedHint} className="inline-flex items-center gap-1 font-medium text-foreground/80" data-private>
+                              <ArrowLeftRight className="size-3.5 text-primary" aria-hidden />
+                              {t.ledger.account.moved({ amount: activityAmount(a, activity.get(a.id)!.delta), count: activity.get(a.id)!.count })}
+                            </span>
+                          ) : null}
                           {a.holding ? (
                             <span className="inline-flex items-center gap-1 font-medium text-foreground/80" data-private>
                               <TrendingUp className="size-3.5 text-success" aria-hidden />
@@ -268,7 +284,8 @@ export function AssetsPage() {
         onConfirm={(value) => {
           if (!updating) return;
           const id = updating.id;
-          setAssets((prev) => prev.map((a) => (a.id === id ? { ...a, currentValue: value, updatedAt: todayIso() } : a)));
+          // A value typed in is the balance from now on (money recorded before it is already in it).
+          setAssets((prev) => prev.map((a) => (a.id === id ? { ...a, currentValue: value, updatedAt: todayIso(), valueAsOf: new Date().toISOString() } : a)));
           toast.success(w.updated);
         }}
       />
@@ -282,7 +299,8 @@ export function AssetsPage() {
         onSubmit={(draft) => {
           const prev = assets.find((a) => a.id === draft.id);
           const valueChanged = !prev || prev.currentValue !== draft.currentValue || JSON.stringify(prev.holding ?? null) !== JSON.stringify(draft.holding ?? null);
-          const next = { ...sanitizeSettingsAsset(draft), updatedAt: valueChanged ? todayIso() : prev?.updatedAt };
+          // The form shows today's balance; saving makes it the balance from now on.
+          const next = { ...sanitizeSettingsAsset(draft), updatedAt: valueChanged ? todayIso() : prev?.updatedAt, valueAsOf: new Date().toISOString() };
           const custom = customCategoryToRegister(next.category);
           if (custom) setPrefs((p) => registerExtraAssetCategory(p, custom));
           if (dialog?.mode === "edit") {
@@ -306,7 +324,8 @@ export function AssetsPage() {
         onConfirm={() => {
           if (!pendingDelete) return;
           const removed = pendingDelete;
-          const before = assets;
+          // Undo restores the stored list (balances as saved, not as shown).
+          const before = storedAssets;
           setAssets((all) => all.filter((a) => a.id !== removed.id));
           toast.success(m.toast.deleted, { description: removed.name, action: { label: t.common.undo, onClick: () => setAssets(() => before) } });
         }}
@@ -324,4 +343,9 @@ function holdingText(t: Messages, holding: AssetHolding): string {
     unit: t.currency.gold.unitsShort[holding.unit],
     product: t.currency.gold.products[holding.product],
   });
+}
+
+/** The movement in the account's own unit: "−1,2 tr ₫" or "−$12,50". */
+function activityAmount(asset: SettingsAsset, delta: number): string {
+  return asset.holding?.kind === "usd" ? formatUsdAmount(delta, { signDisplay: "exceptZero" }) : formatMoneyCompact(delta, { signDisplay: "exceptZero" });
 }
