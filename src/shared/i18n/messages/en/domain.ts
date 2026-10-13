@@ -26,7 +26,7 @@ export const domain = {
     targetMet: "Target met",
     pastMilestone: "Past milestone",
     hintBirthDate: (p: { age: number }) => `Add your date of birth in Settings to set your age-${p.age} deadline.`,
-    hintFxRate: "Add EXCHANGERATE_API_KEY for FX rates. Rates are cached in Postgres for 24h.",
+    hintFxRate: "Couldn't get the USD exchange rate right now. It will try again later.",
     hintAchieved: (p: { detail: string; target: string }) => `Already ${p.detail} above the ${p.target} target.`,
     hintPastDeadline: (p: { age: number }) => `Age ${p.age} deadline passed.`,
     hintOnTrack: (p: { projected: string; age: number; pct: string; money: string; target: string; targetVnd: string }) =>

@@ -27,7 +27,7 @@ export const domain: Messages["domain"] = {
     targetMet: "Đã đạt mục tiêu",
     pastMilestone: "Đã quá mốc",
     hintBirthDate: (p) => `Thêm ngày sinh trong Cài đặt để đặt hạn chót ở tuổi ${p.age}.`,
-    hintFxRate: "Thêm EXCHANGERATE_API_KEY để lấy tỷ giá. Tỷ giá được lưu đệm 24 giờ.",
+    hintFxRate: "Chưa lấy được tỷ giá USD lúc này. Ứng dụng sẽ thử lại sau.",
     hintAchieved: (p) => `Đã vượt mục tiêu ${p.target}: ${p.detail}.`,
     hintPastDeadline: (p) => `Đã qua hạn chót ở tuổi ${p.age}.`,
     hintOnTrack: (p) =>

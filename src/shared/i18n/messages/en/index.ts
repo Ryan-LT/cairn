@@ -12,6 +12,9 @@ import { income } from "./income";
 import { expenses } from "./expenses";
 import { cashflow } from "./cashflow";
 import { wealth } from "./wealth";
+import { insights } from "./insights";
+import { setup } from "./setup";
+import { home } from "./home";
 import { debts } from "./debts";
 import { loans } from "./loans";
 import { settings } from "./settings";
@@ -32,6 +35,9 @@ export const en = {
   expenses,
   cashflow,
   wealth,
+  insights,
+  setup,
+  home,
   debts,
   loans,
   settings,

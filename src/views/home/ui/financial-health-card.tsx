@@ -58,7 +58,7 @@ function Metric({
 const pct = (fraction: number) => formatPercent(fraction * 100, { maximumFractionDigits: 0 });
 
 /** Six plain-language health checks computed from the user's tables. */
-export function FinancialHealthCard({ health, annualRealRate }: { health: FinancialHealth; annualRealRate: number }) {
+export function FinancialHealthCard({ health, annualRealRate, bare }: { health: FinancialHealth; annualRealRate: number; /** Content only (inside a dialog). */ bare?: boolean }) {
   const h = health;
   const { t } = useI18n();
   const m = t.dashboard.health;
@@ -69,8 +69,7 @@ export function FinancialHealthCard({ health, annualRealRate }: { health: Financ
     h.debtToAssets === null ? "neutral" : h.debtToAssets <= 0.3 ? "success" : h.debtToAssets <= 0.5 ? "warning" : "danger";
   const liquidTone: StatusTone = h.liquidShare === null ? "neutral" : h.liquidShare >= 0.1 ? "success" : "warning";
 
-  return (
-    <Section title={m.title} description={m.description}>
+  const body = (
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <Metric
           icon={LifeBuoy}
@@ -142,6 +141,10 @@ export function FinancialHealthCard({ health, annualRealRate }: { health: Financ
           explain={h.monthlyInterest > 0 ? m.interest.explain : m.interest.none}
         />
       </div>
+  );
+  return bare ? body : (
+    <Section title={m.title} description={m.description}>
+      {body}
     </Section>
   );
 }
