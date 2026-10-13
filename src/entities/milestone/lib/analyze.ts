@@ -1,4 +1,4 @@
-import type { GoalFeasibilityTone } from "@/entities/goal";
+import type { StatusTone } from "@/shared/lib/tone";
 import { activeMessages } from "@/shared/i18n/active";
 import type { Messages } from "@/shared/i18n/messages/en";
 import { formatNumber } from "@/shared/lib/format";
@@ -46,7 +46,7 @@ export type MilestoneAnalysis =
       monthsRemaining: number;
       /** Yearly real return assumed in the projection (fraction). */
       annualRealRate: number;
-      tone: GoalFeasibilityTone;
+      tone: StatusTone;
       /** Badge text is `t.domain.milestone.verdict[verdict]`. */
       verdict: MilestoneVerdict;
     });
@@ -119,16 +119,16 @@ export function analyzeMilestone(input: {
     now,
   });
 
-  let tone: GoalFeasibilityTone;
+  let tone: StatusTone;
   let verdict: MilestoneVerdict;
   if (feasible && monthsRemaining > 1) {
-    tone = "on_track";
+    tone = "success";
     verdict = "on_track";
   } else if (feasible) {
-    tone = "steady";
+    tone = "warning";
     verdict = "tight";
   } else {
-    tone = "at_risk";
+    tone = "danger";
     verdict = "below";
   }
 
@@ -185,7 +185,7 @@ export function milestoneHint(
     case "projection": {
       const ahead = formatAheadOfTarget(a.projectedEndingNetWorth, a.targetVnd, fmt);
       const projected = fmt.money(a.projectedEndingNetWorth);
-      if (a.tone === "on_track") {
+      if (a.verdict === "on_track") {
         return m.hintOnTrack({
           projected,
           age: a.targetAge,
@@ -195,7 +195,7 @@ export function milestoneHint(
           targetVnd: fmt.money(a.targetVnd),
         });
       }
-      if (a.tone === "steady") return m.hintTight({ projected, pct: ahead.pctLabel, money: ahead.moneyLabel });
+      if (a.verdict === "tight") return m.hintTight({ projected, pct: ahead.pctLabel, money: ahead.moneyLabel });
       const gap = a.targetVnd - a.projectedEndingNetWorth;
       const shortPct = a.targetVnd > 0 ? formatNumber((gap / a.targetVnd) * 100, { maximumFractionDigits: 1, minimumFractionDigits: 1 }) : "0";
       return m.hintBelow({ projected, gap: fmt.money(gap), pct: `${shortPct}%` });

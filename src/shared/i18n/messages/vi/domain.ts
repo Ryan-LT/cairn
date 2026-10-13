@@ -1,27 +1,7 @@
 import type { Messages } from "../en";
 
 export const domain: Messages["domain"] = {
-  feasibility: {
-    set_target: { label: "Đặt mục tiêu", hint: "Thêm số tiền mục tiêu để đánh giá khả năng đạt được." },
-    target_met: { label: "Đã đạt", hint: "Số tiền đã phân bổ hoặc đã tiết kiệm đạt hoặc vượt mục tiêu này." },
-    closing_in: { label: "Sắp đạt", hint: "Tiến độ rất tốt. Thêm ngày mục tiêu để kiểm tra thời gian còn lại." },
-    building: { label: "Đang tích lũy", hint: "Đà tích lũy ổn. Đặt hạn chót để có đánh giá rõ hơn." },
-    early_stretch: { label: "Giai đoạn đầu", hint: "Vẫn còn sớm — đặt ngày mục tiêu để xem tốc độ có khớp lịch không." },
-    just_started: { label: "Mới bắt đầu", hint: "Tiến độ thấp lúc đầu là bình thường. Hãy thêm ngày mục tiêu khi có thể." },
-    past_deadline: { label: "Quá hạn", hint: "Đã qua ngày mục tiêu nhưng mục tiêu chưa đủ tiền." },
-    growth_on_track: { label: "Đúng tiến độ", hint: "Lợi nhuận dự kiến trên số dư đã phân bổ sẽ đạt mục tiêu trước hạn." },
-    budget_squeeze: { label: "Ngân sách eo hẹp", hint: "Kế hoạch này không nhận được khoản tiết kiệm dương nào mỗi tháng trong khi vẫn còn thiếu." },
-    on_track: { label: "Đúng tiến độ", hint: "Phần tiết kiệm hằng tháng dành cho kế hoạch này dư sức đáp ứng tốc độ cần để kịp hạn." },
-    feasible: { label: "Khả thi", hint: "Phần tiết kiệm hằng tháng dành cho kế hoạch này gần khớp với tốc độ mà ngày mục tiêu đòi hỏi." },
-    watch_pace: { label: "Theo dõi tốc độ", hint: "Bạn đã gần đạt — chỉ cần dòng tiền chững lại một chút là có thể trễ hạn." },
-    tight_runway: { label: "Thời gian eo hẹp", hint: "Tốc độ cần mỗi tháng cao hơn đáng kể so với dòng tiền ròng hiện tại." },
-    off_pace: { label: "Chậm tiến độ", hint: "Với dòng tiền ròng hiện tại, khó đạt mục tiêu này đúng hạn nếu không thay đổi." },
-    final_sprint: { label: "Nước rút", hint: "Còn rất ít thời gian so với số tiền vẫn cần bổ sung." },
-    calendar_heat: { label: "Hạn chót gấp", hint: "Khi không tính thu nhập hằng tháng vào kế hoạch này, hạn chót vẫn khá gấp." },
-    check_timing: { label: "Xem lại thời hạn", hint: "Tiến độ ổn nhưng hạn chót đang đến gần — hãy xem lại phần phân bổ." },
-    in_range: { label: "Trong tầm tay", hint: "Tiến độ và thời gian còn lại phù hợp nếu chỉ dùng tiền đã phân bổ." },
-    steady: { label: "Ổn định", hint: "Kế hoạch này không cộng thu nhập hằng tháng; đánh giá dựa trên tiến độ so với thời gian." },
-  },
+
   milestone: {
     verdict: { on_track: "Đúng tiến độ", tight: "Sát nút nhưng khả thi", below: "Dưới mức dự phóng" },
     targetMet: "Đã đạt mục tiêu",

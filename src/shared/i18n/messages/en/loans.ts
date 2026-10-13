@@ -1,8 +1,6 @@
 /** Messages for the loans area. */
 export const loans = {
   title: "Personal loans",
-  descriptionCounted: "Informal money lent or borrowed. Open entries count in your net worth.",
-  descriptionPrivate: "Informal money lent or borrowed. A private log — not counted in net worth.",
   add: "Add loan",
   owedToYou: "Owed to you",
   youOwe: "You owe",

@@ -1,9 +1,8 @@
 "use client";
 
-import { CircleCheck, Pencil, RotateCw, Settings, TriangleAlert } from "lucide-react";
+import { CircleCheck, Gauge, Pencil, RotateCw, Settings, TrendingUp, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 
-import { feasibilityToneMeta } from "@/entities/goal/ui";
 import {
   analyzeMilestone,
   milestoneChipDetail,
@@ -118,7 +117,7 @@ export function MilestoneCard({
       ? { tone: "success" as const, icon: CircleCheck, label: t.domain.milestone.targetMet }
       : a.kind === "past_deadline"
         ? { tone: "danger" as const, icon: TriangleAlert, label: t.domain.milestone.pastMilestone }
-        : { tone: feasibilityToneMeta(a.tone).status, icon: feasibilityToneMeta(a.tone).icon, label: t.domain.milestone.verdict[a.verdict] };
+        : { tone: a.tone, icon: a.verdict === "on_track" ? TrendingUp : a.verdict === "tight" ? Gauge : TriangleAlert, label: t.domain.milestone.verdict[a.verdict] };
   const detail = milestoneChipDetail(a, netWorth, FMT);
 
   return (

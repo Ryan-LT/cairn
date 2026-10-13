@@ -33,12 +33,6 @@ export {
   type SourceGoalUsage,
 } from "@/entities/goal/lib/seed-lines";
 export {
-  computeGoalFeasibility,
-  type GoalFeasibility,
-  type GoalFeasibilityInput,
-  type GoalFeasibilityTone,
-} from "@/entities/goal/lib/feasibility";
-export {
   checkpointsWithRunningTotal,
   createCheckpointId,
   cumulativeDueScheduleFromCheckpoints,

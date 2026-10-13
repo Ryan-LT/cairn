@@ -4,7 +4,6 @@ export const wealth = {
     assets: "Assets",
     debts: "Debts",
     netWorth: "Net worth",
-    barLabel: (p: { assets: string; debts: string }) => `Assets ${p.assets}, debts ${p.debts}`,
     debtShare: (p: { pct: string }) => `Debts are ${p.pct} of assets`,
     withLoans: "incl. personal loans",
   },
@@ -26,7 +25,6 @@ export const wealth = {
   },
   debts: {
     payoffOn: (p: { date: string }) => `Paid off ${p.date}`,
-    payoffNever: "Payment doesn't cover interest",
     noPayment: "Add a monthly payment to see the payoff date",
     perMonth: (p: { amount: string }) => `${p.amount} / month`,
     inSpending: "In your spending",
@@ -35,7 +33,6 @@ export const wealth = {
     priority: "Pay first",
     priorityHint: "Highest interest rate: extra money here saves the most.",
     extra: (p: { extra: string; months: number; interest: string }) => `Paying ${p.extra} more a month clears it ${p.months} months sooner and saves ${p.interest} in interest.`,
-    interestLeft: (p: { amount: string }) => `${p.amount} interest left`,
     billArchived: "Its repayment was removed from your spending too",
   },
   loans: {

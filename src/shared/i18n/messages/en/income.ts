@@ -5,25 +5,14 @@ export const income = {
   title: "Income & spending",
   description: "What comes in each month, what goes out, and what is left to save.",
   addSource: "Add income source",
-  sourcesTitle: "Income sources",
   activeTitle: "From work",
   passiveTitle: "From money you own",
   active: "Active",
   passive: "Passive",
   paymentDay: (p: { day: number }) => `${formatOrdinal(p.day)} of month`,
-  columns: {
-    source: "Source",
-    type: "Type",
-    payment: "Payment",
-    capital: "Capital",
-    monthly: "Monthly",
-  },
   capital: {
     yield: (p: { pct: string }) => `${p.pct} yield / yr`,
-    noYield: "No yield",
     /** Wraps the reserved amount: "· of {money} reserved". */
-    ofPrefix: " · of ",
-    reservedSuffix: " reserved",
   },
   empty: {
     title: "No income sources yet",

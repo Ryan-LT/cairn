@@ -85,11 +85,8 @@ export const expenses: Messages["expenses"] = {
     over: "Vượt ngân sách",
     unused: "Chưa chi",
   },
-  spentOf: (p) => `${p.spent} / ${p.planned}`,
   leftShort: "còn lại",
   overShort: "vượt",
-  leftInBudget: (p) => `Còn ${p.amount}`,
-  overBy: (p) => `Vượt ${p.amount}`,
   badges: {
     autopay: "Tự động trừ",
     linkedDebt: "Trả khoản nợ",
@@ -106,8 +103,6 @@ export const expenses: Messages["expenses"] = {
     addSpend: "Ghi chi",
     setSpent: "Sửa tổng đã chi tháng này…",
     edit: "Sửa",
-    pause: "Tạm dừng",
-    resume: "Tiếp tục tính",
     delete: "Xóa",
   },
   paySheet: {

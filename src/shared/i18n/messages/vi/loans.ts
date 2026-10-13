@@ -2,8 +2,6 @@ import type { Messages } from "../en";
 
 export const loans: Messages["loans"] = {
   title: "Khoản vay cá nhân",
-  descriptionCounted: "Tiền cho vay hoặc đi vay không chính thức. Các khoản chưa tất toán được tính vào tài sản ròng.",
-  descriptionPrivate: "Tiền cho vay hoặc đi vay không chính thức. Sổ ghi chép riêng — không tính vào tài sản ròng.",
   add: "Thêm khoản vay",
   owedToYou: "Người khác nợ bạn",
   youOwe: "Bạn nợ",

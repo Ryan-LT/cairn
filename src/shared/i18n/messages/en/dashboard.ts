@@ -2,22 +2,6 @@
 export const dashboard = {
   title: "Dashboard",
   description: "Your financial position at a glance.",
-  kpi: {
-    netWorth: {
-      label: "Net worth",
-      hint: "Assets − debts",
-      hintWithLoans: "Assets − debts, incl. personal loans",
-      mtdTitle: "Change since the start of this month",
-      mtd: (p: { pct: string }) => `${p.pct} MTD`,
-    },
-    instantPool: { label: "Instant pool left", hint: "Uncommitted instant-access money" },
-    monthlyNet: { label: "Monthly net", hint: "Income − average spending" },
-    yearEnd: {
-      label: "Year-end projection",
-      /** `date` is 31 December of the current year, already formatted. */
-      hint: (p: { date: string }) => `At current monthly net, ${p.date}`,
-    },
-  },
   milestone: {
     title: (p: { target: string; age: number }) => `${p.target} by ${p.age}`,
     /** `ordinal` is the English ordinal of `age` (e.g. `35th`). */
@@ -90,48 +74,5 @@ export const dashboard = {
     netWorth: "Net worth",
     month: "Month",
     change: "Change",
-  },
-  goalPlans: {
-    title: "Goal plans",
-    description: "Progress counts allocated starting balances; health compares pace with your monthly net.",
-    viewAll: "View all",
-    emptyTitle: "No goal plans yet",
-    emptyDescription: "Create a plan to see whether your savings pace reaches the target in time.",
-    createPlan: "Create a plan",
-    captionAllocated: "allocated starting",
-    captionSaved: "saved",
-    of: "of",
-    byDate: (p: { date: string }) => ` · by ${p.date}`,
-  },
-  balanceSheet: {
-    title: "Balance sheet",
-    description: "What you own minus what you owe.",
-    assets: "Assets",
-    importedHoldings: "Imported holdings",
-    lentToOthers: "Lent to others",
-    totalAssets: "Total assets",
-    debts: "Debts",
-    /** Wraps the borrowed amount: `Incl. <amount> borrowed from people`. */
-    borrowedPrefix: "Incl.",
-    borrowedSuffix: "borrowed from people",
-    netWorth: "Net worth",
-  },
-  allocation: {
-    title: "Assets by category",
-    description: "Share of gross assets.",
-    emptyTitle: "No assets yet",
-    emptyDescription: "Add assets to see how your wealth is split.",
-    category: "Category",
-    assets: "Assets",
-    value: "Value",
-    share: "Share",
-  },
-  cashflow: {
-    title: "Monthly cash flow",
-    description: "Average month, used by every projection.",
-    activeIncome: "Active income",
-    passiveIncome: "Passive income",
-    averageSpending: "Average spending",
-    monthlyNet: "Monthly net",
   },
 };

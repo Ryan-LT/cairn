@@ -1,26 +1,6 @@
 /** Text produced by domain logic (goal verdicts, milestone hints, liquidity, starting sources). */
 export const domain = {
-  feasibility: {
-    set_target: { label: "Set a target", hint: "Add a target amount to gauge feasibility." },
-    target_met: { label: "Target met", hint: "Allocated or saved amount meets or exceeds this goal." },
-    closing_in: { label: "Closing in", hint: "Strong progress. Add a target date for a runway check." },
-    building: { label: "Building", hint: "Momentum looks fine. A deadline unlocks a sharper signal." },
-    early_stretch: { label: "Early stretch", hint: "Still early — set a target date to see if pace matches the calendar." },
-    just_started: { label: "Just started", hint: "Low progress is normal at the start. Add a target date when you can." },
-    past_deadline: { label: "Past deadline", hint: "This target date has passed and the goal is not fully funded yet." },
-    growth_on_track: { label: "On track", hint: "Expected growth on the allocated balance reaches the target by the date." },
-    budget_squeeze: { label: "Budget squeeze", hint: "This plan gets no positive monthly savings while it still has a gap." },
-    on_track: { label: "On track", hint: "This plan's share of monthly savings comfortably covers the pace needed to hit the date." },
-    feasible: { label: "Feasible", hint: "This plan's share of monthly savings is roughly aligned with the pace your target date needs." },
-    watch_pace: { label: "Watch pace", hint: "You are close — small drags on cash flow could push the finish past the date." },
-    tight_runway: { label: "Tight runway", hint: "Implied monthly pace is meaningfully above what net cash flow suggests today." },
-    off_pace: { label: "Off pace", hint: "At current net cash flow, this date and gap look hard to reconcile without changes." },
-    final_sprint: { label: "Final sprint", hint: "Very little calendar runway left versus what is still left to fund." },
-    calendar_heat: { label: "Calendar heat", hint: "Without counting monthly income toward this plan, the deadline still feels aggressive." },
-    check_timing: { label: "Check timing", hint: "Progress is okay, but the date is getting closer — revisit allocations." },
-    in_range: { label: "In range", hint: "Progress and time left look compatible for an allocations-only path." },
-    steady: { label: "Steady", hint: "No income glidepath is applied for this plan; signal is from progress vs time." },
-  },
+
   milestone: {
     verdict: { on_track: "On track", tight: "Tight but possible", below: "Below projection" },
     targetMet: "Target met",

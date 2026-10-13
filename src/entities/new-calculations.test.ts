@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ASSETS_SEED } from "@/entities/asset";
 import { debtPayoff, monthlyInterest, totalMonthlyInterest, type Debt } from "@/entities/debt";
-import { computeGoalFeasibility } from "@/entities/goal";
+import { resolveGoalStatus } from "@/entities/goal";
 import { capitalYieldPct, effectiveIncomeCapital, type IncomeSource } from "@/entities/income";
 import { analyzeMilestone, resolveMilestoneSettings } from "@/entities/milestone";
 import {
@@ -51,24 +51,17 @@ describe("debts", () => {
   });
 });
 
-describe("goal feasibility uses the plan's share and growth", () => {
+describe("goal status uses the plan's share and growth", () => {
   const now = new Date("2026-01-01T12:00:00+07:00");
   it("two plans each needing 10/month with 12/month net are not both on track", () => {
-    const each = computeGoalFeasibility({ saved: 0, targetAmount: 120, targetDateIso: "2027-01-01", estimatedMonthlyNet: 12 * 0.5, now });
-    expect(each.tone).not.toBe("on_track");
-    expect(each.tone).not.toBe("steady");
+    const each = resolveGoalStatus({ startingBalance: 0, targetAmount: 120, targetDateIso: "2027-01-01", householdMonthlyNet: 12, monthlyShare: 0.5, now });
+    expect(each.code).toBe("behind");
+    expect(each.tone).toBe("danger");
   });
 
   it("growth alone can carry a plan", () => {
-    const f = computeGoalFeasibility({
-      saved: 1_000,
-      targetAmount: 1_040,
-      targetDateIso: "2027-01-01",
-      estimatedMonthlyNet: 0,
-      expectedReturnPct: 5,
-      now,
-    });
-    expect(f.tone).toBe("on_track");
+    const s = resolveGoalStatus({ startingBalance: 1_000, targetAmount: 1_040, targetDateIso: "2027-01-01", householdMonthlyNet: 0, monthlyShare: 0, expectedReturnPct: 5, now });
+    expect(s.code).toBe("on_track");
   });
 });
 

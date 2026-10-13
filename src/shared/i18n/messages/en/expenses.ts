@@ -84,11 +84,8 @@ export const expenses = {
     over: "Over budget",
     unused: "Nothing spent yet",
   },
-  spentOf: (p: { spent: string; planned: string }) => `${p.spent} of ${p.planned}`,
   leftShort: "left",
   overShort: "over",
-  leftInBudget: (p: { amount: string }) => `${p.amount} left`,
-  overBy: (p: { amount: string }) => `${p.amount} over`,
   badges: {
     autopay: "Direct debit",
     linkedDebt: "Paid to a debt",
@@ -105,8 +102,6 @@ export const expenses = {
     addSpend: "Spent",
     setSpent: "Correct this month's total…",
     edit: "Edit",
-    pause: "Pause",
-    resume: "Resume",
     delete: "Delete",
   },
   paySheet: {

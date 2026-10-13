@@ -5,7 +5,6 @@ export const wealth: Messages["wealth"] = {
     assets: "Tài sản",
     debts: "Khoản nợ",
     netWorth: "Tài sản ròng",
-    barLabel: (p) => `Tài sản ${p.assets}, khoản nợ ${p.debts}`,
     debtShare: (p) => `Nợ bằng ${p.pct} tài sản`,
     withLoans: "gồm cả cho vay cá nhân",
   },
@@ -27,7 +26,6 @@ export const wealth: Messages["wealth"] = {
   },
   debts: {
     payoffOn: (p) => `Trả xong ${p.date}`,
-    payoffNever: "Số trả chưa đủ tiền lãi",
     noPayment: "Thêm số trả hằng tháng để biết ngày trả xong",
     perMonth: (p) => `${p.amount} / tháng`,
     inSpending: "Đã có trong chi tiêu",
@@ -36,7 +34,6 @@ export const wealth: Messages["wealth"] = {
     priority: "Ưu tiên trả",
     priorityHint: "Lãi suất cao nhất: trả thêm vào đây đỡ tốn nhất.",
     extra: (p) => `Trả thêm ${p.extra} mỗi tháng → xong sớm ${p.months} tháng, đỡ ${p.interest} tiền lãi.`,
-    interestLeft: (p) => `còn ${p.amount} tiền lãi`,
     billArchived: "Khoản trả nợ trong chi tiêu cũng đã được gỡ",
   },
   loans: {
