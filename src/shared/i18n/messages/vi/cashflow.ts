@@ -70,6 +70,7 @@ export const cashflow: Messages["cashflow"] = {
       noIncome: "Thêm thu nhập để xem tỷ lệ.",
     },
     byCategory: "Theo danh mục",
+    otherCategories: (p) => `${p.count} danh mục khác`,
     paused: "Đang tạm dừng",
     unitemizedRow: "Chưa chi tiết (từ ước tính cũ)",
     migration: {

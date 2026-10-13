@@ -103,12 +103,12 @@ export function HomePage() {
         <MonthGlance className="xl:col-span-5" month={month} cash={summary} />
       </div>
 
-      <div className="grid items-start gap-4 md:gap-6 xl:grid-cols-12">
+      <div className="grid gap-4 md:gap-6 xl:grid-cols-12">
         <DueBills className="xl:col-span-7" lines={due} monthKey={monthKey} actions={actions} />
         <InsightsFeed className="xl:col-span-5" insights={insights} />
       </div>
 
-      <div className="grid items-start gap-4 md:gap-6 xl:grid-cols-12">
+      <div className="grid gap-4 md:gap-6 xl:grid-cols-12">
         <GoalsGlance
           className="xl:col-span-7"
           plans={plans}
@@ -120,11 +120,12 @@ export function HomePage() {
         <HealthTiles className="xl:col-span-5" health={health} cash={summary} onDetails={() => setHealthOpen(true)} />
       </div>
 
+      {/* Same 7 / 5 split as the rows above; the wrappers pass the row height on to the cards. */}
       <div className="grid gap-4 md:gap-6 xl:grid-cols-12">
-        <div className="xl:col-span-8">
+        <div className="flex min-w-0 xl:col-span-7 [&>*]:min-w-0 [&>*]:flex-1">
           <NetWorthTrendCard history={prefs.netWorthMonthlyHistory ?? []} netWorth={summary.netWorth} />
         </div>
-        <div className="xl:col-span-4">
+        <div className="flex min-w-0 xl:col-span-5 [&>*]:min-w-0 [&>*]:flex-1">
           <MilestoneCard netWorth={summary.netWorth} monthlyNet={summary.monthlyNet} settings={prefs.milestone} configState={milestoneConfig} />
         </div>
       </div>

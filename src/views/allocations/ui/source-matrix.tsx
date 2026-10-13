@@ -58,7 +58,10 @@ function SortHeader({
   );
 }
 
-/** Desktop matrix: sticky source column, one column per plan, then totals. */
+/**
+ * Desktop matrix: sticky source column, one column per plan, then totals.
+ * Compact amounts (full value on hover / tap) so every column fits a laptop screen.
+ */
 export function SourceMatrix({ rows, plans, sort, onSort }: SourceMatrixProps) {
   const { t } = useI18n();
   const m = t.allocations.matrix;
@@ -109,21 +112,21 @@ export function SourceMatrix({ rows, plans, sort, onSort }: SourceMatrixProps) {
               const v = row.perPlanStored[p.id] ?? 0;
               return (
                 <TableCell key={p.id} className="text-right">
-                  {v > 0 ? <Money value={v} /> : <span className="text-muted-foreground">—</span>}
+                  {v > 0 ? <Money value={v} compact /> : <span className="text-muted-foreground">—</span>}
                 </TableCell>
               );
             })}
             <TableCell className="text-right">
-              {row.totalIncomeCapital > 0 ? <Money value={row.totalIncomeCapital} /> : <span className="text-muted-foreground">—</span>}
+              {row.totalIncomeCapital > 0 ? <Money value={row.totalIncomeCapital} compact /> : <span className="text-muted-foreground">—</span>}
             </TableCell>
             <TableCell className="text-right">
-              <Money value={row.totalReservedStored} />
+              <Money value={row.totalReservedStored} compact />
             </TableCell>
             <TableCell className="text-right">
-              <Money value={row.liveBalance} />
+              <Money value={row.liveBalance} compact />
             </TableCell>
             <TableCell className="text-right font-medium">
-              <Money value={row.remainingPool} />
+              <Money value={row.remainingPool} compact />
             </TableCell>
           </TableRow>
         ))}
