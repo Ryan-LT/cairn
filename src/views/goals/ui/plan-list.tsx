@@ -3,22 +3,14 @@
 import { Plus } from "lucide-react";
 import { useMemo } from "react";
 
-import {
-  buildGoalPlanSummaries,
-  computeGoalFeasibility,
-  GOAL_PLAN_NEW_SENTINEL,
-  goalProgressPercent,
-  type GoalStartingOption,
-  type GoalsState,
-} from "@/entities/goal";
-import { FeasibilityBadge } from "@/entities/goal/ui";
+import { buildGoalPlanStatuses, type GoalPlanWithStatus, type GoalStartingOption, type GoalsState } from "@/entities/goal";
+import { GoalStatusBadge } from "@/entities/goal/ui";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
-import { formatDate } from "@/shared/lib/format";
+import { formatDate, formatPercent } from "@/shared/lib/format";
 import { Card } from "@/shared/ui/kit/card";
-import { Progress } from "@/shared/ui/kit/progress";
-import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Money } from "@/shared/ui/money";
+import { ProgressRing } from "@/shared/ui/progress-ring";
 
 type PlanListProps = {
   goals: GoalsState;
@@ -31,99 +23,94 @@ type PlanListProps = {
 };
 
 function usePlanRows(goals: GoalsState, seedOptions: GoalStartingOption[], monthlyNet: number) {
-  return useMemo(
-    () =>
-      goals.profiles.length === 0
-        ? []
-        : buildGoalPlanSummaries(goals, seedOptions, 0).map((s) => ({
-            ...s,
-            pct: goalProgressPercent(s.saved, s.targetAmount),
-            health: computeGoalFeasibility({
-              saved: s.saved,
-              targetAmount: s.targetAmount,
-              targetDateIso: s.targetDate,
-              includeMonthlyIncome: s.includeMonthlyIncome,
-              // Only this plan's share of the monthly savings (never the whole amount per plan).
-              estimatedMonthlyNet: monthlyNet * s.monthlyShare,
-              expectedReturnPct: s.expectedReturnPct,
-            }),
-          })),
-    [goals, seedOptions, monthlyNet],
+  return useMemo(() => buildGoalPlanStatuses(goals, seedOptions, monthlyNet), [goals, seedOptions, monthlyNet]);
+}
+
+function ringTone(row: GoalPlanWithStatus) {
+  return row.status.tone === "success" ? "success" : row.status.tone === "danger" ? "danger" : row.status.tone === "warning" ? "warning" : "primary";
+}
+
+function PlanButton({ row, active, onSelect, compact }: { row: GoalPlanWithStatus; active: boolean; onSelect: () => void; compact?: boolean }) {
+  const { t } = useI18n();
+  const pct = formatPercent(Math.min(999, row.status.progress * 100), { maximumFractionDigits: 0 });
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-current={active ? "true" : undefined}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-lg border px-3 py-3 text-left transition-colors outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring",
+        active ? "border-primary/50 bg-primary-soft hover:bg-primary-soft" : "border-transparent",
+        compact && "h-full border-border bg-card",
+        compact && active && "border-primary bg-primary-soft",
+      )}
+    >
+      <ProgressRing value={row.status.progress} size={44} stroke={5} tone={ringTone(row)} label={t.goals.hero.ringLabel({ pct })}>
+        <span className="text-xs">{pct}</span>
+      </ProgressRing>
+      <span className="grid min-w-0 flex-1 gap-1">
+        <span className="truncate text-sm font-medium">{row.name}</span>
+        <span className="truncate text-xs text-muted-foreground">
+          <Money value={row.targetAmount} compact interactive={false} />
+          {row.targetDate ? ` · ${formatDate(row.targetDate, "monthYear")}` : ""}
+        </span>
+        <GoalStatusBadge status={row.status} />
+      </span>
+    </button>
   );
 }
 
-/** Desktop master list. */
+/** Desktop list of plans (sticky beside the plan). */
 export function PlanList({ goals, seedOptions, monthlyNet, activeId, isComposingNew, onSelect }: PlanListProps) {
   const { t } = useI18n();
   const rows = usePlanRows(goals, seedOptions, monthlyNet);
   return (
     <Card className="gap-0 py-2">
       <p className="px-4 pt-2 pb-2 text-xs font-medium text-muted-foreground">{t.goals.list.count({ count: goals.profiles.length })}</p>
-      <ul className="grid gap-0.5 px-2">
+      <ul className="grid gap-1 px-2">
         {isComposingNew ? (
           <li>
-            <div className="rounded-md border border-dashed border-primary/40 bg-primary-soft px-3 py-2.5 text-sm font-medium text-primary-soft-foreground" aria-current="true">
+            <div className="rounded-lg border border-dashed border-primary/40 bg-primary-soft px-3 py-3 text-sm font-medium text-primary-soft-foreground" aria-current="true">
               {t.goals.list.newPlanUnsaved}
             </div>
           </li>
         ) : null}
-        {rows.map((r) => {
-          const active = !isComposingNew && r.planId === activeId;
-          return (
-            <li key={r.key}>
-              <button
-                type="button"
-                onClick={() => r.planId && onSelect(r.planId)}
-                aria-current={active ? "true" : undefined}
-                className={cn(
-                  "grid w-full gap-1.5 rounded-md px-3 py-2.5 text-left transition-colors hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none",
-                  active && "bg-primary-soft hover:bg-primary-soft",
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="min-w-0 truncate text-sm font-medium">{r.name}</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">{r.pct}%</span>
-                </div>
-                <Progress value={r.pct} className="h-1" />
-                <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-                  <span className="truncate">
-                    <Money value={r.targetAmount} compact interactive={false} /> {r.targetDate ? `· ${formatDate(r.targetDate, "monthYear")}` : ""}
-                  </span>
-                  <FeasibilityBadge tone={r.health.tone} code={r.health.code} showHint={false} />
-                </div>
-              </button>
-            </li>
-          );
-        })}
+        {rows.map((r) => (
+          <li key={r.key}>
+            <PlanButton row={r} active={!isComposingNew && r.planId === activeId} onSelect={() => r.planId && onSelect(r.planId)} />
+          </li>
+        ))}
       </ul>
-      {rows.length === 0 && !isComposingNew ? (
-        <p className="px-4 py-3 text-sm text-muted-foreground">{t.goals.list.empty}</p>
-      ) : null}
+      {rows.length === 0 && !isComposingNew ? <p className="px-4 py-3 text-sm text-muted-foreground">{t.goals.list.empty}</p> : null}
     </Card>
   );
 }
 
-/** Phone / narrow switcher. */
-export function PlanSwitcher({ goals, activeId, isComposingNew, onSelect, onNew }: PlanListProps) {
+/** Phones and narrow screens: plans as a row of cards you swipe through. */
+export function PlanSwitcher({ goals, seedOptions, monthlyNet, activeId, isComposingNew, onSelect, onNew }: PlanListProps) {
   const { t } = useI18n();
-  const value = isComposingNew ? GOAL_PLAN_NEW_SENTINEL : activeId || goals.profiles[0]?.id || GOAL_PLAN_NEW_SENTINEL;
+  const rows = usePlanRows(goals, seedOptions, monthlyNet);
   return (
-    <Select value={value} onValueChange={(v) => (v === GOAL_PLAN_NEW_SENTINEL ? onNew() : onSelect(v))}>
-      <SelectTrigger aria-label={t.goals.list.choosePlan} className="h-10">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {goals.profiles.map((p) => (
-          <SelectItem key={p.id} value={p.id}>
-            {p.name.trim() || t.common.untitledPlan}
-          </SelectItem>
-        ))}
-        {goals.profiles.length > 0 ? <SelectSeparator /> : null}
-        <SelectItem value={GOAL_PLAN_NEW_SENTINEL}>
-          <Plus className="size-4" />
+    <ul className="no-scrollbar -mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1" aria-label={t.goals.list.choosePlan}>
+      {rows.map((r) => (
+        <li key={r.key} className="w-64 shrink-0 snap-start">
+          <PlanButton compact row={r} active={!isComposingNew && r.planId === activeId} onSelect={() => r.planId && onSelect(r.planId)} />
+        </li>
+      ))}
+      <li className="w-40 shrink-0 snap-start">
+        <button
+          type="button"
+          onClick={onNew}
+          aria-pressed={isComposingNew}
+          className={cn(
+            "flex h-full min-h-20 w-full flex-col items-center justify-center gap-1 rounded-lg border border-dashed text-sm text-muted-foreground transition-colors outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring",
+            isComposingNew && "border-primary bg-primary-soft text-primary-soft-foreground",
+          )}
+        >
+          <Plus className="size-4" aria-hidden />
           {isComposingNew ? t.goals.list.newPlanUnsaved : t.goals.list.newPlan}
-        </SelectItem>
-      </SelectContent>
-    </Select>
+        </button>
+      </li>
+    </ul>
   );
 }

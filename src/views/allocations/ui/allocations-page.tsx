@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, PencilRuler, ShoppingCart, Target, TrendingUp, Wallet, Zap } from "lucide-react";
+import { Clock, PencilRuler, Target, Zap } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -17,23 +17,25 @@ import {
 } from "@/entities/preferences";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
 import { useI18n } from "@/shared/i18n";
+import { formatMoney, formatPercent } from "@/shared/lib/format";
 import { useMediaQuery } from "@/shared/lib/use-media-query";
 import { useTable } from "@/shared/storage";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/kit/table";
+import { Card } from "@/shared/ui/kit/card";
+import { IconTile } from "@/shared/ui/icon-tile";
+import { ListGroup, ListRow } from "@/shared/ui/list";
 import { Money } from "@/shared/ui/money";
 import { Section } from "@/shared/ui/section";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
-import { StatusBadge } from "@/shared/ui/status-badge";
-import { TabContent } from "@/widgets/app-shell";
+import { TabContent, useOptimisticNavigation } from "@/widgets/app-shell";
 
 import { cycleMatrixColumnSort, normalizeMatrixColumnSort, sortMatrixByColumn } from "../lib/matrix-column-sort";
 import { SourceItem, SourceMatrix } from "./source-matrix";
 
 export function AllocationsPage() {
-  const [goals] = useTable("goals", GOALS_SEED);
+  const [goals, setGoals] = useTable("goals", GOALS_SEED);
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [incomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
@@ -41,6 +43,7 @@ export function AllocationsPage() {
   const compact = useMediaQuery("(max-width: 1023px)");
   const { t } = useI18n();
   const m = t.allocations;
+  const { navigate } = useOptimisticNavigation();
 
   const report = useMemo(
     () => buildAllocationReportForTables({ goals, assets, settingsAssets, incomeSources }),
@@ -58,14 +61,6 @@ export function AllocationsPage() {
   return (
     <TabContent>
       <StatGrid className="xl:grid-cols-3">
-        <StatCard label={m.kpi.monthlyIncome.label} icon={TrendingUp} value={<Money value={cash.totalIncome} compact />} href="/cashflow/income" />
-        <StatCard label={m.kpi.avgSpending.label} icon={ShoppingCart} value={<Money value={cash.averageSpending} compact />} href="/cashflow/income" />
-        <StatCard
-          label={m.kpi.monthlyNet.label}
-          icon={Wallet}
-          value={<Money value={cash.monthlyNet} compact signed tone="auto" />}
-          hint={m.kpi.monthlyNet.hint}
-        />
         <StatCard
           label={m.kpi.instantPool.label}
           icon={Zap}
@@ -79,6 +74,7 @@ export function AllocationsPage() {
           hint={m.kpi.notInstantPool.hint}
         />
         <StatCard
+          className="max-xl:col-span-2"
           label={m.kpi.custom.label}
           icon={PencilRuler}
           value={<Money value={report.totals.customReservedStored} compact />}
@@ -86,8 +82,8 @@ export function AllocationsPage() {
         />
       </StatGrid>
 
-      <Section title={m.plans.title} description={m.plans.description} flush>
-        {report.plans.length === 0 ? (
+      {report.plans.length === 0 ? (
+        <Card className="gap-0 py-0">
           <EmptyState
             icon={Target}
             title={m.plans.emptyTitle}
@@ -98,38 +94,39 @@ export function AllocationsPage() {
               </Button>
             }
           />
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>{m.plans.colPlan}</TableHead>
-                <TableHead className="text-right">{m.plans.colStarting}</TableHead>
-                <TableHead className="max-sm:hidden">{m.plans.colMonthlyIncome}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {report.plans.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="max-w-48 truncate font-medium">{p.name}</TableCell>
-                  <TableCell className="text-right">
-                    <Money value={p.effectiveStartingTotal} />
-                  </TableCell>
-                  <TableCell className="max-sm:hidden">
-                    {p.usesMonthlyIncome ? (
-                      <StatusBadge tone="success" dot>
-                        {m.plans.incomeOn} <Money value={cash.monthlyNet * (shares.byPlan.get(p.id) ?? 0)} compact signed />
-                        {m.plans.perMonthShort}
-                      </StatusBadge>
-                    ) : (
-                      <StatusBadge dot>{m.plans.incomeOff}</StatusBadge>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Section>
+        </Card>
+      ) : (
+        <ListGroup title={m.plans.title} description={m.plans.description}>
+          {report.plans.map((p) => {
+            const share = shares.byPlan.get(p.id) ?? 0;
+            return (
+              <ListRow
+                key={p.id}
+                leading={<IconTile icon={Target} color="var(--capstone-ink)" background="var(--capstone-soft)" />}
+                title={p.name}
+                subtitle={
+                  p.usesMonthlyIncome ? (
+                    <span data-private>
+                      {m.plans.sharePerMonth({
+                        pct: formatPercent(share * 100, { maximumFractionDigits: 0 }),
+                        amount: formatMoney(Math.round(cash.monthlyNet * share)),
+                      })}
+                    </span>
+                  ) : (
+                    m.plans.noMonthly
+                  )
+                }
+                trailing={<Money value={p.effectiveStartingTotal} compact interactive={false} />}
+                onClick={() => {
+                  setGoals((g) => ({ ...g, activeProfileId: p.id }));
+                  navigate("/goals");
+                }}
+                label={p.name}
+              />
+            );
+          })}
+        </ListGroup>
+      )}
 
       <Section
         title={m.matrix.title}

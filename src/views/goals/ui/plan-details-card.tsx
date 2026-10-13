@@ -8,7 +8,9 @@ import { z } from "zod";
 
 import type { GoalProfile } from "@/entities/goal";
 import { useI18n } from "@/shared/i18n";
+import { toIsoDay } from "@/shared/lib/date";
 import { formatDate, formatPercent } from "@/shared/lib/format";
+import { Dialog, DialogBody, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/shared/ui/kit/dialog";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Callout } from "@/shared/ui/callout";
 import { DateField, MoneyField, PercentField, SegmentedField, SwitchField, TextField } from "@/shared/ui/form";
@@ -18,8 +20,8 @@ import { Money } from "@/shared/ui/money";
 import { Section } from "@/shared/ui/section";
 import { StatusBadge } from "@/shared/ui/status-badge";
 
-const schema = z.object({
-  name: z.string().max(80),
+const makeSchema = (nameRequired: string) => z.object({
+  name: z.string().trim().min(1, nameRequired).max(80),
   targetAmount: z.number().min(0),
   targetDate: z.string(),
   includeMonthlyIncome: z.boolean(),
@@ -28,7 +30,7 @@ const schema = z.object({
   expectedReturnPct: z.number().min(0).max(30),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof makeSchema>>;
 
 /** What the plan stores: an explicit share only in "custom" mode, a return only when > 0. */
 type Values = {
@@ -182,7 +184,7 @@ function DetailsForm({
   const { t } = useI18n();
   const f = t.goals.details.form;
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(makeSchema(t.goals.details.form.planNameRequired)),
     defaultValues: {
       name: draft.name,
       targetAmount: draft.targetAmount,
@@ -212,12 +214,31 @@ function DetailsForm({
         <TextField control={form.control} name="name" label={f.planName} placeholder={f.planNamePlaceholder} autoFocus />
         <div className="grid gap-4 sm:grid-cols-2">
           <MoneyField control={form.control} name="targetAmount" label={f.targetAmount} />
-          <DateField control={form.control} name="targetDate" label={f.targetDate} placeholder={f.pickDate} />
+          <div className="grid gap-2">
+            <DateField control={form.control} name="targetDate" label={f.targetDate} placeholder={f.pickDate} />
+            <div className="flex flex-wrap gap-1.5">
+              {([1, 3, 5] as const).map((years) => (
+                <Button
+                  key={years}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 rounded-full px-2.5 text-xs"
+                  onClick={() => {
+                    const d = new Date();
+                    form.setValue("targetDate", toIsoDay(new Date(d.getFullYear() + years, d.getMonth(), d.getDate())), { shouldDirty: true });
+                  }}
+                >
+                  {t.goals.datePresets[`y${years}`]}
+                </Button>
+              ))}
+            </div>
+          </div>
         </div>
         <SwitchField
           control={form.control}
           name="includeMonthlyIncome"
-          label={f.includeIncome}
+          label={f.includeIncomeShort}
           description={
             <>
               {f.includeIncomeDescription.before}
@@ -266,5 +287,49 @@ function DetailsForm({
         </div>
       </form>
     </Form>
+  );
+}
+
+/**
+ * The one place to edit a plan's details (and to start a new plan). Changes
+ * preview live behind the dialog; closing without saving puts them back.
+ */
+export function PlanDetailsDialog({
+  open,
+  onOpenChange,
+  isNew,
+  ...rest
+}: Omit<PlanDetailsCardProps, "startEditing"> & { open: boolean; onOpenChange: (open: boolean) => void; isNew: boolean }) {
+  const { t } = useI18n();
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) rest.onCancel();
+        onOpenChange(o);
+      }}
+    >
+      <DialogContent size="md">
+        <DialogHeader>
+          <DialogTitle>{isNew ? t.goals.newPlanTitle : t.goals.editPlan}</DialogTitle>
+          <DialogDescription>{isNew ? t.goals.newPlanDescription : t.goals.details.description}</DialogDescription>
+        </DialogHeader>
+        <DialogBody>
+          {open ? (
+            <DetailsForm
+              {...rest}
+              onCancel={() => {
+                rest.onCancel();
+                onOpenChange(false);
+              }}
+              onSave={async (v) => {
+                await rest.onSave(v);
+                onOpenChange(false);
+              }}
+            />
+          ) : null}
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
   );
 }
