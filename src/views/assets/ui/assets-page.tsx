@@ -31,10 +31,9 @@ import { DataTable, DataTableColumnHeader, DataTableToolbar, matchesSearch, RowA
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
 import { Money } from "@/shared/ui/money";
-import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
-import { PageContainer } from "@/widgets/app-shell";
+import { TabContent, TabToolbar } from "@/widgets/app-shell";
 
 import { AssetFormDialog } from "./asset-form-dialog";
 import { LegacyHoldings } from "./legacy-holdings";
@@ -174,15 +173,13 @@ export function AssetsPage() {
   );
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={m.title}
-        description={m.description}
+    <TabContent>
+      <TabToolbar
         actions={
-          <Button onClick={openCreate}>
-            <Plus />
-            {m.addAsset}
-          </Button>
+        <Button onClick={openCreate}>
+          <Plus />
+          {m.addAsset}
+        </Button>
         }
       />
 
@@ -286,6 +283,6 @@ export function AssetsPage() {
           toast.success(m.toast.deleted, { description: removed.name });
         }}
       />
-    </PageContainer>
+    </TabContent>
   );
 }

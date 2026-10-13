@@ -7,7 +7,7 @@ import { SettingsPage } from "@/views/settings";
 export async function generateMetadata({ params }: PageProps<"/[lang]/settings">): Promise<Metadata> {
   const { lang } = await params;
   const t = messagesFor(isLocale(lang) ? lang : "en");
-  return { title: t.nav.items.settings.label };
+  return { title: t.nav.hubs.settings.label };
 }
 
 export default function Page() {

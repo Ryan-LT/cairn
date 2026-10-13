@@ -1,11 +1,12 @@
 "use client";
 
 import { useI18n } from "@/shared/i18n";
-import { findNavItem } from "@/shared/config";
+import { findNavMatch, type TabId } from "@/shared/config";
 import { cn } from "@/shared/lib/cn";
 import { Card } from "@/shared/ui/kit/card";
 import { Skeleton } from "@/shared/ui/kit/skeleton";
 
+import { HubFrame } from "./hub-layout";
 import { PageContainer } from "./page-container";
 
 /*
@@ -105,7 +106,6 @@ function DashboardSkeleton() {
 function GoalsSkeleton() {
   return (
     <>
-      <HeaderSkeleton />
       <Skeleton className="h-10 w-full xl:hidden" />
       <div className="grid items-start gap-6 xl:grid-cols-[17rem_minmax(0,1fr)]">
         <Card className="gap-3 px-4 py-4 max-xl:hidden">
@@ -128,16 +128,6 @@ function GoalsSkeleton() {
   );
 }
 
-function RecordsSkeleton({ stats }: { stats: number }) {
-  return (
-    <>
-      <HeaderSkeleton />
-      <StatsSkeleton count={stats} />
-      <TableSkeleton />
-    </>
-  );
-}
-
 function SettingsSkeleton() {
   return (
     <>
@@ -149,34 +139,86 @@ function SettingsSkeleton() {
   );
 }
 
-const SKELETONS: Record<string, () => React.ReactNode> = {
-  "/": DashboardSkeleton,
-  "/goals": GoalsSkeleton,
-  "/allocations": () => (
+function ListSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <div className="grid gap-2">
+      <Skeleton className="ml-1 h-4 w-32" />
+      <Card className="gap-0 py-0">
+        <div className="divide-y">
+          {Array.from({ length: rows }, (_, i) => (
+            <div key={i} className="flex items-center gap-3 px-4 py-3">
+              <Skeleton className="size-9 shrink-0 rounded-lg" />
+              <div className="grid flex-1 gap-1.5">
+                <Skeleton className="h-4 w-2/5" />
+                <Skeleton className="h-3 w-1/4" />
+              </div>
+              <Skeleton className="h-4 w-20" />
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+const TAB_SKELETONS: Record<TabId, () => React.ReactNode> = {
+  cashflowMonth: () => (
     <>
-      <HeaderSkeleton action={false} />
-      <StatsSkeleton count={6} className="xl:grid-cols-3" />
+      <SectionSkeleton rows={2} />
+      <ListSkeleton rows={3} />
+      <ListSkeleton rows={4} />
+    </>
+  ),
+  cashflowSpending: () => (
+    <>
+      <SectionSkeleton rows={3} />
+      <ListSkeleton rows={6} />
+    </>
+  ),
+  cashflowIncome: () => <ListSkeleton rows={3} />,
+  wealthAssets: () => (
+    <>
+      <StatsSkeleton count={3} className="xl:grid-cols-3" />
+      <TableSkeleton />
+    </>
+  ),
+  wealthDebts: () => <ListSkeleton rows={3} />,
+  wealthLoans: () => <ListSkeleton rows={4} />,
+  goalsPlans: GoalsSkeleton,
+  goalsFunding: () => (
+    <>
+      <StatsSkeleton count={3} className="xl:grid-cols-3" />
       <TableSkeleton rows={4} />
     </>
   ),
-  "/assets": () => <RecordsSkeleton stats={4} />,
-  "/income": () => <RecordsSkeleton stats={4} />,
-  "/debts": () => <RecordsSkeleton stats={3} />,
-  "/loans": () => <RecordsSkeleton stats={4} />,
-  "/settings": SettingsSkeleton,
 };
 
 /** The loading placeholder for whichever page `pathname` belongs to. */
 export function RouteSkeleton({ pathname }: { pathname: string }) {
-  const href = findNavItem(pathname)?.item.href ?? "/";
-  const Body = SKELETONS[href] ?? DashboardSkeleton;
+  const match = findNavMatch(pathname);
   const { t } = useI18n();
+  const status = (
+    <span className="sr-only" role="status">
+      {t.common.loading}
+    </span>
+  );
+  if (match?.tab) {
+    const Body = TAB_SKELETONS[match.tab.id];
+    // The section frame and its tabs are real (and usable) while the content loads.
+    return (
+      <HubFrame hub={match.hub.id} activePath={pathname} skeleton>
+        {status}
+        <div className="flex flex-col gap-5 md:gap-6">
+          <Body />
+        </div>
+      </HubFrame>
+    );
+  }
+  const settings = match?.hub.id === "settings";
   return (
-    <PageContainer skeleton className={href === "/settings" ? "max-w-3xl" : undefined}>
-      <span className="sr-only" role="status">
-        {t.common.loading}
-      </span>
-      <Body />
+    <PageContainer skeleton className={settings ? "max-w-3xl" : undefined}>
+      {status}
+      {settings ? <SettingsSkeleton /> : <DashboardSkeleton />}
     </PageContainer>
   );
 }

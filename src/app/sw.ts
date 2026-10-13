@@ -16,7 +16,9 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-const NAV_CACHE = "wealthtracker-pages";
+/** v2: pages moved into sections (Oct 2026); the old cache held pages that no longer exist. */
+const NAV_CACHE = "wealthtracker-pages-v2";
+const RETIRED_CACHES = ["wealthtracker-pages"];
 const OFFLINE_URL = "/offline";
 
 /**
@@ -121,6 +123,10 @@ async function cacheShellRoutes({ onlyMissing }: { onlyMissing: boolean }): Prom
     }),
   );
 }
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(Promise.allSettled(RETIRED_CACHES.map((name) => caches.delete(name))));
+});
 
 self.addEventListener("install", (event) => {
   event.waitUntil(cacheShellRoutes({ onlyMissing: false }));

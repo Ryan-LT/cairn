@@ -2,12 +2,12 @@
 
 import {
   CreditCard,
+  EyeOff,
   HandCoins,
   Landmark,
   LogOut,
   Monitor,
   Moon,
-  Plus,
   RefreshCw,
   Sun,
   Target,
@@ -25,7 +25,8 @@ import { GOALS_SEED } from "@/entities/goal";
 import { INCOME_SOURCES_SEED } from "@/entities/income";
 import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
 import { assetCategoryLabel, SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
-import { NAV, QUICK_ADD } from "@/shared/config";
+import { NAV_HUBS, QUICK_ADD } from "@/shared/config";
+import { usePrivacyMode } from "@/shared/lib/privacy";
 import { formatMoneyCompact } from "@/shared/lib/format";
 import { useTable } from "@/shared/storage";
 import {
@@ -78,6 +79,7 @@ export function CommandMenu() {
   const { setTheme } = useTheme();
   const { syncNow } = useSyncNow();
   const { signOut } = useSignOut();
+  const [hidden, togglePrivacy] = usePrivacyMode();
 
   const [assets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
@@ -113,16 +115,31 @@ export function CommandMenu() {
             <CommandEmpty>{m.empty}</CommandEmpty>
 
             <CommandGroup heading={m.groups.goTo}>
-              {NAV.map((item) => (
-                <Item key={item.href} value={`${m.keywords.go} ${item.id} ${t.nav.items[item.id].label} ${t.nav.items[item.id].description}`} icon={item.icon} onSelect={() => go(item.href)}>
-                  {t.nav.items[item.id].label}
-                </Item>
-              ))}
+              {NAV_HUBS.flatMap((hub) => {
+                const hubLabel = t.nav.hubs[hub.id].label;
+                const tabs = hub.tabs ?? [];
+                return tabs.length
+                  ? tabs.map((tab) => (
+                      <Item
+                        key={tab.href}
+                        value={`${m.keywords.go} ${hub.id} ${tab.id} ${hubLabel} ${t.nav.tabs[tab.id].label} ${t.nav.tabs[tab.id].description}`}
+                        icon={tab.icon}
+                        onSelect={() => go(tab.href)}
+                      >
+                        <span className="text-muted-foreground">{hubLabel} ›</span> {t.nav.tabs[tab.id].label}
+                      </Item>
+                    ))
+                  : [
+                      <Item key={hub.href} value={`${m.keywords.go} ${hub.id} ${hubLabel} ${t.nav.hubs[hub.id].description}`} icon={hub.icon} onSelect={() => go(hub.href)}>
+                        {hubLabel}
+                      </Item>,
+                    ];
+              })}
             </CommandGroup>
 
             <CommandGroup heading={m.groups.quickActions}>
               {QUICK_ADD.map((a) => (
-                <Item key={a.href} value={`${t.nav.quickAdd[a.id].label} ${t.nav.quickAdd[a.id].keywords}`} icon={Plus} onSelect={() => go(a.href)}>
+                <Item key={a.href} value={`${t.nav.quickAdd[a.id].label} ${t.nav.quickAdd[a.id].keywords}`} icon={a.icon} onSelect={() => go(a.href)}>
                   {t.nav.quickAdd[a.id].label}
                 </Item>
               ))}
@@ -157,7 +174,7 @@ export function CommandMenu() {
                     value={`${m.keywords.asset} ${a.name} ${a.category} ${assetCategoryLabel(a.category)} ${a.id}`}
                     icon={Landmark}
                     meta={formatMoneyCompact(a.currentValue)}
-                    onSelect={() => go(`/assets?edit=${encodeURIComponent(a.id)}`)}
+                    onSelect={() => go(`/wealth?edit=${encodeURIComponent(a.id)}`)}
                   >
                     {a.name}
                   </Item>
@@ -173,7 +190,7 @@ export function CommandMenu() {
                     value={`${m.keywords.income} ${s.name} ${s.details} ${s.id}`}
                     icon={TrendingUp}
                     meta={m.perMonth({ amount: formatMoneyCompact(s.monthly) })}
-                    onSelect={() => go(`/income?edit=${encodeURIComponent(s.id)}`)}
+                    onSelect={() => go(`/cashflow/income?edit=${encodeURIComponent(s.id)}`)}
                   >
                     {s.name}
                   </Item>
@@ -189,7 +206,7 @@ export function CommandMenu() {
                     value={`${m.keywords.debt} ${d.name} ${d.id}`}
                     icon={CreditCard}
                     meta={formatMoneyCompact(d.balance)}
-                    onSelect={() => go(`/debts?edit=${encodeURIComponent(d.id)}`)}
+                    onSelect={() => go(`/wealth/debts?edit=${encodeURIComponent(d.id)}`)}
                   >
                     {d.name}
                   </Item>
@@ -205,7 +222,7 @@ export function CommandMenu() {
                     value={`${m.keywords.loan} ${l.person} ${l.note ?? ""} ${l.id}`}
                     icon={HandCoins}
                     meta={`${l.direction === "lent_out" ? m.owedToYou : m.youOwe} · ${formatMoneyCompact(l.amount)}`}
-                    onSelect={() => go(`/loans?edit=${encodeURIComponent(l.id)}`)}
+                    onSelect={() => go(`/wealth/loans?edit=${encodeURIComponent(l.id)}`)}
                   >
                     {l.person}
                   </Item>
@@ -223,6 +240,9 @@ export function CommandMenu() {
               </Item>
               <Item value={m.keywords.themeSystem} icon={Monitor} onSelect={() => run(() => setTheme("system"))}>
                 {m.systemTheme}
+              </Item>
+              <Item value={m.keywords.privacy} icon={EyeOff} onSelect={() => run(togglePrivacy)}>
+                {hidden ? t.common.privacy.show : t.common.privacy.hide}
               </Item>
               <Item value={m.keywords.sync} icon={RefreshCw} onSelect={() => run(() => void syncNow())}>
                 {m.syncNow}

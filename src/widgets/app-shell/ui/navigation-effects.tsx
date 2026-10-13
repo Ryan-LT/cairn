@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { useAppPathname } from "@/shared/lib/use-app-pathname";
-import { NAV } from "@/shared/config";
+import { ALL_ROUTES } from "@/shared/config";
 import { isServiceWorkerUpdateReady } from "@/shared/lib/service-worker";
 
 import { endNavigationProgress, isPlainClick, startNavigationProgress } from "../model/navigation";
@@ -45,7 +45,7 @@ export function NavigationEffects() {
   }, []);
 
   useEffect(() => {
-    const prefetchAll = () => NAV.forEach((item) => router.prefetch(item.href));
+    const prefetchAll = () => ALL_ROUTES.forEach((href) => router.prefetch(href));
     if ("requestIdleCallback" in window) {
       const id = window.requestIdleCallback(prefetchAll, { timeout: 3000 });
       return () => window.cancelIdleCallback(id);

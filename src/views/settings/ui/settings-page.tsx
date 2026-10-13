@@ -1,7 +1,6 @@
 "use client";
 
-import { CreditCard, Download, Landmark, LogOut, RefreshCw, TrendingUp } from "lucide-react";
-import Link from "next/link";
+import { Download, LogOut, RefreshCw } from "lucide-react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
@@ -13,7 +12,6 @@ import { BRAND } from "@/shared/config";
 import { useI18n } from "@/shared/i18n";
 import { formatRelative, formatTime } from "@/shared/lib/format";
 import { useLastSyncedAt, useTable } from "@/shared/storage";
-import { Callout } from "@/shared/ui/callout";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Button } from "@/shared/ui/kit/button";
 import { PageHeader } from "@/shared/ui/page-header";
@@ -46,7 +44,7 @@ export function SettingsPage() {
 
   return (
     <PageContainer className="max-w-3xl">
-      <PageHeader title={t.nav.items.settings.label} description={s.description} />
+      <PageHeader title={t.nav.hubs.settings.label} description={s.description} />
 
       <div id="milestone" className="scroll-mt-20">
         <Section title={s.milestone.title} description={s.milestone.description}>
@@ -148,21 +146,6 @@ export function SettingsPage() {
         ) : null}
       </Section>
 
-      <Callout tone="info" title={s.moved.title}>
-        {s.moved.lead}{" "}
-        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/assets">
-          <Landmark className="size-3.5" /> {t.nav.items.assets.label}
-        </Link>
-        ,{" "}
-        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/income">
-          <TrendingUp className="size-3.5" /> {t.nav.items.income.label}
-        </Link>{" "}
-        {s.moved.and}{" "}
-        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/debts">
-          <CreditCard className="size-3.5" /> {t.nav.items.debts.label}
-        </Link>
-        .
-      </Callout>
     </PageContainer>
   );
 }

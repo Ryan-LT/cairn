@@ -51,9 +51,4 @@ export const settings = {
     disabledHint: "Set DATABASE_URL and AUTH_SECRET on the server and add accounts with db/create-user.sql.",
     signOut: "Sign out",
   },
-  moved: {
-    title: "Looking for asset, income or debt settings?",
-    lead: "They now have their own pages:",
-    and: "and",
-  },
 };

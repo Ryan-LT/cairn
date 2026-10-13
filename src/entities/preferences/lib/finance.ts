@@ -65,8 +65,10 @@ export function monthToDateNetWorthChangePercent(
   return ((netWorth - b) / Math.abs(b)) * 100;
 }
 
-/** Monthly net-worth snapshots kept for the trend chart. */
-export const NET_WORTH_HISTORY_MONTHS = 12;
+/** Monthly net-worth snapshots kept (5 years). */
+export const NET_WORTH_HISTORY_MONTHS = 60;
+/** Months the trend chart shows by default. */
+export const NET_WORTH_TREND_MONTHS = 12;
 
 function upsertMonthHistory(
   prev: NetWorthMonthSnapshot[],
@@ -140,7 +142,7 @@ export type NetWorthTrendPoint = {
 };
 
 /**
- * Up to the last 12 calendar months for the net-worth chart, starting at the
+ * Up to the last `months` calendar months (default 12) for the net-worth chart, starting at the
  * first month that was actually tracked (no made-up history before it). A
  * month without a snapshot (no visit) repeats the previous month's value; the
  * current month uses the live net worth.
@@ -149,12 +151,13 @@ export function buildNetWorthTrend(
   history: NetWorthMonthSnapshot[],
   netWorth: number,
   now: Date = new Date(),
+  months: number = NET_WORTH_TREND_MONTHS,
 ): NetWorthTrendPoint[] {
   const map = new Map(history.map((h) => [h.monthKey, h.value]));
   const firstTracked = [...history].map((h) => h.monthKey).sort()[0];
   const out: NetWorthTrendPoint[] = [];
   let carry: number | null = null;
-  for (let i = NET_WORTH_HISTORY_MONTHS - 1; i >= 0; i--) {
+  for (let i = months - 1; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthKey = monthCalendarKey(date);
     const live = i === 0;

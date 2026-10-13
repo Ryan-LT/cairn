@@ -90,17 +90,17 @@ describe("net worth tracking", () => {
     });
   });
 
-  it("keeps only the last twelve months of history", () => {
+  it("keeps the last five years of history", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-15T10:00:00+07:00"));
-    const history = Array.from({ length: 14 }, (_, i) => {
-      const d = new Date(2025, 5 + i, 1);
+    const history = Array.from({ length: 62 }, (_, i) => {
+      const d = new Date(2021, 6 + i, 1);
       return { monthKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, value: i };
     });
     const next = syncNetWorthTracking({ ...PREFERENCES_SEED, netWorthMonthlyHistory: history }, 99);
     const keys = next.netWorthMonthlyHistory!.map((h) => h.monthKey);
-    expect(keys).toHaveLength(12);
-    expect(keys[0]).toBe("2025-09");
+    expect(keys).toHaveLength(60);
+    expect(keys[0]).toBe("2021-09");
     expect(keys.at(-1)).toBe("2026-08");
   });
 });
@@ -133,6 +133,7 @@ describe("buildNetWorthTrend", () => {
     const trend = buildNetWorthTrend(long, 1, now);
     expect(trend).toHaveLength(12);
     expect(trend[0].monthKey).toBe("2025-07");
+    expect(buildNetWorthTrend(long, 1, now, 36)).toHaveLength(20);
   });
 
   it("detects unchanged tracking", () => {

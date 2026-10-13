@@ -7,7 +7,7 @@ import { DashboardPage } from "@/views/dashboard";
 export async function generateMetadata({ params }: PageProps<"/[lang]">): Promise<Metadata> {
   const { lang } = await params;
   const t = messagesFor(isLocale(lang) ? lang : "en");
-  return { title: t.nav.items.dashboard.label };
+  return { title: t.nav.hubs.home.label };
 }
 
 export default function Page() {

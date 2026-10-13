@@ -7,13 +7,14 @@ export const shell: Messages["shell"] = {
   breadcrumb: "Đường dẫn",
   searchOrJump: "Tìm kiếm…",
   changeTheme: "Đổi giao diện",
-  more: {
-    tab: "Khác",
-    title: "Mục khác",
-    description: "Các trang còn lại, kèm lối tắt.",
-    quickAdd: "Thêm nhanh",
+  quickAddSheet: {
+    open: "Thêm",
+    title: "Thêm nhanh",
+    description: "Ghi một khoản đã chi hoặc thêm mục mới.",
     search: "Tìm trang và bản ghi…",
   },
+  account: "Tài khoản",
+  sectionTabs: "Các trang trong mục",
   user: {
     signedIn: "Đã đăng nhập",
     localMode: "Chế độ cục bộ (không đăng nhập)",
@@ -59,6 +60,7 @@ export const shell: Messages["shell"] = {
       themeLight: "giao diện sáng giao dien sang theme light",
       themeDark: "giao diện tối giao dien toi theme dark",
       themeSystem: "giao diện hệ thống giao dien he thong theme system",
+      privacy: "ẩn hiện số tiền riêng tư privacy hide show amounts",
       sync: "đồng bộ ngay làm mới dong bo lam moi sync now refresh",
       signOut: "đăng xuất dang xuat sign out log out",
     },

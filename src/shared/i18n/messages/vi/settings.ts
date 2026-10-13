@@ -52,9 +52,4 @@ export const settings: Messages["settings"] = {
     disabledHint: "Đặt DATABASE_URL và AUTH_SECRET trên máy chủ, rồi thêm tài khoản bằng db/create-user.sql.",
     signOut: "Đăng xuất",
   },
-  moved: {
-    title: "Bạn đang tìm cài đặt tài sản, thu nhập hoặc khoản nợ?",
-    lead: "Giờ đây chúng đã có trang riêng:",
-    and: "và",
-  },
 };

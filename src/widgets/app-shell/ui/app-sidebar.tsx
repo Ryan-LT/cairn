@@ -4,18 +4,20 @@ import Link from "next/link";
 import type { MouseEvent } from "react";
 
 import { useI18n } from "@/shared/i18n";
-import { BRAND, isNavActive, NAV_GROUPS } from "@/shared/config";
+import { BRAND, findNavMatch, isNavActive, NAV_HUBS } from "@/shared/config";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from "@/shared/ui/kit/sidebar";
@@ -23,6 +25,9 @@ import { Logo } from "@/shared/ui/logo";
 
 import { useOptimisticNavigation } from "../model/navigation";
 import { NavUser } from "./nav-user";
+
+const ACTIVE_CLASS =
+  "data-[active=true]:bg-primary-soft data-[active=true]:text-primary-soft-foreground data-[active=true]:[&>svg]:text-primary-soft-foreground";
 
 export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
@@ -53,30 +58,44 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {NAV_GROUPS.map((group) => (
-          <SidebarGroup key={group.id}>
-            <SidebarGroupLabel>{t.nav.groups[group.id]}</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {group.items.map((item) => (
-                  <SidebarMenuItem key={item.href}>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {NAV_HUBS.map((hub) => {
+                const active = isNavActive(activePath, hub.href);
+                const tab = active ? findNavMatch(activePath)?.tab : undefined;
+                return (
+                  <SidebarMenuItem key={hub.href}>
                     <SidebarMenuButton
                       asChild
-                      isActive={isNavActive(activePath, item.href)}
-                      tooltip={t.nav.items[item.id].label}
-                      className="data-[active=true]:bg-primary-soft data-[active=true]:text-primary-soft-foreground data-[active=true]:[&>svg]:text-primary-soft-foreground"
+                      isActive={active && !hub.tabs}
+                      tooltip={t.nav.hubs[hub.id].label}
+                      className={ACTIVE_CLASS}
                     >
-                      <Link href={item.href} onClick={(e) => navigate(e, item.href)}>
-                        <item.icon />
-                        <span>{t.nav.items[item.id].label}</span>
+                      <Link href={hub.href} onClick={(e) => navigate(e, hub.href)} className={active ? "font-semibold" : undefined}>
+                        <hub.icon />
+                        <span>{t.nav.hubs[hub.id].label}</span>
                       </Link>
                     </SidebarMenuButton>
+                    {hub.tabs ? (
+                      <SidebarMenuSub>
+                        {hub.tabs.map((item) => (
+                          <SidebarMenuSubItem key={item.href}>
+                            <SidebarMenuSubButton asChild isActive={tab?.id === item.id} className={ACTIVE_CLASS}>
+                              <Link href={item.href} onClick={(e) => navigate(e, item.href)}>
+                                <span>{t.nav.tabs[item.id].label}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    ) : null}
                   </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        ))}
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

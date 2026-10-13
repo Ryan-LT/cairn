@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarRange, Droplets, Landmark, Wallet } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { DEBTS_SEED } from "@/entities/debt";
@@ -18,14 +18,12 @@ import {
 } from "@/entities/portfolio";
 import {
   monthToDateNetWorthChangePercent,
-  netWorthTrackingUnchanged,
   PREFERENCES_SEED,
-  syncNetWorthTracking,
 } from "@/entities/preferences";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
 import { useI18n } from "@/shared/i18n";
 import { formatDate, formatPercent } from "@/shared/lib/format";
-import { useInitialLoadDone, useTable } from "@/shared/storage";
+import { useTable } from "@/shared/storage";
 import { Money } from "@/shared/ui/money";
 import { PageHeader } from "@/shared/ui/page-header";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
@@ -43,13 +41,12 @@ import { NetWorthTrendCard } from "./net-worth-trend-card";
 export function DashboardPage() {
   const { t } = useI18n();
   const k = t.dashboard.kpi;
-  const initialLoadDone = useInitialLoadDone();
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [debts] = useTable("debts", DEBTS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
   const [incomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
-  const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+  const [prefs] = useTable("preferences", PREFERENCES_SEED);
   const [personalLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
   const { expenses } = useExpenses();
   const milestoneConfig = useMilestoneConfig();
@@ -64,14 +61,6 @@ export function DashboardPage() {
     [summary, assets, settingsAssets, debts, annualRealRate],
   );
   const netWorth = summary.netWorth;
-
-  // Keep month-to-date baseline and monthly snapshots current (only after real data
-  // loaded, and only when something actually changes).
-  useEffect(() => {
-    if (!initialLoadDone) return;
-    const next = syncNetWorthTracking(prefs, netWorth);
-    if (!netWorthTrackingUnchanged(prefs, next)) setPrefs((p) => syncNetWorthTracking(p, netWorth));
-  }, [initialLoadDone, netWorth, prefs, setPrefs]);
 
   const report = useMemo(
     () => buildAllocationReportForTables({ goals, assets, settingsAssets, incomeSources }),
@@ -101,21 +90,21 @@ export function DashboardPage() {
               </StatusBadge>
             ) : null
           }
-          href="/assets"
+          href="/wealth"
         />
         <StatCard
           label={k.instantPool.label}
           icon={Droplets}
           value={<Money value={report.totals.instantRemainingPool} compact />}
           hint={k.instantPool.hint}
-          href="/allocations"
+          href="/goals/funding"
         />
         <StatCard
           label={k.monthlyNet.label}
           icon={Wallet}
           value={<Money value={summary.monthlyNet} compact signed tone="auto" />}
           hint={k.monthlyNet.hint}
-          href="/income"
+          href="/cashflow"
         />
         <StatCard
           label={k.yearEnd.label}

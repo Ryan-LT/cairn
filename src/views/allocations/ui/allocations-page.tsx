@@ -23,12 +23,11 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/kit/table";
 import { Money } from "@/shared/ui/money";
-import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
 import { StatusBadge } from "@/shared/ui/status-badge";
-import { PageContainer } from "@/widgets/app-shell";
+import { TabContent } from "@/widgets/app-shell";
 
 import { cycleMatrixColumnSort, normalizeMatrixColumnSort, sortMatrixByColumn } from "../lib/matrix-column-sort";
 import { SourceItem, SourceMatrix } from "./source-matrix";
@@ -57,12 +56,10 @@ export function AllocationsPage() {
   );
 
   return (
-    <PageContainer>
-      <PageHeader title={m.title} description={m.description} />
-
+    <TabContent>
       <StatGrid className="xl:grid-cols-3">
-        <StatCard label={m.kpi.monthlyIncome.label} icon={TrendingUp} value={<Money value={cash.totalIncome} compact />} href="/income" />
-        <StatCard label={m.kpi.avgSpending.label} icon={ShoppingCart} value={<Money value={cash.averageSpending} compact />} href="/income" />
+        <StatCard label={m.kpi.monthlyIncome.label} icon={TrendingUp} value={<Money value={cash.totalIncome} compact />} href="/cashflow/income" />
+        <StatCard label={m.kpi.avgSpending.label} icon={ShoppingCart} value={<Money value={cash.averageSpending} compact />} href="/cashflow/income" />
         <StatCard
           label={m.kpi.monthlyNet.label}
           icon={Wallet}
@@ -171,6 +168,6 @@ export function AllocationsPage() {
           />
         )}
       </Section>
-    </PageContainer>
+    </TabContent>
   );
 }

@@ -30,10 +30,9 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { RegistryIcon } from "@/shared/ui/icon-registry";
 import { Button } from "@/shared/ui/kit/button";
 import { Money } from "@/shared/ui/money";
-import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
 import { StatusBadge } from "@/shared/ui/status-badge";
-import { PageContainer } from "@/widgets/app-shell";
+import { TabContent, TabToolbar } from "@/widgets/app-shell";
 
 import { IncomeSourceFormDialog } from "./income-source-form-dialog";
 import { CashFlowPanel } from "./cash-flow-panel";
@@ -169,15 +168,13 @@ export function IncomePage() {
   );
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t.income.title}
-        description={t.income.description}
+    <TabContent>
+      <TabToolbar
         actions={
-          <Button onClick={openCreate}>
-            <Plus />
-            {t.income.addSource}
-          </Button>
+        <Button onClick={openCreate}>
+          <Plus />
+          {t.income.addSource}
+        </Button>
         }
       />
 
@@ -259,6 +256,6 @@ export function IncomePage() {
           toast.success(t.income.toast.deleted, { description: removed.name });
         }}
       />
-    </PageContainer>
+    </TabContent>
   );
 }

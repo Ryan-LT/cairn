@@ -25,10 +25,9 @@ import { EmptyState } from "@/shared/ui/empty-state";
 import { Badge } from "@/shared/ui/kit/badge";
 import { Button } from "@/shared/ui/kit/button";
 import { Money } from "@/shared/ui/money";
-import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
-import { PageContainer } from "@/widgets/app-shell";
+import { TabContent, TabToolbar } from "@/widgets/app-shell";
 
 import { useCreateParam } from "@/shared/lib/use-create-param";
 
@@ -170,15 +169,13 @@ export function DebtsPage() {
   );
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t.debts.title}
-        description={t.debts.description}
+    <TabContent>
+      <TabToolbar
         actions={
-          <Button onClick={openCreate}>
-            <Plus />
-            {t.debts.add}
-          </Button>
+        <Button onClick={openCreate}>
+          <Plus />
+          {t.debts.add}
+        </Button>
         }
       />
 
@@ -286,6 +283,6 @@ export function DebtsPage() {
           toast.success(t.debts.toast.deleted, { description: removed.name });
         }}
       />
-    </PageContainer>
+    </TabContent>
   );
 }

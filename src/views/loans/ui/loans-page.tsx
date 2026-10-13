@@ -27,13 +27,12 @@ import { Button } from "@/shared/ui/kit/button";
 import { Label } from "@/shared/ui/kit/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Money } from "@/shared/ui/money";
-import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 import { Switch } from "@/shared/ui/kit/switch";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
 import { StatusBadge } from "@/shared/ui/status-badge";
-import { PageContainer } from "@/widgets/app-shell";
+import { TabContent, TabToolbar } from "@/widgets/app-shell";
 
 import { LoanFormDialog } from "./loan-form-dialog";
 
@@ -177,15 +176,13 @@ export function LoansPage() {
   );
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t.loans.title}
-        description={countsInNetWorth ? t.loans.descriptionCounted : t.loans.descriptionPrivate}
+    <TabContent>
+      <TabToolbar
         actions={
-          <Button onClick={openCreate}>
-            <Plus />
-            {t.loans.add}
-          </Button>
+        <Button onClick={openCreate}>
+          <Plus />
+          {t.loans.add}
+        </Button>
         }
       />
 
@@ -321,6 +318,6 @@ export function LoansPage() {
           toast.success(t.loans.toast.deleted, { description: removed.person });
         }}
       />
-    </PageContainer>
+    </TabContent>
   );
 }
