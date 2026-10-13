@@ -36,7 +36,20 @@ async function sendFeedback(body: { kind: FeedbackKind; message: string; rating:
 }
 
 /** The "Góp ý" sheet: what it's about, an optional rating and a message, stored server-side. */
-export function FeedbackDialog({ open, onOpenChange, canSend, online }: { open: boolean; onOpenChange: (open: boolean) => void; canSend: boolean; online: boolean }) {
+export function FeedbackDialog({
+  open,
+  onOpenChange,
+  canSend,
+  online,
+  onSent,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  canSend: boolean;
+  online: boolean;
+  /** After a successful send (the sheet has closed). */
+  onSent?: () => void;
+}) {
   const { t, locale } = useI18n();
   const f = t.assist.feedback;
   const pathname = useAppPathname();
@@ -62,6 +75,7 @@ export function FeedbackDialog({ open, onOpenChange, canSend, online }: { open: 
       toast.success(f.sent, { description: f.sentDetail });
       reset();
       onOpenChange(false);
+      onSent?.();
     } else {
       toast.error(result === "rate_limited" ? f.rateLimited : result === "sign_in" ? f.signInNeeded : f.failed);
     }

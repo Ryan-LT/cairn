@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { FeedbackDialog } from "@/features/send-feedback";
 import { useI18n } from "@/shared/i18n";
+import { burstConfetti } from "@/shared/lib/celebrate";
 import { cn } from "@/shared/lib/cn";
 import { Popover, PopoverAnchor, PopoverContent } from "@/shared/ui/kit/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/kit/tooltip";
@@ -49,6 +50,7 @@ export function AssistDock() {
   const [aiOpen, setAiOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const hidden = useHideOnScroll(aiOpen || feedbackOpen);
+  const feedbackButton = useRef<HTMLButtonElement>(null);
 
   return (
     <>
@@ -65,6 +67,7 @@ export function AssistDock() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
+                  ref={feedbackButton}
                   type="button"
                   onClick={() => setFeedbackOpen(true)}
                   aria-label={a.feedback.button}
@@ -102,7 +105,14 @@ export function AssistDock() {
           <AiChatPanel onClose={() => setAiOpen(false)} />
         </PopoverContent>
       </Popover>
-      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} canSend={authEnabled} online={online} />
+      <FeedbackDialog
+        open={feedbackOpen}
+        onOpenChange={setFeedbackOpen}
+        canSend={authEnabled}
+        online={online}
+        // Thanks, with a little confetti from the button (after the sheet's exit animation).
+        onSent={() => setTimeout(() => burstConfetti(feedbackButton.current, { count: 14, distance: 44 }), 250)}
+      />
     </>
   );
 }

@@ -70,7 +70,7 @@ export function HubLayout({ hub, summary, children }: { hub: HubId; summary?: Re
 
 /** Body of a tab inside a section: vertical rhythm only (the section owns gutters). */
 export function TabContent({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("flex min-w-0 flex-col gap-5 md:gap-6", className)}>{children}</div>;
+  return <div className={cn("stagger-in flex min-w-0 flex-col gap-5 md:gap-6", className)}>{children}</div>;
 }
 
 /** A tab's first row: context on the left, its main actions on the right. */

@@ -12,7 +12,7 @@ import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
 import { useI18n } from "@/shared/i18n";
 import { formatPercent } from "@/shared/lib/format";
 import { useTable } from "@/shared/storage";
-import { Money } from "@/shared/ui/money";
+import { AnimatedMoney } from "@/shared/ui/animated-money";
 import { SummaryStrip } from "@/shared/ui/summary-strip";
 
 /** Assets − debts = net worth, above the Net worth tabs, with how much of what you own is owed. */
@@ -36,9 +36,9 @@ export function WealthHubSummary() {
   return (
     <SummaryStrip
       items={[
-        { key: "a", icon: Landmark, tone: "text-success", label: s.assets, value: <Money value={gross} compact /> },
-        { key: "d", icon: TrendingDown, tone: "text-danger", label: s.debts, value: <Money value={owed} compact /> },
-        { key: "n", icon: Scale, tone: "text-primary", label: s.netWorth, value: <Money value={net} compact tone={net < 0 ? "danger" : "none"} /> },
+        { key: "a", icon: Landmark, tone: "text-success", label: s.assets, value: <AnimatedMoney value={gross} id="wealth-assets" /> },
+        { key: "d", icon: TrendingDown, tone: "text-danger", label: s.debts, value: <AnimatedMoney value={owed} id="wealth-debts" /> },
+        { key: "n", icon: Scale, tone: "text-primary", label: s.netWorth, value: <AnimatedMoney value={net} id="wealth-net" tone={net < 0 ? "danger" : "none"} /> },
       ]}
       footer={
         gross > 0 ? (

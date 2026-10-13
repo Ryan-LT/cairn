@@ -5,7 +5,7 @@ import { ArrowDownLeft, ArrowUpRight, PiggyBank, TriangleAlert } from "lucide-re
 import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
 import { useI18n } from "@/shared/i18n";
 import { formatPercent } from "@/shared/lib/format";
-import { Money } from "@/shared/ui/money";
+import { AnimatedMoney } from "@/shared/ui/animated-money";
 import { SummaryStrip } from "@/shared/ui/summary-strip";
 
 /** Money in − money out = what's left, above the Cash flow tabs. */
@@ -18,14 +18,14 @@ export function CashflowHubSummary() {
   return (
     <SummaryStrip
       items={[
-        { key: "in", icon: ArrowDownLeft, tone: "text-success", label: s.moneyIn, value: <Money value={cash.totalIncome} compact />, sub: s.perMonth },
-        { key: "out", icon: ArrowUpRight, tone: "text-danger", label: s.moneyOut, value: <Money value={cash.averageSpending} compact />, sub: s.perMonth },
+        { key: "in", icon: ArrowDownLeft, tone: "text-success", label: s.moneyIn, value: <AnimatedMoney value={cash.totalIncome} id="cashflow-in" />, sub: s.perMonth },
+        { key: "out", icon: ArrowUpRight, tone: "text-danger", label: s.moneyOut, value: <AnimatedMoney value={cash.averageSpending} id="cashflow-out" />, sub: s.perMonth },
         {
           key: "left",
           icon: over ? TriangleAlert : PiggyBank,
           tone: over ? "text-danger" : "text-primary",
           label: s.left,
-          value: <Money value={cash.monthlyNet} compact signed tone="auto" />,
+          value: <AnimatedMoney value={cash.monthlyNet} id="cashflow-left" signed tone="auto" />,
           sub: over ? s.overspending : rate === null ? s.noIncome : s.savingsRate({ pct: formatPercent(rate, { maximumFractionDigits: 0 }) }),
         },
       ]}

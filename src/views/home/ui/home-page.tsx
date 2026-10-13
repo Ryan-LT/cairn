@@ -82,7 +82,7 @@ export function HomePage() {
   const due = [...month.groups.overdue, ...month.groups.needsConfirm, ...month.groups.dueSoon].slice(0, 5);
 
   return (
-    <PageContainer>
+    <PageContainer className="stagger-in">
       <header className="grid gap-0.5">
         <h1 className="text-xl font-semibold tracking-tight md:text-2xl">{t.home.greeting[greetingKey(now)]({ name: userName })}</h1>
         <p className="text-sm text-muted-foreground first-letter:uppercase">{formatDate(now)}</p>

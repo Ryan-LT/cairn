@@ -2,7 +2,7 @@
 
 import { CalendarClock, Info, Plus, X } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { buildMonthView, CategoryTile, liveItems, type BillLine, type BudgetLine } from "@/entities/expense";
 import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
@@ -10,6 +10,7 @@ import { INCOME_SOURCES_SEED } from "@/entities/income";
 import { TemplatePicker } from "@/features/expense-form";
 import { useRecordSpending } from "@/features/record-spending";
 import { useI18n } from "@/shared/i18n";
+import { burstConfetti } from "@/shared/lib/celebrate";
 import { todayIso } from "@/shared/lib/date";
 import { formatDate, formatMoney, formatPercent } from "@/shared/lib/format";
 import { addMonths, monthKeyOf } from "@/shared/lib/month";
@@ -124,6 +125,15 @@ export function CashflowMonthPage() {
   const leftAtEnd = cash.totalIncome - totals.projected;
   const open = [...view.groups.overdue, ...view.groups.needsConfirm, ...view.groups.dueSoon, ...view.groups.upcoming];
 
+  // Confetti from the ring when the last bill of the month gets paid here (not when opening a finished month).
+  const ringRef = useRef<HTMLSpanElement>(null);
+  const lastShare = useRef({ monthKey, share });
+  useEffect(() => {
+    const prev = lastShare.current;
+    if (prev.monthKey === monthKey && prev.share < 1 && share >= 1) burstConfetti(ringRef.current, { count: 26, distance: 72, size: 7 });
+    lastShare.current = { monthKey, share };
+  }, [monthKey, share]);
+
   const changeMonth = (key: string) => {
     setMonthKey(key);
     setDay(null);
@@ -161,9 +171,11 @@ export function CashflowMonthPage() {
         <>
           <Card className="bg-hero gap-4 px-5">
             <div className="flex items-center gap-4 md:gap-6">
-              <ProgressRing value={share} size={76} stroke={8} label={m.ringLabel({ pct: formatPercent(share * 100, { maximumFractionDigits: 0 }) })}>
-                {formatPercent(Math.min(999, share * 100), { maximumFractionDigits: 0 })}
-              </ProgressRing>
+              <span ref={ringRef} className="shrink-0">
+                <ProgressRing value={share} size={76} stroke={8} label={m.ringLabel({ pct: formatPercent(share * 100, { maximumFractionDigits: 0 }) })}>
+                  {formatPercent(Math.min(999, share * 100), { maximumFractionDigits: 0 })}
+                </ProgressRing>
+              </span>
               <div className="grid min-w-0 flex-1 gap-1">
                 <p className="text-sm text-muted-foreground">{m.settled}</p>
                 <p className="text-display font-semibold">

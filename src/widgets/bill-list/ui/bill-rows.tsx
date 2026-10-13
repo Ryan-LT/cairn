@@ -15,6 +15,7 @@ import {
 import { useRecordSpending } from "@/features/record-spending";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
+import { burstConfetti, hapticTap } from "@/shared/lib/celebrate";
 import type { StatusTone } from "@/shared/lib/tone";
 import { RowActions, type RowAction } from "@/shared/ui/data-table";
 import { Button } from "@/shared/ui/kit/button";
@@ -111,7 +112,12 @@ export function BillRow({
           ) : (
             <button
               type="button"
-              onClick={() => actions.pay(line, monthKey)}
+              onClick={(e) => {
+                // A little celebration as it's ticked (measured before the row re-renders).
+                burstConfetti(e.currentTarget, { count: 10, distance: 30 });
+                hapticTap();
+                actions.pay(line, monthKey);
+              }}
               aria-label={`${a.markPaid}: ${line.item.name}`}
               className="flex size-9 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 text-muted-foreground transition-colors outline-none hover:border-success hover:bg-success-muted hover:text-success focus-visible:ring-[3px] focus-visible:ring-ring"
             >

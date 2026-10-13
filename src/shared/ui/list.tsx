@@ -75,7 +75,9 @@ export function ListRow({ leading, title, subtitle, trailing, trailingSub, actio
       ) : null}
     </>
   );
-  const area = "flex min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring";
+  // Tappable rows give a slight press-in, so a tap feels registered before the sheet opens.
+  const area =
+    "flex min-w-0 flex-1 items-center gap-3 rounded-md text-left outline-none transition-transform duration-150 focus-visible:ring-[3px] focus-visible:ring-ring active:scale-[0.985] motion-reduce:active:scale-100";
   return (
     <li className={cn("flex min-h-14 items-center gap-2 px-4 py-2.5 transition-colors", (onClick || href) && "hover:bg-accent/40", className)}>
       {href ? (

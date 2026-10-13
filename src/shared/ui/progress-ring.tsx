@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/shared/lib/cn";
 
@@ -44,7 +44,13 @@ export function ProgressRing({ value, size = 56, stroke = 6, tone = "primary", l
           stroke="currentColor"
           strokeDasharray={c}
           strokeDashoffset={c * (1 - v)}
-          className={cn("transition-[stroke-dashoffset] duration-700 ease-out motion-reduce:transition-none", TONES[tone], v === 0 && "opacity-0")}
+          // Fills from empty when it appears, then eases to new values.
+          style={{ "--ring-c": c } as CSSProperties}
+          className={cn(
+            "transition-[stroke-dashoffset] duration-700 ease-out motion-safe:animate-ring-fill motion-reduce:transition-none",
+            TONES[tone],
+            v === 0 && "opacity-0",
+          )}
         />
       </svg>
       {children ? <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold tabular-nums">{children}</span> : null}

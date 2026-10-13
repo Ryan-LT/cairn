@@ -25,7 +25,7 @@ export function Sparkline({ values, label, className, area = true }: SparklinePr
   const line = pts.map(([x, y], i) => `${i ? "L" : "M"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
   const last = pts[pts.length - 1];
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label={label} className={cn("h-9 w-full overflow-visible", className)}>
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label={label} className={cn("h-9 w-full overflow-visible motion-safe:animate-draw-in", className)}>
       {area ? (
         <>
           <defs>

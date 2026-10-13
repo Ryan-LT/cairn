@@ -28,7 +28,7 @@ export function StackedBar({ segments, label, markers, className }: StackedBarPr
   return (
     <div className={cn("grid gap-3", className)}>
       <div role="img" aria-label={label} className="relative">
-        <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-muted">
+        <div className="flex h-3 w-full gap-0.5 overflow-hidden rounded-full bg-muted motion-safe:animate-draw-in">
           {total > 0
             ? visible.map((s) => (
                 <div key={s.key} className="h-full first:rounded-l-full last:rounded-r-full" style={{ width: `${(s.value / total) * 100}%`, background: s.color }} />

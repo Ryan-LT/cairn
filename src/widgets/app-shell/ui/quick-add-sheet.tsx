@@ -53,7 +53,7 @@ export function QuickAddSheet({ open, onOpenChange, navigate }: QuickAddSheetPro
             <first.icon className="size-5" aria-hidden />
             <span className="text-sm font-semibold">{t.nav.quickAdd[first.id].label}</span>
           </Link>
-          <ul className="grid grid-cols-3 gap-2">
+          <ul className="stagger-in grid grid-cols-3 gap-2">
             {rest.map((action) => (
               <li key={action.href}>
                 <Link
