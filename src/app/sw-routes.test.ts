@@ -25,6 +25,7 @@ describe("nav matching", () => {
     expect(findNavMatch("/wealth/debts")).toMatchObject({ hub: { id: "wealth" }, tab: { id: "wealthDebts" } });
     expect(findNavMatch("/goals/funding")?.tab?.id).toBe("goalsFunding");
     expect(hubOf("/settings")).toBe("settings");
+    expect(findNavMatch("/settings/activity")?.tab?.id).toBe("settingsActivity");
     expect(hubOf("/income")).toBeUndefined();
   });
 });

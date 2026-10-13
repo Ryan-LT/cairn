@@ -1,7 +1,6 @@
 import type { Messages } from "../en";
 
 export const settings: Messages["settings"] = {
-  description: "Mục tiêu cột mốc, giao diện, đồng bộ dữ liệu, mật khẩu và phiên đăng nhập.",
   calculation: {
     title: "Cách tính",
     description: "Những lựa chọn ảnh hưởng tới tài sản ròng và dự phóng.",
@@ -37,6 +36,9 @@ export const settings: Messages["settings"] = {
     restore: "Khôi phục",
     restoreHint: "Nạp lại dữ liệu từ một tệp sao lưu.",
     restoreJson: "Chọn tệp sao lưu",
+    activity: "Nhật ký thay đổi",
+    activityHint: "Mọi lần thêm, sửa, xóa, kèm giá trị trước và sau.",
+    openActivity: "Mở nhật ký",
     csv: "Chi tiêu (CSV)",
     csvHint: "Mọi hóa đơn và ngân sách theo từng tháng, mở bằng Excel.",
     exportCsv: "Xuất CSV",

@@ -20,6 +20,7 @@ import { home } from "./home";
 import { debts } from "./debts";
 import { loans } from "./loans";
 import { settings } from "./settings";
+import { activity } from "./activity";
 
 /** Vietnamese messages. */
 export const vi: Messages = {
@@ -43,4 +44,5 @@ export const vi: Messages = {
   debts,
   loans,
   settings,
+  activity,
 };

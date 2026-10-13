@@ -131,7 +131,6 @@ function GoalsSkeleton() {
 function SettingsSkeleton() {
   return (
     <>
-      <HeaderSkeleton action={false} />
       <SectionSkeleton rows={1} />
       <SectionSkeleton rows={3} />
       <SectionSkeleton rows={2} />
@@ -191,6 +190,16 @@ const TAB_SKELETONS: Record<TabId, () => React.ReactNode> = {
       <TableSkeleton rows={4} />
     </>
   ),
+  settingsGeneral: () => (
+    <div className="flex max-w-3xl flex-col gap-5 md:gap-6">
+      <SettingsSkeleton />
+    </div>
+  ),
+  settingsActivity: () => (
+    <div className="max-w-3xl">
+      <ListSkeleton rows={6} />
+    </div>
+  ),
 };
 
 /** The loading placeholder for whichever page `pathname` belongs to. */
@@ -227,11 +236,10 @@ export function RouteSkeleton({ pathname }: { pathname: string }) {
       </HubFrame>
     );
   }
-  const settings = match?.hub.id === "settings";
   return (
-    <PageContainer skeleton className={settings ? "max-w-3xl" : undefined}>
+    <PageContainer skeleton>
       {status}
-      {settings ? <SettingsSkeleton /> : <DashboardSkeleton />}
+      <DashboardSkeleton />
     </PageContainer>
   );
 }

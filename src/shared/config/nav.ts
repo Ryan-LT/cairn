@@ -3,6 +3,7 @@ import {
   CalendarCheck,
   CreditCard,
   HandCoins,
+  History,
   House,
   Landmark,
   PieChart,
@@ -67,7 +68,15 @@ export const NAV_HUBS: NavHub[] = [
       { id: "goalsFunding", href: "/goals/funding", icon: PieChart },
     ],
   },
-  { id: "settings", href: "/settings", icon: Settings },
+  {
+    id: "settings",
+    href: "/settings",
+    icon: Settings,
+    tabs: [
+      { id: "settingsGeneral", href: "/settings", icon: Settings },
+      { id: "settingsActivity", href: "/settings/activity", icon: History },
+    ],
+  },
 ];
 
 /** Every page in the app (sections and tabs), in navigation order. */

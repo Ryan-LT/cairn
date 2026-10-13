@@ -15,6 +15,8 @@ export const nav = {
     wealthDebts: { label: "Debts", description: "Loans and cards, payoff dates and interest" },
     wealthLoans: { label: "Personal loans", description: "Money lent to or borrowed from people you know" },
     goalsPlans: { label: "Plans", description: "Each goal, its progress and whether it's on track" },
+    settingsGeneral: { label: "General", description: "Account, appearance and your data" },
+    settingsActivity: { label: "Change log", description: "Every add, edit and removal, so you can trace back a decision" },
     goalsFunding: { label: "Funding", description: "Which money is set aside for which plan" },
   },
   quickAdd: {

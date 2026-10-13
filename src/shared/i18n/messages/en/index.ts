@@ -18,6 +18,7 @@ import { home } from "./home";
 import { debts } from "./debts";
 import { loans } from "./loans";
 import { settings } from "./settings";
+import { activity } from "./activity";
 
 /** English messages: the source of truth. Every other language must match this shape exactly. */
 export const en = {
@@ -41,6 +42,7 @@ export const en = {
   debts,
   loans,
   settings,
+  activity,
 };
 
 export type Messages = typeof en;

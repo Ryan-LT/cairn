@@ -1,6 +1,5 @@
 /** Messages for the settings area. */
 export const settings = {
-  description: "Your milestone goal, appearance, data sync, password and session.",
   calculation: {
     title: "How numbers are counted",
     description: "Choices that change net worth and projections.",
@@ -36,6 +35,9 @@ export const settings = {
     restore: "Restore",
     restoreHint: "Load your data back from a backup file.",
     restoreJson: "Choose backup file",
+    activity: "Change log",
+    activityHint: "Every add, edit and removal, with the values before and after.",
+    openActivity: "Open change log",
     csv: "Spending (CSV)",
     csvHint: "Every bill and budget month by month, for Excel.",
     exportCsv: "Export CSV",

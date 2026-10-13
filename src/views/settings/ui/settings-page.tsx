@@ -1,6 +1,7 @@
 "use client";
 
-import { Download, FileUp, LogOut, RefreshCw, Sheet } from "lucide-react";
+import { Download, FileUp, History, LogOut, RefreshCw, Sheet } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
@@ -21,11 +22,10 @@ import { DescriptionList } from "@/shared/ui/description-list";
 import { Button } from "@/shared/ui/kit/button";
 import { Label } from "@/shared/ui/kit/label";
 import { Switch } from "@/shared/ui/kit/switch";
-import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 import { StatusBadge } from "@/shared/ui/status-badge";
-import { PageContainer, useOnline, useShell } from "@/widgets/app-shell";
+import { TabContent, useOnline, useShell } from "@/widgets/app-shell";
 
 import { downloadBackup } from "../lib/export-backup";
 import { ChangePasswordForm } from "./change-password-form";
@@ -56,8 +56,7 @@ export function SettingsPage() {
   const [csvOpen, setCsvOpen] = useState(false);
 
   return (
-    <PageContainer className="max-w-3xl">
-      <PageHeader title={t.nav.hubs.settings.label} description={s.description} />
+    <TabContent className="max-w-3xl">
 
       <Section title={s.appearance.title} description={s.appearance.description({ brand: BRAND.name })}>
         <SegmentedControl<ThemeValue>
@@ -141,6 +140,18 @@ export function SettingsPage() {
               ),
             },
             {
+              label: s.data.activity,
+              hint: s.data.activityHint,
+              value: (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/settings/activity">
+                    <History />
+                    {s.data.openActivity}
+                  </Link>
+                </Button>
+              ),
+            },
+            {
               label: s.data.csv,
               hint: s.data.csvHint,
               value: (
@@ -208,6 +219,6 @@ export function SettingsPage() {
 
       <RestoreBackupDialog open={restoreOpen} onOpenChange={setRestoreOpen} />
       <ExportSpendingDialog open={csvOpen} onOpenChange={setCsvOpen} expenses={expenses} log={log} debts={debts} />
-    </PageContainer>
+    </TabContent>
   );
 }

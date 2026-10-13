@@ -1,7 +1,8 @@
 import { requireActiveUser } from "@/shared/api/account";
+import { saveTablesWithAudit } from "@/shared/api/audit-log";
 import { getSql } from "@/shared/api/db";
 import { isCrossSiteRequest } from "@/shared/api/request-guard";
-import { isTableKey } from "@/shared/storage/table-keys";
+import { isTableKey, type TableKey } from "@/shared/storage/table-keys";
 
 export const dynamic = "force-dynamic";
 
@@ -85,26 +86,17 @@ export async function PUT(req: Request) {
   }
 
   const entries = Object.entries(tables as Record<string, unknown>).filter(
-    ([k, v]) => isTableKey(k) && v !== undefined,
+    (e): e is [TableKey, unknown] => isTableKey(e[0]) && e[1] !== undefined,
   );
 
-  const payloads = entries.map(([key, value]) => [key, JSON.stringify(value)] as const);
-  if (payloads.some(([, payload]) => payload.length > MAX_TABLE_JSON_LENGTH)) {
+  const saves = entries.map(([key, value]) => ({ key, value, payload: JSON.stringify(value) }));
+  if (saves.some((s) => s.payload.length > MAX_TABLE_JSON_LENGTH)) {
     return jsonError("Table too large", 413, "too_large");
   }
 
   try {
-    const sql = getSql();
-    for (const [key, payload] of payloads) {
-      await sql`
-        INSERT INTO wealthtracker_kv (user_id, key, value, updated_at)
-        VALUES (${user.sub}, ${key}, ${payload}::jsonb, now())
-        ON CONFLICT (user_id, key)
-        DO UPDATE SET
-          value = EXCLUDED.value,
-          updated_at = EXCLUDED.updated_at
-      `;
-    }
+    // Every save is also written to the change log (see saveTablesWithAudit).
+    await saveTablesWithAudit(user.sub, saves, req.headers.get("user-agent"));
     return Response.json({ ok: true, written: entries.map(([k]) => k) });
   } catch (e) {
     return databaseError(e);
