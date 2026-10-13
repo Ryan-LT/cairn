@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore, type ReactNode } from "react";
 
 import { useAppPathname } from "@/shared/lib/use-app-pathname";
+import { PREFERENCES_SEED, type Preferences } from "@/entities/preferences";
 import { useFollowAccountLanguage } from "@/features/switch-language";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
+import type { CurrencyPrefs } from "@/shared/lib/currency/rates";
+import { CurrencyProvider } from "@/shared/lib/currency/provider";
+import { useTable } from "@/shared/storage";
 import { SidebarInset, SidebarProvider } from "@/shared/ui/kit/sidebar";
 
 import { retryInitialLoad, useAppDataState, useAppSync, type AppDataState } from "../model/app-data";
@@ -32,6 +36,19 @@ type AppShellProps = {
  * page's skeleton meanwhile, so every area stays reachable.
  */
 export function AppShell({ authEnabled, children }: AppShellProps) {
+  const [prefs, setPrefs] = useTable<Preferences>("preferences", PREFERENCES_SEED);
+  const updateCurrency = useCallback(
+    (fn: (c: CurrencyPrefs) => CurrencyPrefs) => setPrefs((p) => ({ ...p, currency: fn(p.currency ?? {}) })),
+    [setPrefs],
+  );
+  return (
+    <CurrencyProvider prefs={prefs.currency} onPrefsChange={updateCurrency}>
+      <AppShellFrame authEnabled={authEnabled}>{children}</AppShellFrame>
+    </CurrencyProvider>
+  );
+}
+
+function AppShellFrame({ authEnabled, children }: AppShellProps) {
   const dataState = useAppDataState();
   useAppSync(dataState);
   useFollowAccountLanguage();

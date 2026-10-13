@@ -16,6 +16,7 @@ import { Logo } from "@/shared/ui/logo";
 import { useOptimisticNavigation } from "../model/navigation";
 import { useShell } from "../model/shell-context";
 import { AccountMenuButton } from "./account-menu";
+import { CurrencyToggle } from "./currency-toggle";
 import { NavigationProgress } from "./navigation-progress";
 import { OfflineStrip } from "./offline-strip";
 import { ThemeToggle } from "./theme-toggle";
@@ -87,6 +88,7 @@ export function TopBar() {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <CurrencyToggle />
           <PrivacyToggle />
           <ThemeToggle className="max-md:hidden" />
           <div className="ml-1 md:hidden">

@@ -42,6 +42,13 @@ const SCHEMAS = {
     `CREATE INDEX IF NOT EXISTS wealthtracker_feedback_created_idx ON wealthtracker_feedback (created_at DESC)`,
     `CREATE INDEX IF NOT EXISTS wealthtracker_feedback_status_idx ON wealthtracker_feedback (status, created_at DESC)`,
   ],
+  rates: [
+    `CREATE TABLE IF NOT EXISTS wealthtracker_rates_cache (
+      id TEXT PRIMARY KEY,
+      payload JSONB NOT NULL,
+      fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )`,
+  ],
 } as const;
 
 export type LazySchema = keyof typeof SCHEMAS;

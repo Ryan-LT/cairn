@@ -6,18 +6,9 @@ import { toast } from "sonner";
 
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { buildGoalStartingOptions } from "@/entities/goal";
-import {
-  createIncomeSourceDraft,
-  INCOME_SOURCES_SEED,
-  capitalYieldPct,
-  effectiveIncomeCapital,
-  incomeCapitalPeers,
-  sanitizeIncomeSource,
-  totalCapitalAmount,
-  type IncomeSource,
-} from "@/entities/income";
+import { capitalYieldPct, createIncomeSourceDraft, effectiveIncomeCapital, incomeCapitalPeers, type IncomeSource, sanitizeIncomeSource, totalCapitalAmount, useIncomeSources } from "@/entities/income";
 import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
-import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
+import { useSettingsAssets } from "@/entities/settings-asset";
 import { useI18n, type Messages } from "@/shared/i18n";
 import { formatPercent } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
@@ -44,9 +35,9 @@ function paymentLabel(t: Messages, s: IncomeSource): string {
 
 export function IncomePage() {
   const { t } = useI18n();
-  const [sources, setSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
+  const [sources, setSources] = useIncomeSources();
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
-  const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
+  const [settingsAssets] = useSettingsAssets();
 
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);

@@ -5,6 +5,7 @@ import type { Control, FieldPath, FieldValues } from "react-hook-form";
 
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
+import type { Currency } from "@/shared/lib/currency/rates";
 import { DatePicker } from "@/shared/ui/kit/date-picker";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/kit/form";
 import { Input } from "@/shared/ui/kit/input";
@@ -86,7 +87,17 @@ export function MoneyField<T extends FieldValues, N extends FieldPath<T>>({
   className,
   max,
   autoFocus,
-}: BaseFieldProps<T, N> & { max?: number; autoFocus?: boolean }) {
+  currency,
+  onCurrencyChange,
+  currencySwitch,
+}: BaseFieldProps<T, N> & {
+  max?: number;
+  autoFocus?: boolean;
+  /** The amount is in this currency (see `MoneyInput`). */
+  currency?: Currency;
+  onCurrencyChange?: (next: Currency) => void;
+  currencySwitch?: boolean;
+}) {
   return (
     <FormField
       control={control}
@@ -103,6 +114,9 @@ export function MoneyField<T extends FieldValues, N extends FieldPath<T>>({
               min={0}
               max={max}
               autoFocus={autoFocus}
+              currency={currency}
+              onCurrencyChange={onCurrencyChange}
+              currencySwitch={currencySwitch}
             />
           </FormControl>
           {description ? <FormDescription>{description}</FormDescription> : null}
@@ -263,7 +277,8 @@ export function SegmentedField<T extends FieldValues, N extends FieldPath<T>, V 
   description,
   className,
   options,
-}: BaseFieldProps<T, N> & { options: { value: V; label: string }[] }) {
+  onValueChange,
+}: BaseFieldProps<T, N> & { options: { value: V; label: string }[]; onValueChange?: (value: V) => void }) {
   return (
     <FormField
       control={control}
@@ -273,7 +288,15 @@ export function SegmentedField<T extends FieldValues, N extends FieldPath<T>, V 
           <FormLabel>{label}</FormLabel>
           <FormControl>
             <div>
-              <SegmentedControl value={field.value} onValueChange={field.onChange} options={options} fullWidth />
+              <SegmentedControl
+                value={field.value}
+                onValueChange={(v: V) => {
+                  field.onChange(v);
+                  onValueChange?.(v);
+                }}
+                options={options}
+                fullWidth
+              />
             </div>
           </FormControl>
           {description ? <FormDescription>{description}</FormDescription> : null}

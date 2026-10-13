@@ -8,7 +8,7 @@ import { DEBTS_SEED, totalDebtBalance } from "@/entities/debt";
 import { PERSONAL_LOANS_SEED, type PersonalLoan } from "@/entities/personal-loan";
 import { personalLoanBalances, totalCombinedAssetValue } from "@/entities/portfolio";
 import { PREFERENCES_SEED } from "@/entities/preferences";
-import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
+import { useSettingsAssets } from "@/entities/settings-asset";
 import { useI18n } from "@/shared/i18n";
 import { formatPercent } from "@/shared/lib/format";
 import { useTable } from "@/shared/storage";
@@ -20,7 +20,7 @@ export function WealthHubSummary() {
   const { t } = useI18n();
   const s = t.wealth.summary;
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
-  const [catalog] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
+  const [catalog] = useSettingsAssets();
   const [debts] = useTable("debts", DEBTS_SEED);
   const [loans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
   const [prefs] = useTable("preferences", PREFERENCES_SEED);

@@ -40,6 +40,11 @@ export type ExpenseItem = {
   kind: ExpenseKind;
   /** ₫ per occurrence (per week / month / quarter / half-year / year). Ignored while linked to a debt with a monthly payment. */
   amount: number;
+  /**
+   * Charged in US dollars: USD per occurrence. `amount` then follows today's
+   * rate (see `useExpenses`) and keeps the VND at the last save.
+   */
+  amountUsd?: number;
   frequency: ExpenseFrequency;
   /** Day of month 1–31 (clamped to the month's length). Unset: any time in the month. */
   dueDay?: number;

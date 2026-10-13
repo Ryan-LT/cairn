@@ -5,6 +5,7 @@ import {
   type SettingsAsset,
 } from "@/entities/settings-asset/model";
 import { moveItem } from "@/shared/lib/array";
+import { sanitizeHolding } from "@/shared/lib/currency/holding";
 
 export function createSettingsAssetDraft(now: number = Date.now()): SettingsAsset {
   return {
@@ -18,12 +19,15 @@ export function createSettingsAssetDraft(now: number = Date.now()): SettingsAsse
 
 /** Shape persisted on save: trimmed name, category fallback "Cash", explicit liquidity. */
 export function sanitizeSettingsAsset(draft: SettingsAsset): SettingsAsset {
+  const { holding: rawHolding, ...rest } = draft;
+  const holding = sanitizeHolding(rawHolding);
   return {
-    ...draft,
+    ...rest,
     name: draft.name.trim(),
     category: draft.category.trim() || "Cash",
-    currentValue: Math.max(0, Number.isFinite(draft.currentValue) ? draft.currentValue : 0),
+    currentValue: Math.max(0, Number.isFinite(draft.currentValue) ? Math.round(draft.currentValue) : 0),
     liquidity: resolveSettingsAssetLiquidity(draft.liquidity),
+    ...(holding ? { holding } : {}),
   };
 }
 

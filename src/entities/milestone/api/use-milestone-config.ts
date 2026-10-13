@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MilestoneConfigResponse } from "@/entities/milestone/model";
 import { onAppForeground } from "@/shared/lib/app-foreground";
+import { useCurrency } from "@/shared/lib/currency/provider";
 
 const CACHE_KEY = "wealthtracker:milestone-config:v2";
 /** v1 also held the single owner's birthday deadline; dropped on first read. */
@@ -71,5 +72,8 @@ export function useMilestoneConfig(): {
   }, [nonce]);
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
-  return { config, error, reload };
+  // One USD rate across the app: the live one (or the person's own) from the currency settings.
+  const rate = useCurrency()?.rates.vndPerUsd ?? null;
+  const merged = useMemo(() => (config && rate ? { ...config, vndPerUsd: rate } : config), [config, rate]);
+  return { config: merged, error: merged ? null : error, reload };
 }

@@ -23,7 +23,7 @@ function render(v: unknown): string {
 }
 
 /** Words that are the same in both languages (brand, units, codes). */
-const SAME_OK = /^(Cairn|English|Tiếng Việt|ETF|Crypto|Email|Email \(optional\)|OK|—|%|K|\$|₫|USD|VND|FX|PWA)$/i;
+const SAME_OK = /^(Cairn|English|Tiếng Việt|ETF|Crypto|Email|Email \(optional\)|OK|—|%|K|\$|₫|USD|VND|FX|PWA|PNJ|vang\.today|ExchangeRate-API)$/i;
 
 describe("message dictionaries", () => {
   const enLeaves = new Map(leaves(en));
@@ -51,7 +51,8 @@ describe("message dictionaries", () => {
       .filter(([key, value]) => {
         const a = render(value);
         const b = render(viLeaves.get(key));
-        return a === b && !SAME_OK.test(a) && /[A-Za-z]{3,}/.test(a.replace(/‹\w+›/g, ""));
+        // Currency codes inside a sentence ("1 USD = ‹rate› ₫") read the same in both languages.
+        return a === b && !SAME_OK.test(a) && /[A-Za-z]{3,}/.test(a.replace(/‹\w+›/g, "").replace(/\b(USD|VND)\b/g, ""));
       })
       .map(([key]) => key);
     expect(untranslated).toEqual([]);

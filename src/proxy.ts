@@ -55,7 +55,9 @@ export async function proxy(request: NextRequest) {
   if (
     pathname.startsWith("/api/auth/login") ||
     pathname.startsWith("/api/auth/logout") ||
-    pathname.startsWith("/api/auth/register")
+    pathname.startsWith("/api/auth/register") ||
+    // Public market data (exchange rate, gold prices), cached at the CDN.
+    pathname === "/api/rates"
   ) {
     return NextResponse.next();
   }

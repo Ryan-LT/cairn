@@ -18,3 +18,5 @@ export {
   incomeCapitalPeers,
   sanitizeIncomeSource,
 } from "@/entities/income/lib/sanitize";
+export { resolveIncomeValues } from "@/entities/income/lib/valuation";
+export { useIncomeSources } from "@/entities/income/api/use-income-sources";

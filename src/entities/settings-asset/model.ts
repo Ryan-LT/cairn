@@ -1,4 +1,5 @@
 import { activeMessages } from "@/shared/i18n/active";
+import type { AssetHolding } from "@/shared/lib/currency/holding";
 /** How quickly catalog asset value can be accessed (withdraw / spend). */
 export type SettingsAssetLiquidity = "instant" | "not_instant";
 
@@ -14,6 +15,11 @@ export type SettingsAsset = {
   liquidity?: SettingsAssetLiquidity;
   /** `YYYY-MM-DD` the value was last changed (unset in older saves). */
   updatedAt?: string;
+  /**
+   * Held in US dollars or gold: the value follows today's rate (see
+   * `useSettingsAssets`); `currentValue` keeps the VND value at the last save.
+   */
+  holding?: AssetHolding;
 };
 
 export const SETTINGS_ASSETS_SEED: SettingsAsset[] = [];

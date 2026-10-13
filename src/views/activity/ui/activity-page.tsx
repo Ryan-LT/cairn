@@ -112,6 +112,14 @@ function renderValue(t: Messages, view: ValueView): string {
       return t.expenses.kinds[view.id as "bill" | "budget"].label;
     case "rateKind":
       return t.debts.rateKind[view.id as "Fixed" | "Variable"] ?? view.id;
+    case "goldProduct":
+      return t.currency.gold.products[view.id as keyof Messages["currency"]["gold"]["products"]] ?? view.id;
+    case "weightUnit":
+      return t.currency.gold.units[view.id as keyof Messages["currency"]["gold"]["units"]] ?? view.id;
+    case "holdingKind":
+      return t.currency.holding.kinds[view.id as "vnd" | "usd" | "gold"] ?? view.id;
+    case "goldBasis":
+      return view.id === "sell" ? t.currency.settings.basisSell : t.currency.settings.basisBuy;
     case "text":
       return view.text;
   }

@@ -54,6 +54,7 @@ export function sanitizeExpenseItem(raw: unknown, today: string): ExpenseItem | 
     frequency,
     createdAt: isoDay(raw.createdAt) ?? today,
   };
+  if (typeof raw.amountUsd === "number" && Number.isFinite(raw.amountUsd) && raw.amountUsd > 0) item.amountUsd = Math.round(raw.amountUsd * 100) / 100;
   const dueDay = intIn(raw.dueDay, 1, 31);
   if (dueDay !== undefined && frequency !== "weekly") item.dueDay = dueDay;
   const dueMonth = intIn(raw.dueMonth, 1, 12);
