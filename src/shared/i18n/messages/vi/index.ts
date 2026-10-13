@@ -12,6 +12,7 @@ import { allocations } from "./allocations";
 import { assets } from "./assets";
 import { income } from "./income";
 import { expenses } from "./expenses";
+import { cashflow } from "./cashflow";
 import { debts } from "./debts";
 import { loans } from "./loans";
 import { settings } from "./settings";
@@ -30,6 +31,7 @@ export const vi: Messages = {
   assets,
   income,
   expenses,
+  cashflow,
   debts,
   loans,
   settings,

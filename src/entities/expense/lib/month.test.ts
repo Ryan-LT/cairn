@@ -122,3 +122,17 @@ describe("buildMonthView", () => {
     expect(v.calendar[27].paydayIds).toEqual(["inc1"]);
   });
 });
+
+describe("expenseRecords", () => {
+  it("lists every line per month with planned and actual", async () => {
+    const { expenseRecords } = await import("./csv-records");
+    const rows = expenseRecords({ expenses: fixtureExpenses, log: fixtureExpenseLog, debts: fixtureDebts, monthKeys: ["2026-09"], today: TODAY });
+    expect(rows.map((r) => [r.name, r.planned, r.actual, r.status])).toEqual([
+      ["Electricity", 1_200_000, 1_450_000, "paid"],
+      ["Rent", 8_000_000, 8_000_000, "autopaid"],
+      ["Groceries", 6_000_000, 6_500_000, "over"],
+      ["Car loan", 7_000_000, 7_000_000, "paid"],
+    ]);
+    expect(rows[0].date).toBe("2026-09-14");
+  });
+});

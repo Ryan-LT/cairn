@@ -3,7 +3,7 @@ import { Suspense } from "react";
 
 import { messagesFor } from "@/shared/i18n/active";
 import { isLocale } from "@/shared/i18n/locale";
-import { IncomePage } from "@/views/income";
+import { CashflowMonthPage } from "@/views/cashflow";
 
 export async function generateMetadata({ params }: PageProps<"/[lang]/cashflow">): Promise<Metadata> {
   const { lang } = await params;
@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: PageProps<"/[lang]/cashflow">
 export default function Page() {
   return (
     <Suspense>
-      <IncomePage />
+      <CashflowMonthPage />
     </Suspense>
   );
 }

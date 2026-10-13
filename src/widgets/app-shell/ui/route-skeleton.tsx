@@ -205,8 +205,21 @@ export function RouteSkeleton({ pathname }: { pathname: string }) {
   if (match?.tab) {
     const Body = TAB_SKELETONS[match.tab.id];
     // The section frame and its tabs are real (and usable) while the content loads.
+    // Sections with a summary card above the tabs (keeps the tabs from jumping when data arrives).
+    const summary =
+      match.hub.id === "cashflow" || match.hub.id === "wealth" ? (
+        <Card className="grid grid-cols-3 gap-4 px-5 py-4">
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="grid gap-2">
+              <Skeleton className="h-3.5 w-16" />
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-3 w-14" />
+            </div>
+          ))}
+        </Card>
+      ) : undefined;
     return (
-      <HubFrame hub={match.hub.id} activePath={pathname} skeleton>
+      <HubFrame hub={match.hub.id} activePath={pathname} skeleton summary={summary}>
         {status}
         <div className="flex flex-col gap-5 md:gap-6">
           <Body />

@@ -9,7 +9,7 @@ import { Button } from "@/shared/ui/kit/button";
 import { Label } from "@/shared/ui/kit/label";
 
 /** Explicit save (no write per keystroke). */
-export function SpendingForm({
+export function EstimateForm({
   value,
   onSave,
   label,
@@ -37,7 +37,7 @@ export function SpendingForm({
       }}
     >
       <div className="grid flex-1 gap-1.5">
-        <Label htmlFor="avg-spending">{label ?? t.income.spendingForm.label}</Label>
+        <Label htmlFor="avg-spending">{label ?? t.cashflow.spending.estimate.label}</Label>
         <MoneyInput id="avg-spending" value={draft} onChange={setDraft} min={0} />
       </div>
       <div className="flex gap-2">
