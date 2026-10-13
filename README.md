@@ -2,9 +2,25 @@
 
 # Cairn
 
-*Build wealth, stone by stone.* Cairn (formerly Wealth Tracker) is a private personal finance console with separate accounts: net worth, assets, income and
-spending, debts, informal loans, goal plans with projections, and how your assets
-are committed across plans. Works offline as an installable PWA.
+*Build wealth, stone by stone.* Cairn (formerly Wealth Tracker) is a private personal finance console with separate accounts: net worth, assets, income,
+itemized bills and budgets with a monthly check-off, debts, informal loans, goal plans
+with projections, and how your money is shared across plans. Works offline as an
+installable PWA.
+
+## Sections
+
+| Section | Tabs (routes) |
+| --- | --- |
+| Tổng quan / Home | `/`: net worth, this month, bills to pay, insights, goals, health, setup guide |
+| Dòng tiền / Cash flow | Tháng này `/cashflow` (tick bills as paid, log budget spending) · Chi tiêu `/cashflow/spending` (bills and budgets by category, needs vs wants, plan vs actual, CSV) · Thu nhập `/cashflow/income` |
+| Tài sản ròng / Net worth | Tài sản `/wealth` · Khoản nợ `/wealth/debts` · Cho vay `/wealth/loans` |
+| Mục tiêu / Goals | Kế hoạch `/goals` · Phân bổ `/goals/funding` |
+| Cài đặt / Settings | `/settings`: appearance, privacy, milestone, how totals are counted, backup, restore, CSV |
+
+On phones the bottom bar has the four sections and a centre **＋** for quick adds
+(pay a bill, add a bill, income, asset, debt, loan, plan). Each page opens its form for
+`?new=1`, and edit links use `?edit=<id>`. **Privacy mode** (the eye icon) blurs every amount
+on this device; press and hold an amount to peek.
 
 **Stack:** Next.js 16 (App Router) · React 19 · Tailwind CSS v4 · shadcn/Radix ·
 TanStack Table · Recharts · react-hook-form + zod · Serwist · Neon Postgres.
@@ -110,10 +126,14 @@ Keep `pnpm-lock.yaml` and `package-lock.json` in sync: `pnpm add …` then
 ```
 src/
   app/        routes, layouts, PWA (manifest, service worker), API routes
-  views/      one folder per page (dashboard, goals, allocations, assets, income, debts, loans, settings)
-  widgets/    app-shell: sidebar, top bar, mobile tab bar, command palette, hydration gate
-  features/   allocate-sources dialog, sign-out, sync-now
-  entities/   domain models + pure, tested logic (goal, portfolio, milestone, asset, debt, …)
+  views/      one folder per page (home, cashflow, income, wealth, assets, debts, loans,
+              goals, allocations, settings)
+  widgets/    app-shell (sidebar, top bar, mobile tab bar, quick-add sheet, section
+              frame with tabs, command palette), bill-list, insights-feed, setup-guide
+  features/   expense-form, record-spending, export-spending-csv, privacy-mode,
+              allocate-sources, switch-language, sign-out, sync-now
+  entities/   domain models + pure, tested logic (expense, goal, portfolio, milestone,
+              asset, debt, …)
   shared/     api, config (nav), lib (format, dates), storage (client store), ui (design system)
 ```
 
@@ -121,11 +141,41 @@ src/
 
 All data lives in one Neon table (`wealthtracker_kv`) as JSON documents per user and key
 (`assets`, `settingsAssets`, `incomeSources`, `debts`, `goals`, `preferences`,
-`personalLoans`), read and written through `GET/PUT /api/tables`, which only ever see
-the signed-in user's rows. The client store (`src/shared/storage/store.ts`) caches
+`personalLoans`, `expenses`, `expenseLog`), read and written through `GET/PUT /api/tables`,
+which only ever see the signed-in user's rows. A new key is just a new row, so no
+migration is needed for it. The client store (`src/shared/storage/store.ts`) caches
 everything in `localStorage` (one cache per account), saves edits after a short
 debounce and retries with backoff when offline. Signing out removes the account's
 cached data from the device once it has synced.
+
+**Money out** (`src/entities/expense`): `expenses` holds the bill and budget lines
+(category, amount, frequency, due day, autopay, optional link to a debt) and
+`expenseLog` the month-by-month check-offs (kept 36 months). They're separate tables
+so ticking a bill on one device can't overwrite a bill just added on another.
+`resolveMonthlySpending` turns them into the one spending number every projection
+uses: itemized lines plus whatever the old single estimate still covers until it is
+broken down or retired. A bill linked to a debt takes its amount from the debt's
+monthly payment; the principal part isn't counted as lost net worth.
+
+**Change log** (`wealthtracker_audit_log`): every save through `PUT /api/tables` is
+compared with what was stored, and each record added, edited or removed gets a row
+(entity type and id, readable name, changed fields, the whole record before and after,
+a batch id per sync), written in the same statement as the save. The table is created on
+first use (`src/shared/api/lazy-schema.ts`; the DDL is also in
+[`db/migrations/2026-10-activity-feedback.sql`](db/migrations/2026-10-activity-feedback.sql)).
+Browse it in Settings → Change log (`GET /api/activity`), or query it directly, e.g. a
+debt's history: `SELECT occurred_at, action, changes FROM wealthtracker_audit_log WHERE
+user_id = '…' AND entity_type = 'debt' AND entity_id = 'd1' ORDER BY id`. View state (which
+plan is open, table sort) and net worth the app recomputes itself aren't logged.
+
+**Feedback** (`wealthtracker_feedback`): the floating "Góp ý" button stores the kind, an
+optional 1–5 rating, the message, and the page, language, window size and browser it came
+from (`status` starts as `new`; there's no reading screen yet). The "Hỏi AI" button opens
+an assistant bubble that says it's still in development; nothing is sent anywhere.
+
+**Backups:** Settings → Data exports every table as JSON and restores it (tables
+missing from an older backup are left as they are). `assets` is the old holdings
+store; the Net worth page offers a one-time move into editable assets.
 
 ### Design system
 
@@ -133,8 +183,15 @@ cached data from the device once it has synced.
   neutrals (a dimmed, low-glare dark mode), one soft indigo accent with a `primary-soft`
   tint for selected states, `success / warning / danger / info` for signed values and
   status (all AA in both modes), and a chart palette validated against the card surface.
+- Each bill category has a `--cat-<id>` colour (and `-soft` tile tint) in both modes;
+  colour is decoration only, the icon and label carry the meaning. Amber (`--capstone`)
+  is for goals, milestones and the setup guide, never for status.
 - Components in `src/shared/ui` (`PageHeader`, `Section`, `StatCard`, `Money`,
-  `StatusBadge`, `DataTable`, form fields…), primitives in `src/shared/ui/kit`.
+  `StatusBadge`, `ListGroup`/`ListRow`, `IconTile`, `ProgressRing`, `StackedBar`,
+  `AmountSheet`, `MonthSwitcher`, `TabLinks`, `DataTable`, form fields…), primitives in
+  `src/shared/ui/kit`.
+- Anything showing an amount gets `data-private` so privacy mode can blur it (`Money`
+  does this already).
 - Money is always written `1.245.670.000 ₫` (compact `4,82B ₫` on KPI tiles, full value
   on hover/tap); dates as `12 Mar 2026`.
 - ESLint rejects arbitrary font sizes and raw palette colours.

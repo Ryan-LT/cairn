@@ -71,7 +71,7 @@ describe("analyzeMilestone", () => {
       now,
     });
     expect(a).toEqual({ kind: "incomplete", targetUsd: 1_000, targetAge: 35, missing: "FX_RATE" });
-    expect(milestoneHint(a, fmt)).toContain("EXCHANGERATE_API_KEY");
+    expect(milestoneHint(a, fmt)).toContain("exchange rate");
   });
 
   it("achieved", () => {
@@ -109,7 +109,7 @@ describe("analyzeMilestone", () => {
 
   it("projection tones", () => {
     const onTrack = analyzeMilestone({ config, settings, currentNetWorth: 1_000, monthlyNetContribution: 1_000, now });
-    expect(onTrack).toMatchObject({ kind: "projection", tone: "on_track", verdict: "on_track", feasible: true, pct: 10 });
+    expect(onTrack).toMatchObject({ kind: "projection", tone: "success", verdict: "on_track", feasible: true, pct: 10 });
     expect(milestoneHint(onTrack, fmt)).toMatch(/^Projected \d+(\.\d+)?₫ at age 35 — \+\d/);
     expect(milestoneChipDetail(onTrack, 1_000, fmt)).toMatch(/^\+\d+,\d% · \+/);
 
@@ -120,10 +120,10 @@ describe("analyzeMilestone", () => {
       monthlyNetContribution: 100,
       now,
     });
-    expect(tight).toMatchObject({ kind: "projection", tone: "steady", verdict: "tight" });
+    expect(tight).toMatchObject({ kind: "projection", tone: "warning", verdict: "tight" });
 
     const behind = analyzeMilestone({ config, settings, currentNetWorth: 0, monthlyNetContribution: 10, now });
-    expect(behind).toMatchObject({ kind: "projection", tone: "at_risk", verdict: "below", feasible: false });
+    expect(behind).toMatchObject({ kind: "projection", tone: "danger", verdict: "below", feasible: false });
     expect(milestoneHint(behind, fmt)).toMatch(/^Trajectory lands near .* below target\.$/);
     expect(milestoneChipDetail(behind, 0, fmt)).toBeUndefined();
   });

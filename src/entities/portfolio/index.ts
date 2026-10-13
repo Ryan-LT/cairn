@@ -15,6 +15,7 @@ export { computeNetWorth, personalLoanBalances, totalCombinedAssetValue } from "
 export {
   computeDashboardSummary,
   summarizeCashflow,
+  type CashflowInput,
   type CashflowSummary,
   type DashboardSummary,
 } from "@/entities/portfolio/lib/summary";
@@ -25,3 +26,6 @@ export {
   instantAccessAssets,
   type FinancialHealth,
 } from "@/entities/portfolio/lib/health";
+export { legacyHoldingsCount, migrateLegacyHoldings, type LegacyMigration } from "@/entities/portfolio/lib/legacy-migration";
+export { buildInsights, INSIGHT_RULES, type Insight, type InsightCode, type InsightSeverity } from "@/entities/portfolio/lib/insights";
+export { computeSetupProgress, SETUP_STEPS, type SetupProgress, type SetupStepId } from "@/entities/portfolio/lib/setup-progress";

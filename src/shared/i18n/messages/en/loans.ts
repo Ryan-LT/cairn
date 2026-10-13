@@ -1,8 +1,6 @@
 /** Messages for the loans area. */
 export const loans = {
   title: "Personal loans",
-  descriptionCounted: "Informal money lent or borrowed. Open entries count in your net worth.",
-  descriptionPrivate: "Informal money lent or borrowed. A private log — not counted in net worth.",
   add: "Add loan",
   owedToYou: "Owed to you",
   youOwe: "You owe",
@@ -62,7 +60,7 @@ export const loans = {
   form: {
     addTitle: "Add personal loan",
     editTitle: "Edit personal loan",
-    description: "A private log only — never counted in net worth.",
+    description: "Money lent to or borrowed from people you know.",
     personRequired: "Who is this with?",
     direction: "Direction",
     directionLent: "Owed to you — you lent the money",

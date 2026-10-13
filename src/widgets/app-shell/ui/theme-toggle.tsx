@@ -20,13 +20,13 @@ export const THEME_OPTIONS = [
   { value: "system", labelKey: "themeSystem", icon: Monitor },
 ] as const;
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
   const { t } = useI18n();
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={t.shell.changeTheme}>
+        <Button variant="ghost" size="icon" aria-label={t.shell.changeTheme} className={className}>
           <Sun className="dark:hidden" />
           <Moon className="hidden dark:block" />
         </Button>

@@ -1,6 +1,9 @@
 /** Messages for the settings area. */
 export const settings = {
-  description: "Your milestone goal, appearance, data sync, password and session.",
+  calculation: {
+    title: "How numbers are counted",
+    description: "Choices that change net worth and projections.",
+  },
   milestone: {
     title: "Milestone goal",
     description:
@@ -15,6 +18,8 @@ export const settings = {
   appearance: {
     title: "Appearance",
     description: (p: { brand: string }) => `Choose how ${p.brand} looks on this device.`,
+    privacy: "Hide amounts",
+    privacyHint: "Blur every amount on this device — handy in public or when sharing your screen.",
     languageHint: "Choose the app's language. It follows your account to other devices.",
   },
   data: {
@@ -26,9 +31,46 @@ export const settings = {
     lastSynced: "Last synced",
     notYet: "Not yet",
     backup: "Backup",
-    backupHint: "Downloads every table as JSON (same shape as the API).",
+    backupHint: "Download all your data as one JSON file to keep somewhere safe.",
+    restore: "Restore",
+    restoreHint: "Load your data back from a backup file.",
+    restoreJson: "Choose backup file",
+    activity: "Change log",
+    activityHint: "Every add, edit and removal, with the values before and after.",
+    openActivity: "Open change log",
+    csv: "Spending (CSV)",
+    csvHint: "Every bill and budget month by month, for Excel.",
+    exportCsv: "Export CSV",
     exportJson: "Export JSON",
     backupDownloaded: "Backup downloaded",
+  },
+  restore: {
+    title: "Restore from a backup",
+    description: "What's in the file replaces your current data on every device.",
+    exportedAt: (p: { date: string }) => `Backup from ${p.date}`,
+    contains: "This file has",
+    records: (p: { count: number }) => `${p.count} ${p.count === 1 ? "record" : "records"}`,
+    keeps: (p: { names: string }) => `Kept as they are (not in the file): ${p.names}`,
+    confirm: "Restore",
+    done: "Data restored",
+    doneLocal: "Restored on this device; it will sync when you're back online",
+    errors: {
+      invalid_json: "This file can't be read (it isn't JSON).",
+      not_backup: "This isn't a Cairn backup file.",
+      too_large: "This file is too large.",
+      invalid_table: (p: { table: string }) => `The "${p.table}" part of the file is damaged.`,
+    },
+    tables: {
+      assets: "Imported holdings",
+      settingsAssets: "Assets",
+      debts: "Debts",
+      incomeSources: "Income",
+      goals: "Goal plans",
+      preferences: "Settings",
+      personalLoans: "Personal loans",
+      expenses: "Bills & budgets",
+      expenseLog: "Monthly spending record",
+    },
   },
   password: {
     title: "Password",
@@ -48,12 +90,7 @@ export const settings = {
     login: "Login",
     enabled: "Enabled",
     disabled: "Disabled",
-    disabledHint: "Set DATABASE_URL and AUTH_SECRET on the server and add accounts with db/create-user.sql.",
+    disabledHint: "Running in local mode: your data stays on this device.",
     signOut: "Sign out",
-  },
-  moved: {
-    title: "Looking for asset, income or debt settings?",
-    lead: "They now have their own pages:",
-    and: "and",
   },
 };

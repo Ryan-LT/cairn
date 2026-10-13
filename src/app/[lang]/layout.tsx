@@ -8,6 +8,7 @@ import { ServiceWorkerRegistrar } from "@/app/_providers/sw-register";
 import { ThemeProvider } from "@/app/_providers/theme-provider";
 import { BRAND } from "@/shared/config";
 import { I18nProvider, isLocale, LOCALES, messagesFor } from "@/shared/i18n";
+import { PRIVACY_BOOT_SCRIPT } from "@/shared/lib/privacy-boot";
 import { Toaster } from "@/shared/ui/kit/sonner";
 import { TooltipProvider } from "@/shared/ui/kit/tooltip";
 
@@ -56,6 +57,10 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[la
   if (!isLocale(lang)) notFound();
   return (
     <html lang={lang} className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* Privacy mode is per device: blur amounts before the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: PRIVACY_BOOT_SCRIPT }} />
+      </head>
       <body>
         <I18nProvider locale={lang}>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>

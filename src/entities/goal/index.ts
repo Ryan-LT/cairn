@@ -33,12 +33,6 @@ export {
   type SourceGoalUsage,
 } from "@/entities/goal/lib/seed-lines";
 export {
-  computeGoalFeasibility,
-  type GoalFeasibility,
-  type GoalFeasibilityInput,
-  type GoalFeasibilityTone,
-} from "@/entities/goal/lib/feasibility";
-export {
   checkpointsWithRunningTotal,
   createCheckpointId,
   cumulativeDueScheduleFromCheckpoints,
@@ -86,7 +80,10 @@ export {
   type ProjectionChartRow,
 } from "@/entities/goal/lib/projection-chart";
 export {
+  buildGoalPlanStatuses,
   buildGoalPlanSummaries,
   goalProgressPercent,
   type GoalPlanSummary,
+  type GoalPlanWithStatus,
 } from "@/entities/goal/lib/plan-summaries";
+export { CLOSE_RATIO, GOAL_STATUS_CODES, resolveGoalStatus, type GoalStatus, type GoalStatusCode } from "@/entities/goal/lib/status";

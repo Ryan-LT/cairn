@@ -11,11 +11,11 @@ export {
   estimatedMonthlyNetCashflow,
   netWorthTrackingUnchanged,
   fractionalMonthsUntilYearEnd,
+  legacySpendingEstimate,
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,
   registerExtraAssetCategory,
-  resolveAverageMonthlySpending,
   syncNetWorthTracking,
 } from "@/entities/preferences/lib/finance";
 export type { NetWorthTrendPoint } from "@/entities/preferences/lib/finance";

@@ -7,13 +7,14 @@ export const shell = {
   breadcrumb: "Breadcrumb",
   searchOrJump: "Search or jump to…",
   changeTheme: "Change theme",
-  more: {
-    tab: "More",
-    title: "More",
-    description: "Every other page, plus shortcuts.",
-    quickAdd: "Quick add",
+  quickAddSheet: {
+    open: "Add",
+    title: "Quick add",
+    description: "Record a payment or add something new.",
     search: "Search pages and records…",
   },
+  account: "Account",
+  sectionTabs: "Section pages",
   user: {
     signedIn: "Signed in",
     localMode: "Local mode (no login)",
@@ -60,6 +61,7 @@ export const shell = {
       themeLight: "theme light",
       themeDark: "theme dark",
       themeSystem: "theme system",
+      privacy: "privacy hide show amounts blur",
       sync: "sync now refresh",
       signOut: "sign out log out",
     },

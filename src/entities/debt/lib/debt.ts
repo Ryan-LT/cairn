@@ -34,18 +34,6 @@ export function sanitizeDebt(draft: Debt): Debt {
   };
 }
 
-/** Payment column: "Day N each month" (+ note), the note alone, or a dash. */
-export function describeDebtPayment(debt: Debt): { primary: string; secondary?: string } {
-  const note = debt.nextPayment.trim();
-  if (isValidDayOfMonth(debt.paymentDayOfMonth)) {
-    return {
-      primary: `Day ${debt.paymentDayOfMonth} each month`,
-      secondary: note || undefined,
-    };
-  }
-  return { primary: note || "—" };
-}
-
 /** Balance-weighted average interest rate (percent). */
 export function weightedAverageRate(debts: Debt[]): number {
   const total = debts.reduce((s, d) => s + Math.max(0, d.balance), 0);

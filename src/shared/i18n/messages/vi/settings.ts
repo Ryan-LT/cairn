@@ -1,7 +1,10 @@
 import type { Messages } from "../en";
 
 export const settings: Messages["settings"] = {
-  description: "Mục tiêu cột mốc, giao diện, đồng bộ dữ liệu, mật khẩu và phiên đăng nhập.",
+  calculation: {
+    title: "Cách tính",
+    description: "Những lựa chọn ảnh hưởng tới tài sản ròng và dự phóng.",
+  },
   milestone: {
     title: "Mục tiêu cột mốc",
     description:
@@ -16,6 +19,8 @@ export const settings: Messages["settings"] = {
   appearance: {
     title: "Giao diện",
     description: (p) => `Chọn giao diện ${p.brand} trên thiết bị này.`,
+    privacy: "Ẩn số tiền",
+    privacyHint: "Làm mờ mọi số tiền trên thiết bị này — tiện khi ở nơi đông người hoặc chia sẻ màn hình.",
     languageHint: "Chọn ngôn ngữ của ứng dụng. Lựa chọn này đi theo tài khoản của bạn sang các thiết bị khác.",
   },
   data: {
@@ -27,9 +32,46 @@ export const settings: Messages["settings"] = {
     lastSynced: "Đồng bộ lần cuối",
     notYet: "Chưa có",
     backup: "Sao lưu",
-    backupHint: "Tải xuống mọi bảng dưới dạng JSON (cùng cấu trúc với API).",
+    backupHint: "Tải toàn bộ dữ liệu của bạn về một tệp JSON để cất giữ.",
+    restore: "Khôi phục",
+    restoreHint: "Nạp lại dữ liệu từ một tệp sao lưu.",
+    restoreJson: "Chọn tệp sao lưu",
+    activity: "Nhật ký thay đổi",
+    activityHint: "Mọi lần thêm, sửa, xóa, kèm giá trị trước và sau.",
+    openActivity: "Mở nhật ký",
+    csv: "Chi tiêu (CSV)",
+    csvHint: "Mọi hóa đơn và ngân sách theo từng tháng, mở bằng Excel.",
+    exportCsv: "Xuất CSV",
     exportJson: "Xuất JSON",
     backupDownloaded: "Đã tải bản sao lưu",
+  },
+  restore: {
+    title: "Khôi phục từ bản sao lưu",
+    description: "Dữ liệu trong tệp sẽ thay thế dữ liệu hiện tại trên mọi thiết bị.",
+    exportedAt: (p) => `Sao lưu lúc ${p.date}`,
+    contains: "Tệp này có",
+    records: (p) => `${p.count} mục`,
+    keeps: (p) => `Giữ nguyên (không có trong tệp): ${p.names}`,
+    confirm: "Khôi phục",
+    done: "Đã khôi phục dữ liệu",
+    doneLocal: "Đã khôi phục trên thiết bị này; sẽ đồng bộ khi có mạng",
+    errors: {
+      invalid_json: "Không đọc được tệp này (không phải JSON).",
+      not_backup: "Đây không phải tệp sao lưu của Cairn.",
+      too_large: "Tệp quá lớn.",
+      invalid_table: (p) => `Phần “${p.table}” trong tệp bị hỏng.`,
+    },
+    tables: {
+      assets: "Tài sản nhập từ bản cũ",
+      settingsAssets: "Tài sản",
+      debts: "Khoản nợ",
+      incomeSources: "Thu nhập",
+      goals: "Kế hoạch mục tiêu",
+      preferences: "Cài đặt",
+      personalLoans: "Khoản vay cá nhân",
+      expenses: "Hóa đơn & ngân sách",
+      expenseLog: "Lịch sử chi tiêu theo tháng",
+    },
   },
   password: {
     title: "Mật khẩu",
@@ -49,12 +91,7 @@ export const settings: Messages["settings"] = {
     login: "Đăng nhập",
     enabled: "Đã bật",
     disabled: "Đã tắt",
-    disabledHint: "Đặt DATABASE_URL và AUTH_SECRET trên máy chủ, rồi thêm tài khoản bằng db/create-user.sql.",
+    disabledHint: "Đang chạy ở chế độ cục bộ: dữ liệu chỉ lưu trên thiết bị này.",
     signOut: "Đăng xuất",
-  },
-  moved: {
-    title: "Bạn đang tìm cài đặt tài sản, thu nhập hoặc khoản nợ?",
-    lead: "Giờ đây chúng đã có trang riêng:",
-    and: "và",
   },
 };

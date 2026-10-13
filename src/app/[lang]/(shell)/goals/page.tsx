@@ -8,7 +8,7 @@ import { GoalsPage } from "@/views/goals";
 export async function generateMetadata({ params }: PageProps<"/[lang]/goals">): Promise<Metadata> {
   const { lang } = await params;
   const t = messagesFor(isLocale(lang) ? lang : "en");
-  return { title: t.nav.items.goals.label };
+  return { title: `${t.nav.tabs.goalsPlans.label} · ${t.nav.hubs.goals.label}` };
 }
 
 export default function Page() {

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ASSETS_SEED } from "@/entities/asset";
 import { debtPayoff, monthlyInterest, totalMonthlyInterest, type Debt } from "@/entities/debt";
-import { computeGoalFeasibility } from "@/entities/goal";
+import { resolveGoalStatus } from "@/entities/goal";
 import { capitalYieldPct, effectiveIncomeCapital, type IncomeSource } from "@/entities/income";
 import { analyzeMilestone, resolveMilestoneSettings } from "@/entities/milestone";
 import {
@@ -51,24 +51,17 @@ describe("debts", () => {
   });
 });
 
-describe("goal feasibility uses the plan's share and growth", () => {
+describe("goal status uses the plan's share and growth", () => {
   const now = new Date("2026-01-01T12:00:00+07:00");
   it("two plans each needing 10/month with 12/month net are not both on track", () => {
-    const each = computeGoalFeasibility({ saved: 0, targetAmount: 120, targetDateIso: "2027-01-01", estimatedMonthlyNet: 12 * 0.5, now });
-    expect(each.tone).not.toBe("on_track");
-    expect(each.tone).not.toBe("steady");
+    const each = resolveGoalStatus({ startingBalance: 0, targetAmount: 120, targetDateIso: "2027-01-01", householdMonthlyNet: 12, monthlyShare: 0.5, now });
+    expect(each.code).toBe("behind");
+    expect(each.tone).toBe("danger");
   });
 
   it("growth alone can carry a plan", () => {
-    const f = computeGoalFeasibility({
-      saved: 1_000,
-      targetAmount: 1_040,
-      targetDateIso: "2027-01-01",
-      estimatedMonthlyNet: 0,
-      expectedReturnPct: 5,
-      now,
-    });
-    expect(f.tone).toBe("on_track");
+    const s = resolveGoalStatus({ startingBalance: 1_000, targetAmount: 1_040, targetDateIso: "2027-01-01", householdMonthlyNet: 0, monthlyShare: 0, expectedReturnPct: 5, now });
+    expect(s.code).toBe("on_track");
   });
 });
 
@@ -135,6 +128,20 @@ describe("financial health", () => {
     expect(h.passiveCoverage).toBeCloseTo(0.25, 10);
     // Linear at 0 % return: (6B − 270M) / 15M per month.
     expect(h.yearsToFi).toBeCloseTo((6_000_000_000 - 270_000_000) / 15_000_000 / 12, 6);
+  });
+
+  it("leaves debt repayments out of the FI number but not the emergency runway", () => {
+    const expenses = {
+      items: [
+        { id: "l", name: "Loan", category: "debt" as const, kind: "bill" as const, amount: 4_000_000, frequency: "monthly" as const, debtId: debts[0].id, createdAt: "2026-01-01" },
+      ],
+    };
+    const s2 = computeDashboardSummary({ assets: ASSETS_SEED, debts, settingsAssets: catalog, incomeSources: income, prefs, expenses });
+    const h2 = computeFinancialHealth({ summary: s2, assets: ASSETS_SEED, settingsAssets: catalog, debts, annualRealRate: 0 });
+    expect(s2.averageSpending).toBe(24_000_000);
+    expect(h2.emergencyMonths).toBe(2.5);
+    expect(h2.fiNumber).toBe(20_000_000 * 12 * 25);
+    expect(h2.passiveCoverage).toBeCloseTo(0.25, 10);
   });
 
   it("nulls without spending", () => {

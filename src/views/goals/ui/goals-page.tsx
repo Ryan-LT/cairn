@@ -5,8 +5,7 @@ import { Plus } from "lucide-react";
 import { useI18n } from "@/shared/i18n";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { Button } from "@/shared/ui/kit/button";
-import { PageHeader } from "@/shared/ui/page-header";
-import { PageContainer } from "@/widgets/app-shell";
+import { TabContent, TabToolbar } from "@/widgets/app-shell";
 
 import { useGoalPlanEditor } from "../model/use-goal-plan-editor";
 import { PlanList, PlanSwitcher } from "./plan-list";
@@ -29,15 +28,13 @@ export function GoalsPage() {
   };
 
   return (
-    <PageContainer>
-      <PageHeader
-        title={t.goals.page.title}
-        description={t.goals.page.description}
+    <TabContent>
+      <TabToolbar
         actions={
-          <Button onClick={startNewPlan} disabled={isComposingNew}>
-            <Plus />
-            {t.goals.page.newPlan}
-          </Button>
+        <Button onClick={startNewPlan} disabled={isComposingNew}>
+          <Plus />
+          {t.goals.page.newPlan}
+        </Button>
         }
       />
       <div className="xl:hidden">
@@ -49,6 +46,6 @@ export function GoalsPage() {
         </aside>
         <PlanWorkspace key={goals.activeProfileId || savedProfile.id || "new"} editor={editor} />
       </div>
-    </PageContainer>
+    </TabContent>
   );
 }

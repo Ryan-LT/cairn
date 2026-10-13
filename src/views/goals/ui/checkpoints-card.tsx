@@ -10,8 +10,7 @@ import {
   type GoalCheckpoint,
 } from "@/entities/goal";
 import { useI18n } from "@/shared/i18n";
-import { formatDate, formatMoney } from "@/shared/lib/format";
-import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
+import { formatDate } from "@/shared/lib/format";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { MoneyInput } from "@/shared/ui/form";
 import { Button } from "@/shared/ui/kit/button";
@@ -32,9 +31,7 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
   const { t } = useI18n();
   const c = t.goals.checkpoints;
   const [editorOpen, setEditorOpen] = useState(false);
-  const [confirm, setConfirm] = useState<{ id: string; nextPaid: boolean } | null>(null);
   const rows = checkpointsWithRunningTotal(checkpoints);
-  const confirmRow = confirm ? rows.find((r) => r.id === confirm.id) : undefined;
 
   return (
     <Section
@@ -85,7 +82,7 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
                     variant="ghost"
                     size="sm"
                     className={r.paid ? "text-success hover:text-success" : "text-muted-foreground"}
-                    onClick={() => setConfirm({ id: r.id, nextPaid: !r.paid })}
+                    onClick={() => void onTogglePaid(r.id, !r.paid)}
                   >
                     {r.paid ? <CircleCheck /> : <CircleDashed />}
                     {r.paid ? c.paid : c.unpaid}
@@ -99,28 +96,6 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
 
       <CheckpointsDialog open={editorOpen} onOpenChange={setEditorOpen} checkpoints={checkpoints} onApply={onApply} />
 
-      <ConfirmDialog
-        open={confirm !== null}
-        onOpenChange={(o) => !o && setConfirm(null)}
-        destructive={false}
-        confirmLabel={confirm?.nextPaid ? c.markPaid : c.markUnpaid}
-        title={confirm?.nextPaid ? c.confirmPaidTitle : c.confirmUnpaidTitle}
-        description={
-          <>
-            {confirm?.nextPaid
-              ? c.confirmPaidDescription
-              : c.confirmUnpaidDescription}
-            {confirmRow ? (
-              <span className="mt-2 block font-medium text-foreground">
-                {formatDate(confirmRow.date)} — {formatMoney(confirmRow.amount)}
-              </span>
-            ) : null}
-          </>
-        }
-        onConfirm={async () => {
-          if (confirm) await onTogglePaid(confirm.id, confirm.nextPaid);
-        }}
-      />
     </Section>
   );
 }

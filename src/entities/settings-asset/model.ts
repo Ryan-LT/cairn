@@ -12,6 +12,8 @@ export type SettingsAsset = {
    * {@link resolveSettingsAssetLiquidity} default.
    */
   liquidity?: SettingsAssetLiquidity;
+  /** `YYYY-MM-DD` the value was last changed (unset in older saves). */
+  updatedAt?: string;
 };
 
 export const SETTINGS_ASSETS_SEED: SettingsAsset[] = [];

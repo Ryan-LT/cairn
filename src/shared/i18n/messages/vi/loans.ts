@@ -2,8 +2,6 @@ import type { Messages } from "../en";
 
 export const loans: Messages["loans"] = {
   title: "Khoản vay cá nhân",
-  descriptionCounted: "Tiền cho vay hoặc đi vay không chính thức. Các khoản chưa tất toán được tính vào tài sản ròng.",
-  descriptionPrivate: "Tiền cho vay hoặc đi vay không chính thức. Sổ ghi chép riêng — không tính vào tài sản ròng.",
   add: "Thêm khoản vay",
   owedToYou: "Người khác nợ bạn",
   youOwe: "Bạn nợ",
@@ -62,7 +60,7 @@ export const loans: Messages["loans"] = {
   form: {
     addTitle: "Thêm khoản vay cá nhân",
     editTitle: "Sửa khoản vay cá nhân",
-    description: "Chỉ là sổ ghi chép riêng — không bao giờ tính vào tài sản ròng.",
+    description: "Tiền bạn cho người quen vay hoặc vay của họ.",
     personRequired: "Khoản này với ai?",
     direction: "Chiều vay",
     directionLent: "Người khác nợ bạn — bạn cho vay",

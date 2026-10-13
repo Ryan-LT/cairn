@@ -1,26 +1,31 @@
-/** Navigation: groups, pages (label, short tab label, one-line description) and quick-add actions. */
+/** Navigation: the four sections (+ settings), their tabs, and quick-add actions. */
 export const nav = {
-  groups: {
-    overview: "Overview",
-    planning: "Planning",
-    records: "Records",
-    system: "System",
+  hubs: {
+    home: { label: "Overview", short: "Home", description: "Where your money stands today" },
+    cashflow: { label: "Cash flow", short: "Cash flow", description: "Money in, money out and this month's bills" },
+    wealth: { label: "Net worth", short: "Net worth", description: "Assets, debts and money lent or borrowed" },
+    goals: { label: "Goals", short: "Goals", description: "Savings plans and the money set aside for each" },
+    settings: { label: "Settings", short: "Settings", description: "Account, appearance and your data" },
   },
-  items: {
-    dashboard: { label: "Dashboard", short: "Home", description: "Net worth, cash flow and goal health at a glance" },
-    goals: { label: "Goals", short: "Goals", description: "Goal plans, projections and checkpoints" },
-    allocations: { label: "Liquidity", short: "Liquidity", description: "How assets are committed across plans" },
-    assets: { label: "Assets", short: "Assets", description: "Everything you own and how fast you can access it" },
-    income: { label: "Income & spending", short: "Income", description: "Income sources and average monthly spending" },
-    debts: { label: "Debts", short: "Debts", description: "Loans, cards and other liabilities" },
-    loans: { label: "Personal loans", short: "Loans", description: "Informal money lent or borrowed" },
-    settings: { label: "Settings", short: "Settings", description: "Appearance, sync and session" },
+  tabs: {
+    cashflowMonth: { label: "This month", description: "Bills to pay, budgets and what's left this month" },
+    cashflowSpending: { label: "Spending", description: "Every bill and budget, by category" },
+    cashflowIncome: { label: "Income", description: "Salary, side income and passive income" },
+    wealthAssets: { label: "Assets", description: "Everything you own and how fast you can use it" },
+    wealthDebts: { label: "Debts", description: "Loans and cards, payoff dates and interest" },
+    wealthLoans: { label: "Personal loans", description: "Money lent to or borrowed from people you know" },
+    goalsPlans: { label: "Plans", description: "Each goal, its progress and whether it's on track" },
+    settingsGeneral: { label: "General", description: "Account, appearance and your data" },
+    settingsActivity: { label: "Change log", description: "Every add, edit and removal, so you can trace back a decision" },
+    goalsFunding: { label: "Funding", description: "Which money is set aside for which plan" },
   },
   quickAdd: {
+    record: { label: "Record a payment", short: "Pay", keywords: "pay bill paid spent spending log record" },
+    bill: { label: "Add a bill or budget", short: "Bill", keywords: "create new bill budget expense spending money out" },
+    income: { label: "Add income", short: "Income", keywords: "create new income salary money in" },
     asset: { label: "Add asset", short: "Asset", keywords: "create new asset" },
-    income: { label: "Add income source", short: "Income", keywords: "create new income salary" },
-    debt: { label: "Add debt", short: "Debt", keywords: "create new debt loan liability" },
-    loan: { label: "Add personal loan", short: "Loan", keywords: "create new lend borrow" },
-    plan: { label: "New goal plan", short: "Plan", keywords: "create new goal plan" },
+    debt: { label: "Add debt", short: "Debt", keywords: "create new debt loan liability card" },
+    loan: { label: "Log a personal loan", short: "Loan", keywords: "create new lend borrow" },
+    plan: { label: "New goal plan", short: "Goal", keywords: "create new goal plan saving" },
   },
 };

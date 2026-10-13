@@ -11,7 +11,7 @@ export const FI_MULTIPLE = 25;
 export type FinancialHealth = {
   /** Cash accounts + instant-access catalog assets (live values). */
   instantAssets: number;
-  /** Months the instant-access money covers average spending; `null` without spending. */
+  /** Months the instant-access money covers total spending (debt repayments included); `null` without spending. */
   emergencyMonths: number | null;
   /** Share (0–1) of gross assets that is instant access; `null` without assets. */
   liquidShare: number | null;
@@ -19,9 +19,9 @@ export type FinancialHealth = {
   debtToAssets: number | null;
   /** Interest accruing per month across debts. */
   monthlyInterest: number;
-  /** Passive income ÷ average spending; `null` without spending. */
+  /** Passive income ÷ living costs (spending without debt repayments); `null` without spending. */
   passiveCoverage: number | null;
-  /** Financial-independence number: yearly spending × 25; `null` without spending. */
+  /** Financial-independence number: yearly living costs × 25 (debts end, living costs don't); `null` without spending. */
   fiNumber: number | null;
   /** Net worth ÷ FI number (0–1+); `null` without spending. */
   fiProgress: number | null;
@@ -48,9 +48,10 @@ export function computeFinancialHealth(t: {
 }): FinancialHealth {
   const { summary } = t;
   const spending = summary.averageSpending;
+  const living = summary.spending.living;
   const instantAssets = instantAccessAssets(t.assets, t.settingsAssets);
   const gross = summary.grossAssets;
-  const fiNumber = spending > 0 ? spending * 12 * FI_MULTIPLE : null;
+  const fiNumber = living > 0 ? living * 12 * FI_MULTIPLE : null;
 
   let yearsToFi: number | null = null;
   if (fiNumber !== null) {
@@ -64,7 +65,7 @@ export function computeFinancialHealth(t: {
     liquidShare: gross > 0 ? instantAssets / gross : null,
     debtToAssets: gross > 0 ? summary.liabilities / gross : null,
     monthlyInterest: totalMonthlyInterest(t.debts),
-    passiveCoverage: spending > 0 ? summary.passiveIncome / spending : null,
+    passiveCoverage: living > 0 ? summary.passiveIncome / living : null,
     fiNumber,
     fiProgress: fiNumber !== null ? Math.max(0, summary.netWorth) / fiNumber : null,
     yearsToFi,

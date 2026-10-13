@@ -1,0 +1,28 @@
+/** Overview nudges: one sentence per insight code (amounts come formatted). */
+export const insights = {
+  title: "Worth a look",
+  viewAll: (p: { count: number }) => `Show all (${p.count})`,
+  showLess: "Show less",
+  empty: "All good: nothing needs your attention.",
+  when: {
+    today: "today",
+    tomorrow: "tomorrow",
+    inDays: (p: { count: number }) => `in ${p.count} days`,
+  },
+  more: (p: { count: number }) => ` and ${p.count} more`,
+  bills_overdue: (p: { count: number; total: string }) => `${p.count} ${p.count === 1 ? "bill is" : "bills are"} overdue (${p.total}). Pay now to avoid late fees.`,
+  bills_due_week: (p: { name: string; when: string; more: string }) => `${p.name} is due ${p.when}${p.more}.`,
+  negative_net: (p: { amount: string }) => `You're spending ${p.amount} a month more than you earn. Check the wants in Spending.`,
+  emergency_low: (p: { months: string }) => `Your ready cash covers only ${p.months} of spending. Aim for a 3–6 month safety net.`,
+  emergency_ok: (p: { months: string }) => `Your safety net covers ${p.months} of spending. Solid.`,
+  costly_debt_first: (p: { name: string; rate: string; interest: string }) => `${p.name} charges ${p.rate} a year (${p.interest} interest a month). Pay it down first.`,
+  budget_over: (p: { name: string; amount: string }) => `${p.name} is ${p.amount} over budget this month.`,
+  plan_drift: (p: { amount: string }) => `Lately you spend about ${p.amount} a month more than planned.`,
+  goal_off_track: (p: { name: string; amount: string }) => `${p.name} needs ${p.amount} more a month to make its date.`,
+  shares_over_allocated: "Your plans' shares of monthly savings add up to more than 100 %. Adjust them.",
+  unlinked_debt_payment: (p: { count: number; amount: string }) => `${p.count} debt ${p.count === 1 ? "repayment" : "repayments"} (${p.amount} a month) ${p.count === 1 ? "isn't" : "aren't"} in your spending yet.`,
+  unitemized_estimate: (p: { amount: string }) => `${p.amount} of your old estimate isn't broken into items yet.`,
+  yearly_bill_ahead: (p: { name: string; amount: string; date: string; perMonth: string }) => `${p.name} (${p.amount}) is due ${p.date}. Next time, ${p.perMonth} a month covers it.`,
+  assets_stale: (p: { count: number }) => `${p.count} asset ${p.count === 1 ? "value hasn't" : "values haven't"} been updated in 3 months.`,
+  savings_rate_good: (p: { pct: string }) => `You save ${p.pct} of your income. Keep it up.`,
+};

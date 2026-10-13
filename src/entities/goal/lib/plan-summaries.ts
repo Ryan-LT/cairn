@@ -3,6 +3,7 @@ import { goalProfileForDashboard, type GoalsState } from "@/entities/goal/model"
 import { resolveMonthlyShares } from "@/entities/goal/lib/monthly-share";
 import { totalGoalStartingBalance } from "@/entities/goal/lib/seed-lines";
 import type { GoalStartingOption } from "@/entities/goal/lib/starting-options";
+import { resolveGoalStatus, type GoalStatus } from "@/entities/goal/lib/status";
 
 export type GoalPlanSummary = {
   key: string;
@@ -72,4 +73,29 @@ export function buildGoalPlanSummaries(
 /** Rounded progress percent (unclamped; callers clamp progress bars). */
 export function goalProgressPercent(saved: number, targetAmount: number): number {
   return targetAmount === 0 ? 0 : Math.round((saved / targetAmount) * 100);
+}
+
+export type GoalPlanWithStatus = GoalPlanSummary & { status: GoalStatus };
+
+/** Saved plans with their status (each plan only counts its own share of the monthly net). */
+export function buildGoalPlanStatuses(
+  goals: GoalsState,
+  seedOptions: GoalStartingOption[],
+  householdMonthlyNet: number,
+  now: Date = new Date(),
+): GoalPlanWithStatus[] {
+  if (goals.profiles.length === 0) return [];
+  return buildGoalPlanSummaries(goals, seedOptions, 0).map((s) => ({
+    ...s,
+    status: resolveGoalStatus({
+      startingBalance: s.saved,
+      targetAmount: s.targetAmount,
+      targetDateIso: s.targetDate,
+      includeMonthlyIncome: s.includeMonthlyIncome,
+      householdMonthlyNet,
+      monthlyShare: s.monthlyShare,
+      expectedReturnPct: s.expectedReturnPct,
+      now,
+    }),
+  }));
 }

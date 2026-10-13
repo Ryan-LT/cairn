@@ -25,7 +25,7 @@ type MoneyProps = {
   className?: string;
 };
 
-function toneClass(tone: MoneyTone, value: number): string | undefined {
+export function moneyToneClass(tone: MoneyTone, value: number): string | undefined {
   switch (tone) {
     case "success":
       return "text-success";
@@ -47,21 +47,32 @@ export function Money({ value, compact, signed, tone = "none", strike, interacti
   const [expanded, setExpanded] = useState(false);
   const classes = cn(
     "whitespace-nowrap tabular-nums",
-    toneClass(tone, value),
+    moneyToneClass(tone, value),
     strike && "line-through decoration-muted-foreground/60",
     className,
   );
 
+  // `data-private`: blurred in privacy mode (see globals.css).
   if (!compact) {
-    return <span className={classes}>{full}</span>;
+    return (
+      <span className={classes} data-private>
+        {full}
+      </span>
+    );
   }
 
   const short = formatMoneyCompact(value, { signDisplay });
-  if (short === full) return <span className={classes}>{full}</span>;
+  if (short === full) {
+    return (
+      <span className={classes} data-private>
+        {full}
+      </span>
+    );
+  }
 
   if (!interactive) {
     return (
-      <span className={classes} title={full}>
+      <span className={classes} data-private>
         <span aria-hidden>{short}</span>
         <span className="sr-only">{full}</span>
       </span>
@@ -75,12 +86,15 @@ export function Money({ value, compact, signed, tone = "none", strike, interacti
           type="button"
           onClick={() => setExpanded((v) => !v)}
           aria-label={full}
+          data-private
           className={cn(classes, "relative z-[1] cursor-help rounded-sm text-left outline-none focus-visible:ring-[3px] focus-visible:ring-ring")}
         >
           {expanded ? full : short}
         </button>
       </TooltipTrigger>
-      <TooltipContent>{full}</TooltipContent>
+      <TooltipContent>
+        <span data-private>{full}</span>
+      </TooltipContent>
     </Tooltip>
   );
 }

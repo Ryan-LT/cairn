@@ -55,6 +55,9 @@ export type Preferences = {
   /** Chosen language; follows the person to other devices (the device cookie is set from it). */
   locale?: "en" | "vi";
 
+  /** First-run setup guide: dismissed, and "I have no debts" (that step counts as done). */
+  setup?: { dismissedAt?: string; noDebts?: boolean };
+
   /** Net-worth milestone (dashboard card, Settings → Milestone goal): birth date, USD target and age. */
   milestone?: {
     /** `YYYY-MM-DD`. */

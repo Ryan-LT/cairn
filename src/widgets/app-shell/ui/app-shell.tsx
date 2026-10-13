@@ -11,8 +11,10 @@ import { SidebarInset, SidebarProvider } from "@/shared/ui/kit/sidebar";
 import { retryInitialLoad, useAppDataState, useAppSync, type AppDataState } from "../model/app-data";
 import { useNavigationSkeletonPath } from "../model/navigation";
 import { ShellProvider } from "../model/shell-context";
+import { useNetWorthTracking } from "../model/use-net-worth-tracking";
 import { AppErrorScreen } from "./app-error-screen";
 import { AppSidebar } from "./app-sidebar";
+import { AssistDock } from "./assist-dock";
 import { CommandMenu } from "./command-menu";
 import { MobileTabBar } from "./mobile-tab-bar";
 import { NavigationEffects } from "./navigation-effects";
@@ -33,6 +35,7 @@ export function AppShell({ authEnabled, children }: AppShellProps) {
   const dataState = useAppDataState();
   useAppSync(dataState);
   useFollowAccountLanguage();
+  useNetWorthTracking();
   const { t } = useI18n();
   const sidebarOpen = useSidebarOpenPreference();
 
@@ -51,6 +54,7 @@ export function AppShell({ authEnabled, children }: AppShellProps) {
           <ScrollArea dataState={dataState}>{children}</ScrollArea>
         </SidebarInset>
         <MobileTabBar />
+        <AssistDock />
         {/* Reads and edits records, so it waits for real data like the pages. */}
         {dataState === "ready" ? <CommandMenu /> : null}
         <NavigationEffects />
@@ -143,7 +147,10 @@ function ScrollArea({ dataState, children }: { dataState: AppDataState; children
     <main
       ref={ref}
       aria-busy={skeletonPath !== null || dataState === "loading" || undefined}
-      className="min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0"
+      // `relative`: absolutely positioned descendants (sr-only text) must be clipped here, or they stretch the frame and it scrolls.
+      data-app-scroll
+      // Bottom room for the tab bar (phones) and the floating assistant buttons.
+      className="relative min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain pb-[calc(8.5rem+env(safe-area-inset-bottom))] md:pb-24"
     >
       {skeletonPath ? <RouteSkeleton pathname={skeletonPath} /> : null}
       {/* Kept mounted (just hidden) while a slow page change is in flight. */}

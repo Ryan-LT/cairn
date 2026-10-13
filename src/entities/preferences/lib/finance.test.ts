@@ -7,8 +7,8 @@ import {
   fractionalMonthsUntilYearEnd,
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
+  legacySpendingEstimate,
   projectNetWorthEndOfYear,
-  resolveAverageMonthlySpending,
   syncNetWorthTracking,
 } from "@/entities/preferences/lib/finance";
 import { PREFERENCES_SEED } from "@/entities/preferences/model";
@@ -18,38 +18,26 @@ afterEach(() => {
 });
 
 describe("spending + cashflow", () => {
-  it("resolves average spending with legacy fallback", () => {
-    expect(resolveAverageMonthlySpending({ averageMonthlySpending: 10, monthOutflow: 99 })).toBe(10);
-    expect(resolveAverageMonthlySpending({ monthOutflow: 99 })).toBe(99);
-    expect(resolveAverageMonthlySpending({ averageMonthlySpending: -5, monthOutflow: 0 })).toBe(0);
-    expect(resolveAverageMonthlySpending({ averageMonthlySpending: Number.NaN, monthOutflow: 0 })).toBe(0);
+  it("reads the old spending estimate with legacy fallback", () => {
+    expect(legacySpendingEstimate({ averageMonthlySpending: 10, monthOutflow: 99 })).toBe(10);
+    expect(legacySpendingEstimate({ monthOutflow: 99 })).toBe(99);
+    expect(legacySpendingEstimate({ averageMonthlySpending: -5, monthOutflow: 0 })).toBe(0);
+    expect(legacySpendingEstimate({ averageMonthlySpending: Number.NaN, monthOutflow: 0 })).toBe(0);
   });
 
-  it("monthly net is always income − average spending (legacy overrides ignored)", () => {
-    expect(
-      estimatedMonthlyNetCashflow({ monthInflow: 100, monthOutflow: 30, netMonthIncome: 7 }, 1_000),
-    ).toBe(970);
-    expect(
-      estimatedMonthlyNetCashflow(
-        { monthInflow: 0, monthOutflow: 0, netMonthIncome: 5_000_000, averageMonthlySpending: 20_000_000 },
-        60_000_000,
-      ),
-    ).toBe(40_000_000);
-    expect(estimatedMonthlyNetCashflow(PREFERENCES_SEED, 0)).toBe(0);
+  it("monthly net is income − spending", () => {
+    expect(estimatedMonthlyNetCashflow(1_000, 30)).toBe(970);
+    expect(estimatedMonthlyNetCashflow(60_000_000, 20_000_000)).toBe(40_000_000);
+    expect(estimatedMonthlyNetCashflow(0, 0)).toBe(0);
   });
 
-  it("projects net worth linearly to year end", () => {
+  it("projects net worth linearly to year end, adding back debt principal", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-01T00:00:00+07:00"));
     const months = fractionalMonthsUntilYearEnd();
     expect(months).toBeCloseTo(6.0452, 3);
-    expect(
-      projectNetWorthEndOfYear(
-        1_000,
-        { monthInflow: 0, monthOutflow: 0, netMonthIncome: 0, averageMonthlySpending: 0 },
-        10,
-      ),
-    ).toBeCloseTo(1_000 + 10 * months, 6);
+    expect(projectNetWorthEndOfYear(1_000, 10)).toBeCloseTo(1_000 + 10 * months, 6);
+    expect(projectNetWorthEndOfYear(1_000, 10, { principalMonthly: 5 })).toBeCloseTo(1_000 + 15 * months, 6);
   });
 });
 
@@ -102,17 +90,17 @@ describe("net worth tracking", () => {
     });
   });
 
-  it("keeps only the last twelve months of history", () => {
+  it("keeps the last five years of history", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-08-15T10:00:00+07:00"));
-    const history = Array.from({ length: 14 }, (_, i) => {
-      const d = new Date(2025, 5 + i, 1);
+    const history = Array.from({ length: 62 }, (_, i) => {
+      const d = new Date(2021, 6 + i, 1);
       return { monthKey: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`, value: i };
     });
     const next = syncNetWorthTracking({ ...PREFERENCES_SEED, netWorthMonthlyHistory: history }, 99);
     const keys = next.netWorthMonthlyHistory!.map((h) => h.monthKey);
-    expect(keys).toHaveLength(12);
-    expect(keys[0]).toBe("2025-09");
+    expect(keys).toHaveLength(60);
+    expect(keys[0]).toBe("2021-09");
     expect(keys.at(-1)).toBe("2026-08");
   });
 });
@@ -145,6 +133,7 @@ describe("buildNetWorthTrend", () => {
     const trend = buildNetWorthTrend(long, 1, now);
     expect(trend).toHaveLength(12);
     expect(trend[0].monthKey).toBe("2025-07");
+    expect(buildNetWorthTrend(long, 1, now, 36)).toHaveLength(20);
   });
 
   it("detects unchanged tracking", () => {

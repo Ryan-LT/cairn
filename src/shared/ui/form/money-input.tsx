@@ -20,6 +20,8 @@ export type MoneyInputProps = {
   className?: string;
   "aria-invalid"?: boolean;
   "aria-describedby"?: string;
+  /** Needed when there's no visible <label> for the input. */
+  "aria-label"?: string;
 };
 
 function allowValues(values: NumberFormatValues, opts: { allowNegative: boolean; min?: number; max?: number }) {

@@ -5,13 +5,12 @@ export type SpendingPrefs = Pick<
   "averageMonthlySpending" | "monthOutflow"
 >;
 
-export type CashflowPrefs = Pick<
-  Preferences,
-  "monthInflow" | "monthOutflow" | "netMonthIncome" | "averageMonthlySpending"
->;
-
-/** Resolved average monthly spending (new field or legacy `monthOutflow`). */
-export function resolveAverageMonthlySpending(prefs: SpendingPrefs): number {
+/**
+ * The old single "average monthly spending" estimate (new field or legacy
+ * `monthOutflow`). Spending itself now comes from the bill list; see
+ * `resolveMonthlySpending` in `@/entities/expense`.
+ */
+export function legacySpendingEstimate(prefs: SpendingPrefs): number {
   const raw = prefs.averageMonthlySpending ?? prefs.monthOutflow ?? 0;
   return Math.max(0, Number.isFinite(raw) ? raw : 0);
 }
@@ -31,26 +30,26 @@ export function fractionalMonthsUntilYearEnd(now: Date = new Date()): number {
 }
 
 /**
- * Monthly net cash flow used by every projection: income sources − average
- * monthly spending. (Older saves may still hold `netMonthIncome` /
- * `monthInflow` from an early version; nothing edits them any more, so they
- * are ignored rather than silently overriding the real numbers.)
+ * Monthly net cash flow used by every projection: income − spending. (Older
+ * saves may still hold `netMonthIncome` / `monthInflow` from an early version;
+ * nothing reads them.)
  */
-export function estimatedMonthlyNetCashflow(
-  prefs: CashflowPrefs,
-  totalMonthlyIncomeFromSources: number,
-): number {
-  return totalMonthlyIncomeFromSources - resolveAverageMonthlySpending(prefs);
+export function estimatedMonthlyNetCashflow(totalMonthlyIncome: number, monthlySpending: number): number {
+  return totalMonthlyIncome - monthlySpending;
 }
 
+/**
+ * Net worth at 31 Dec: today's plus the monthly net for the months left.
+ * `principalMonthly` (debt repayment that lowers what you owe) is added back:
+ * it leaves your cash but not your net worth.
+ */
 export function projectNetWorthEndOfYear(
   netWorth: number,
-  prefs: CashflowPrefs,
-  totalMonthlyIncomeFromSources: number,
+  monthlyNet: number,
+  opts: { principalMonthly?: number; now?: Date } = {},
 ): number {
-  const monthlyNet = estimatedMonthlyNetCashflow(prefs, totalMonthlyIncomeFromSources);
-  const months = fractionalMonthsUntilYearEnd();
-  return netWorth + monthlyNet * months;
+  const months = fractionalMonthsUntilYearEnd(opts.now);
+  return netWorth + (monthlyNet + Math.max(0, opts.principalMonthly ?? 0)) * months;
 }
 
 /** MTD % vs baseline stored in preferences (updated via `syncNetWorthTracking`). */
@@ -63,8 +62,10 @@ export function monthToDateNetWorthChangePercent(
   return ((netWorth - b) / Math.abs(b)) * 100;
 }
 
-/** Monthly net-worth snapshots kept for the trend chart. */
-export const NET_WORTH_HISTORY_MONTHS = 12;
+/** Monthly net-worth snapshots kept (5 years). */
+export const NET_WORTH_HISTORY_MONTHS = 60;
+/** Months the trend chart shows by default. */
+export const NET_WORTH_TREND_MONTHS = 12;
 
 function upsertMonthHistory(
   prev: NetWorthMonthSnapshot[],
@@ -138,7 +139,7 @@ export type NetWorthTrendPoint = {
 };
 
 /**
- * Up to the last 12 calendar months for the net-worth chart, starting at the
+ * Up to the last `months` calendar months (default 12) for the net-worth chart, starting at the
  * first month that was actually tracked (no made-up history before it). A
  * month without a snapshot (no visit) repeats the previous month's value; the
  * current month uses the live net worth.
@@ -147,12 +148,13 @@ export function buildNetWorthTrend(
   history: NetWorthMonthSnapshot[],
   netWorth: number,
   now: Date = new Date(),
+  months: number = NET_WORTH_TREND_MONTHS,
 ): NetWorthTrendPoint[] {
   const map = new Map(history.map((h) => [h.monthKey, h.value]));
   const firstTracked = [...history].map((h) => h.monthKey).sort()[0];
   const out: NetWorthTrendPoint[] = [];
   let carry: number | null = null;
-  for (let i = NET_WORTH_HISTORY_MONTHS - 1; i >= 0; i--) {
+  for (let i = months - 1; i >= 0; i--) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthKey = monthCalendarKey(date);
     const live = i === 0;

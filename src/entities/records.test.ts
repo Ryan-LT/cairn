@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { createDebtDraft, describeDebtPayment, isValidDayOfMonth, sanitizeDebt, weightedAverageRate } from "@/entities/debt";
+import { createDebtDraft, isValidDayOfMonth, sanitizeDebt, weightedAverageRate } from "@/entities/debt";
 import { createIncomeSourceDraft, incomeCapitalPeers, sanitizeIncomeSource } from "@/entities/income";
 import {
   createPersonalLoanDraft,
@@ -128,10 +128,6 @@ describe("debts", () => {
   });
 
   it("describes payments and weights rates", () => {
-    expect(describeDebtPayment(fixtureDebts[0])).toEqual({ primary: "Day 15 each month", secondary: undefined });
-    expect(describeDebtPayment({ ...fixtureDebts[0], nextPayment: "auto" })).toEqual({ primary: "Day 15 each month", secondary: "auto" });
-    expect(describeDebtPayment(fixtureDebts[1])).toEqual({ primary: "Pay in full" });
-    expect(describeDebtPayment({ ...fixtureDebts[1], nextPayment: " " })).toEqual({ primary: "—" });
     expect(weightedAverageRate(fixtureDebts)).toBeCloseTo((250 * 9.5 + 20 * 24) / 270, 6);
     expect(weightedAverageRate([])).toBe(0);
   });

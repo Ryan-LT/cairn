@@ -13,8 +13,7 @@ import {
   upsertGoalPlan,
   type GoalProfile,
 } from "@/entities/goal";
-import { INCOME_SOURCES_SEED, totalMonthlyIncomeFromSources } from "@/entities/income";
-import { estimatedMonthlyNetCashflow, PREFERENCES_SEED } from "@/entities/preferences";
+import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
 import { flushTablesNow, useTable } from "@/shared/storage";
 
@@ -26,13 +25,12 @@ export function useGoalPlanEditor() {
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
-  const [sources] = useTable("incomeSources", INCOME_SOURCES_SEED);
-  const [prefs] = useTable("preferences", PREFERENCES_SEED);
+  const cashflow = useHouseholdCashflow();
 
   const seedOptions = useMemo(() => buildGoalStartingOptions(assets, settingsAssets), [assets, settingsAssets]);
   const seedKeys = useMemo(() => new Set(seedOptions.map((o) => o.key)), [seedOptions]);
-  const incomeMonthly = useMemo(() => totalMonthlyIncomeFromSources(sources), [sources]);
-  const householdMonthlyNet = useMemo(() => estimatedMonthlyNetCashflow(prefs, incomeMonthly), [prefs, incomeMonthly]);
+  const incomeMonthly = cashflow.totalIncome;
+  const householdMonthlyNet = cashflow.monthlyNet;
 
   const savedProfile = useMemo(
     () => normalizeGoalProfile(resolvePlanEditorProfile(goals), seedKeys, seedOptions, goals.profiles),

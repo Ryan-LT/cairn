@@ -1,29 +1,35 @@
 "use client";
 
-import { CreditCard, Download, Landmark, LogOut, RefreshCw, TrendingUp } from "lucide-react";
+import { Download, FileUp, History, LogOut, RefreshCw, Sheet } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
 
+import { DEBTS_SEED } from "@/entities/debt";
+import { useExpenses } from "@/entities/expense/api/use-expenses";
 import { PREFERENCES_SEED } from "@/entities/preferences";
+import { ExportSpendingDialog } from "@/features/export-spending-csv";
 import { useSignOut } from "@/features/sign-out";
 import { useSyncNow } from "@/features/sync-now";
 import { LanguageSwitcher } from "@/features/switch-language";
 import { BRAND } from "@/shared/config";
 import { useI18n } from "@/shared/i18n";
 import { formatRelative, formatTime } from "@/shared/lib/format";
+import { usePrivacyMode } from "@/shared/lib/privacy";
 import { useLastSyncedAt, useTable } from "@/shared/storage";
-import { Callout } from "@/shared/ui/callout";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Button } from "@/shared/ui/kit/button";
-import { PageHeader } from "@/shared/ui/page-header";
+import { Label } from "@/shared/ui/kit/label";
+import { Switch } from "@/shared/ui/kit/switch";
 import { Section } from "@/shared/ui/section";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 import { StatusBadge } from "@/shared/ui/status-badge";
-import { PageContainer, useOnline, useShell } from "@/widgets/app-shell";
+import { TabContent, useOnline, useShell } from "@/widgets/app-shell";
 
 import { downloadBackup } from "../lib/export-backup";
 import { ChangePasswordForm } from "./change-password-form";
+import { RestoreBackupDialog } from "./restore-backup-dialog";
 import { MilestoneForm } from "./milestone-form";
 
 type ThemeValue = "light" | "dark" | "system";
@@ -43,22 +49,14 @@ export function SettingsPage() {
   const { syncNow, syncing } = useSyncNow();
   const { signOut, pending } = useSignOut();
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+  const [debts] = useTable("debts", DEBTS_SEED);
+  const { expenses, log } = useExpenses();
+  const [hidden, togglePrivacy] = usePrivacyMode();
+  const [restoreOpen, setRestoreOpen] = useState(false);
+  const [csvOpen, setCsvOpen] = useState(false);
 
   return (
-    <PageContainer className="max-w-3xl">
-      <PageHeader title={t.nav.items.settings.label} description={s.description} />
-
-      <div id="milestone" className="scroll-mt-20">
-        <Section title={s.milestone.title} description={s.milestone.description}>
-          <MilestoneForm
-            value={prefs.milestone}
-            onSave={(milestone) => {
-              setPrefs((p) => ({ ...p, milestone }));
-              toast.success(s.milestone.saved);
-            }}
-          />
-        </Section>
-      </div>
+    <TabContent className="max-w-3xl">
 
       <Section title={s.appearance.title} description={s.appearance.description({ brand: BRAND.name })}>
         <SegmentedControl<ThemeValue>
@@ -74,7 +72,46 @@ export function SettingsPage() {
           </div>
           <LanguageSwitcher ariaLabel={t.common.language} />
         </div>
+        <div className="mt-4 flex items-start justify-between gap-4 border-t pt-4">
+          <div className="min-w-0 flex-1">
+            <Label htmlFor="privacy-mode">{s.appearance.privacy}</Label>
+            <p className="mt-0.5 text-xs text-muted-foreground">{s.appearance.privacyHint}</p>
+          </div>
+          <Switch id="privacy-mode" checked={hidden} onCheckedChange={togglePrivacy} />
+        </div>
       </Section>
+
+      <div id="milestone" className="scroll-mt-20">
+        <Section title={s.milestone.title} description={s.milestone.description}>
+          <MilestoneForm
+            value={prefs.milestone}
+            onSave={(milestone) => {
+              setPrefs((p) => ({ ...p, milestone }));
+              toast.success(s.milestone.saved);
+            }}
+          />
+        </Section>
+      </div>
+
+      <div id="calculation" className="scroll-mt-20">
+        <Section title={s.calculation.title} description={s.calculation.description}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="grid gap-1">
+              <Label htmlFor="loans-in-net-worth">{t.loans.netWorth.label}</Label>
+              <p className="text-sm text-muted-foreground">{t.loans.netWorth.description}</p>
+            </div>
+            <Switch
+              id="loans-in-net-worth"
+              checked={prefs.includeLoansInNetWorth === true}
+              onCheckedChange={(on) => {
+                setPrefs((p) => ({ ...p, includeLoansInNetWorth: on }));
+                toast.success(on ? t.loans.netWorth.on : t.loans.netWorth.off);
+              }}
+            />
+          </div>
+        </Section>
+      </div>
+
 
       <Section
         title={s.data.title}
@@ -100,6 +137,38 @@ export function SettingsPage() {
                 </span>
               ) : (
                 s.data.notYet
+              ),
+            },
+            {
+              label: s.data.activity,
+              hint: s.data.activityHint,
+              value: (
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/settings/activity">
+                    <History />
+                    {s.data.openActivity}
+                  </Link>
+                </Button>
+              ),
+            },
+            {
+              label: s.data.csv,
+              hint: s.data.csvHint,
+              value: (
+                <Button variant="outline" size="sm" onClick={() => setCsvOpen(true)}>
+                  <Sheet />
+                  {s.data.exportCsv}
+                </Button>
+              ),
+            },
+            {
+              label: s.data.restore,
+              hint: s.data.restoreHint,
+              value: (
+                <Button variant="outline" size="sm" onClick={() => setRestoreOpen(true)}>
+                  <FileUp />
+                  {s.data.restore}
+                </Button>
               ),
             },
             {
@@ -148,21 +217,8 @@ export function SettingsPage() {
         ) : null}
       </Section>
 
-      <Callout tone="info" title={s.moved.title}>
-        {s.moved.lead}{" "}
-        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/assets">
-          <Landmark className="size-3.5" /> {t.nav.items.assets.label}
-        </Link>
-        ,{" "}
-        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/income">
-          <TrendingUp className="size-3.5" /> {t.nav.items.income.label}
-        </Link>{" "}
-        {s.moved.and}{" "}
-        <Link className="inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline" href="/debts">
-          <CreditCard className="size-3.5" /> {t.nav.items.debts.label}
-        </Link>
-        .
-      </Callout>
-    </PageContainer>
+      <RestoreBackupDialog open={restoreOpen} onOpenChange={setRestoreOpen} />
+      <ExportSpendingDialog open={csvOpen} onOpenChange={setCsvOpen} expenses={expenses} log={log} debts={debts} />
+    </TabContent>
   );
 }

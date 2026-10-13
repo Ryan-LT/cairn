@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+
+import { hubOf } from "@/shared/config";
 import { useAppPathname } from "@/shared/lib/use-app-pathname";
 import { startTransition, useCallback, useOptimistic, useSyncExternalStore, type MouseEvent } from "react";
 
@@ -24,6 +26,11 @@ function emit() {
 
 export function startNavigationProgress(targetPath?: string): void {
   pending = true;
+  // Switching tabs inside a section keeps the section on screen: no skeleton.
+  if (targetPath && typeof window !== "undefined") {
+    const from = hubOf(stripLocale(window.location.pathname));
+    if (from && from !== "home" && from === hubOf(targetPath)) targetPath = undefined;
+  }
   if (safetyTimer) clearTimeout(safetyTimer);
   if (skeletonTimer) clearTimeout(skeletonTimer);
   safetyTimer = setTimeout(endNavigationProgress, 10_000);
@@ -45,6 +52,10 @@ export function endNavigationProgress(): void {
   pending = false;
   skeletonPath = null;
   emit();
+}
+
+function stripLocale(path: string): string {
+  return path.replace(/^\/(en|vi)(?=\/|$)/, "") || "/";
 }
 
 function subscribe(l: () => void) {
