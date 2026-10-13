@@ -9,6 +9,12 @@ import { flushTablesNow, useInitialLoadDone, useTable } from "@/shared/storage";
 
 import { reloadInLocale } from "./switch-locale";
 
+/**
+ * Set while a switch made on this device is saving: the account then already
+ * says the new language, and following it would reload before the save lands.
+ */
+let switchingHere = false;
+
 /** Change language: saved on this device and, when signed in, in the account. */
 export function useSwitchLanguage() {
   const { locale } = useI18n();
@@ -19,6 +25,7 @@ export function useSwitchLanguage() {
     async (next: Locale) => {
       if (next === locale) return;
       setPending(true);
+      switchingHere = true;
       if (readSessionUser()) {
         setPrefs((p) => ({ ...p, locale: next }));
         await flushTablesNow().catch(() => false);
@@ -64,7 +71,7 @@ export function useFollowAccountLanguage() {
       if (navigator.onLine) setPrefs((p) => (p.locale ? p : { ...p, locale }));
       return;
     }
-    if (prefs.locale === locale) return;
+    if (prefs.locale === locale || switchingHere) return;
     try {
       if (sessionStorage.getItem(SYNC_GUARD) === prefs.locale) return;
       sessionStorage.setItem(SYNC_GUARD, prefs.locale);
