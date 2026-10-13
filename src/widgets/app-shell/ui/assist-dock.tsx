@@ -2,6 +2,7 @@
 
 import { MessageSquareHeart, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useSonner } from "sonner";
 
 import { FeedbackDialog } from "@/features/send-feedback";
 import { useI18n } from "@/shared/i18n";
@@ -51,6 +52,8 @@ export function AssistDock() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const hidden = useHideOnScroll(aiOpen || feedbackOpen);
   const feedbackButton = useRef<HTMLButtonElement>(null);
+  // Step up above a toast (they share the bottom corner) until it goes away.
+  const lifted = useSonner().toasts.length > 0;
 
   return (
     <>
@@ -61,7 +64,7 @@ export function AssistDock() {
             aria-label={a.dockLabel}
             className={cn(
               "fixed right-3 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 flex flex-col items-end gap-2 transition-[transform,opacity] duration-300 ease-out md:right-6 md:bottom-6",
-              hidden && "pointer-events-none translate-x-[calc(100%+1rem)] opacity-0",
+              hidden ? "pointer-events-none translate-x-[calc(100%+1rem)] opacity-0" : lifted && "-translate-y-[4.5rem]",
             )}
           >
             <Tooltip>

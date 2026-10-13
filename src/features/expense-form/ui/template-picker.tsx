@@ -119,7 +119,7 @@ export function TemplatePicker({
                       value={r.amount || undefined}
                       onChange={(amount) => set({ amount })}
                       placeholder={m.typical({ amount: formatMoneyCompact(r.template.typical) })}
-                      aria-describedby={undefined}
+                      aria-label={`${t.expenses.form.amount}: ${r.name}`}
                     />
                     {linksDebt ? (
                       <Select

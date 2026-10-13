@@ -31,7 +31,9 @@ export function WealthHubSummary() {
     const owed = totalDebtBalance(debts) + l.borrowed;
     return { gross, owed, net: gross - owed };
   }, [assets, catalog, debts, loans, prefs.includeLoansInNetWorth]);
-  const share = gross > 0 ? Math.min(1, owed / gross) : 0;
+  // The bar can't go past full, but the caption tells the real ratio (debts can exceed assets).
+  const ratio = gross > 0 ? owed / gross : 0;
+  const share = Math.min(1, ratio);
 
   return (
     <SummaryStrip
@@ -43,12 +45,12 @@ export function WealthHubSummary() {
       footer={
         gross > 0 ? (
           <div className="grid gap-1.5">
-            <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-muted" role="img" aria-label={s.debtShare({ pct: formatPercent(share * 100, { maximumFractionDigits: 0 }) })}>
+            <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-muted" role="img" aria-label={s.debtShare({ pct: formatPercent(ratio * 100, { maximumFractionDigits: 0 }) })}>
               <div className="h-full rounded-l-full bg-chart-3" style={{ width: `${(1 - share) * 100}%` }} />
               {share > 0 ? <div className="h-full rounded-r-full bg-chart-2" style={{ width: `${share * 100}%` }} /> : null}
             </div>
             <p className="text-xs text-muted-foreground">
-              {s.debtShare({ pct: formatPercent(share * 100, { maximumFractionDigits: 0 }) })}
+              {s.debtShare({ pct: formatPercent(ratio * 100, { maximumFractionDigits: 0 }) })}
               {prefs.includeLoansInNetWorth ? ` · ${s.withLoans}` : null}
             </p>
           </div>
