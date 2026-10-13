@@ -1,7 +1,8 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDownLeft, ArrowUpRight, CircleCheck, HandCoins, Pencil, Plus, RotateCcw, Scale, Trash2 } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CircleCheck, HandCoins, Info, Pencil, Plus, RotateCcw, Scale, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -24,12 +25,10 @@ import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
 import { DataTable, DataTableColumnHeader, DataTableToolbar, matchesSearch, RowActions, type RowAction } from "@/shared/ui/data-table";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
-import { Label } from "@/shared/ui/kit/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Money } from "@/shared/ui/money";
 import { Section } from "@/shared/ui/section";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
-import { Switch } from "@/shared/ui/kit/switch";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { TabContent, TabToolbar } from "@/widgets/app-shell";
@@ -56,7 +55,7 @@ function DirectionBadge({ direction }: { direction: PersonalLoanDirection }) {
 export function LoansPage() {
   const { t } = useI18n();
   const [loans, setLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
-  const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+  const [prefs] = useTable("preferences", PREFERENCES_SEED);
   const countsInNetWorth = prefs.includeLoansInNetWorth === true;
   const [direction, setDirection] = useState<DirectionFilter>("all");
   const [status, setStatus] = useState<StatusFilter>("all");
@@ -101,7 +100,6 @@ export function LoansPage() {
 
   const owedToYou = totalOpenAmount(loans, "lent_out");
   const youOwe = totalOpenAmount(loans, "borrowed");
-  const openCount = loans.filter((l) => l.status === "open").length;
 
   const visible = useMemo(
     () =>
@@ -179,14 +177,14 @@ export function LoansPage() {
     <TabContent>
       <TabToolbar
         actions={
-        <Button onClick={openCreate}>
-          <Plus />
-          {t.loans.add}
-        </Button>
+          <Button onClick={openCreate}>
+            <Plus />
+            {t.loans.add}
+          </Button>
         }
       />
 
-      <StatGrid>
+      <StatGrid className="xl:grid-cols-3">
         <StatCard
           label={t.loans.kpi.owedToYou.label}
           icon={ArrowUpRight}
@@ -200,23 +198,15 @@ export function LoansPage() {
           value={<Money value={owedToYou - youOwe} compact signed tone="auto" />}
           hint={t.loans.kpi.net.hint}
         />
-        <StatCard label={t.loans.kpi.open.label} icon={HandCoins} value={openCount} hint={t.loans.kpi.open.hint({ count: loans.length - openCount })} />
       </StatGrid>
 
-      <div className="flex items-start justify-between gap-4 rounded-lg border bg-card px-5 py-4">
-        <div className="grid gap-1">
-          <Label htmlFor="loans-in-net-worth">{t.loans.netWorth.label}</Label>
-          <p className="text-sm text-muted-foreground">{t.loans.netWorth.description}</p>
-        </div>
-        <Switch
-          id="loans-in-net-worth"
-          checked={countsInNetWorth}
-          onCheckedChange={(on) => {
-            setPrefs((p) => ({ ...p, includeLoansInNetWorth: on }));
-            toast.success(on ? t.loans.netWorth.on : t.loans.netWorth.off);
-          }}
-        />
-      </div>
+      <p className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1 text-sm text-muted-foreground">
+        <Info className="size-4 shrink-0" aria-hidden />
+        {countsInNetWorth ? t.wealth.loans.statusOn : t.wealth.loans.statusOff}
+        <Link href="/settings#calculation" className="font-medium text-foreground underline-offset-4 hover:underline">
+          {t.wealth.loans.change}
+        </Link>
+      </p>
 
       <Section title={t.loans.log.title} description={t.loans.log.description} flush>
         <div className="border-b px-5 py-3">

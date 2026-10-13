@@ -1,6 +1,10 @@
 /** Messages for the settings area. */
 export const settings = {
   description: "Your milestone goal, appearance, data sync, password and session.",
+  calculation: {
+    title: "How numbers are counted",
+    description: "Choices that change net worth and projections.",
+  },
   milestone: {
     title: "Milestone goal",
     description:

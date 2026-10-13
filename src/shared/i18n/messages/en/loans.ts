@@ -62,7 +62,7 @@ export const loans = {
   form: {
     addTitle: "Add personal loan",
     editTitle: "Edit personal loan",
-    description: "A private log only — never counted in net worth.",
+    description: "Money lent to or borrowed from people you know.",
     personRequired: "Who is this with?",
     direction: "Direction",
     directionLent: "Owed to you — you lent the money",

@@ -26,3 +26,4 @@ export {
   instantAccessAssets,
   type FinancialHealth,
 } from "@/entities/portfolio/lib/health";
+export { legacyHoldingsCount, migrateLegacyHoldings, type LegacyMigration } from "@/entities/portfolio/lib/legacy-migration";

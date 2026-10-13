@@ -62,7 +62,7 @@ export const loans: Messages["loans"] = {
   form: {
     addTitle: "Thêm khoản vay cá nhân",
     editTitle: "Sửa khoản vay cá nhân",
-    description: "Chỉ là sổ ghi chép riêng — không bao giờ tính vào tài sản ròng.",
+    description: "Tiền bạn cho người quen vay hoặc vay của họ.",
     personRequired: "Khoản này với ai?",
     direction: "Chiều vay",
     directionLent: "Người khác nợ bạn — bạn cho vay",

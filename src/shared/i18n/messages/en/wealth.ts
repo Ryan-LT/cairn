@@ -1,0 +1,46 @@
+/** Net worth section: assets, debts, personal loans. */
+export const wealth = {
+  summary: {
+    assets: "Assets",
+    debts: "Debts",
+    netWorth: "Net worth",
+    barLabel: (p: { assets: string; debts: string }) => `Assets ${p.assets}, debts ${p.debts}`,
+    debtShare: (p: { pct: string }) => `Debts are ${p.pct} of assets`,
+    withLoans: "incl. personal loans",
+  },
+  assets: {
+    updatedAgo: (p: { ago: string }) => `updated ${p.ago}`,
+    neverUpdated: "value not updated yet",
+    updateValue: "Update value",
+    updateTitle: (p: { name: string }) => `${p.name}: value today`,
+    updateConfirm: "Save value",
+    updated: "Value updated",
+    byCategory: "By category",
+    stale: (p: { count: number }) => `${p.count} ${p.count === 1 ? "value hasn't" : "values haven't"} been updated in 3 months`,
+  },
+  migrate: {
+    title: (p: { count: number }) => `${p.count} ${p.count === 1 ? "holding" : "holdings"} from the old version`,
+    body: "These can only be viewed. Move them into your asset list to edit, update and delete them like any other asset. Net worth and plans stay exactly the same.",
+    action: "Move into my assets",
+    done: (p: { count: number }) => `Moved ${p.count} ${p.count === 1 ? "holding" : "holdings"} into your assets`,
+  },
+  debts: {
+    payoffOn: (p: { date: string }) => `Paid off ${p.date}`,
+    payoffNever: "Payment doesn't cover interest",
+    noPayment: "Add a monthly payment to see the payoff date",
+    perMonth: (p: { amount: string }) => `${p.amount} / month`,
+    inSpending: "In your spending",
+    addToSpending: "Add to spending",
+    addedToSpending: (p: { name: string }) => `${p.name} added to your spending`,
+    priority: "Pay first",
+    priorityHint: "Highest interest rate: extra money here saves the most.",
+    extra: (p: { extra: string; months: number; interest: string }) => `Paying ${p.extra} more a month clears it ${p.months} months sooner and saves ${p.interest} in interest.`,
+    interestLeft: (p: { amount: string }) => `${p.amount} interest left`,
+    billArchived: "Its repayment was removed from your spending too",
+  },
+  loans: {
+    statusOn: "Open loans count in your net worth.",
+    statusOff: "A private log: not counted in net worth.",
+    change: "Change in Settings",
+  },
+};

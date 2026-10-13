@@ -1,80 +1,86 @@
 "use client";
 
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, Clock, Landmark, Pencil, Plus, Trash2, Zap } from "lucide-react";
+import { Clock, History, Pencil, Plus, RefreshCw, Search, Trash2, Zap } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
-import { totalCombinedAssetValue } from "@/entities/portfolio";
+import { GOALS_SEED } from "@/entities/goal";
+import { INCOME_SOURCES_SEED } from "@/entities/income";
+import { assetTotalsByCategory, legacyHoldingsCount, migrateLegacyHoldings } from "@/entities/portfolio";
 import { PREFERENCES_SEED, registerExtraAssetCategory } from "@/entities/preferences";
 import {
+  assetCategoryLabel,
   createSettingsAssetDraft,
   customCategoryToRegister,
   mergeAssetCategoryOptions,
-  reorderVisible,
+  resolveAssetCategoryEmoji,
   resolveSettingsAssetLiquidity,
   sanitizeSettingsAsset,
   SETTINGS_ASSETS_SEED,
-  sortSettingsAssets,
-  totalSettingsAssetsValue,
-  type AssetSortKey,
-  type AssetSortState,
   type SettingsAsset,
 } from "@/entities/settings-asset";
-import { CategoryBadge, LiquidityBadge } from "@/entities/settings-asset/ui";
+import { LiquidityBadge } from "@/entities/settings-asset/ui";
 import { useI18n } from "@/shared/i18n";
+import { todayIso } from "@/shared/lib/date";
+import { formatRelative } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
+import { AmountSheet } from "@/shared/ui/amount-sheet";
+import { BarList } from "@/shared/ui/bar-list";
+import { Callout } from "@/shared/ui/callout";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
-import { DataTable, DataTableColumnHeader, DataTableToolbar, matchesSearch, RowActions, type RowAction } from "@/shared/ui/data-table";
+import { matchesSearch, RowActions, type RowAction } from "@/shared/ui/data-table";
 import { EmptyState } from "@/shared/ui/empty-state";
 import { Button } from "@/shared/ui/kit/button";
+import { Card } from "@/shared/ui/kit/card";
+import { Input } from "@/shared/ui/kit/input";
+import { ListGroup, ListRow } from "@/shared/ui/list";
 import { Money } from "@/shared/ui/money";
 import { Section } from "@/shared/ui/section";
 import { StatCard, StatGrid } from "@/shared/ui/stat-card";
 import { TabContent, TabToolbar } from "@/widgets/app-shell";
 
 import { AssetFormDialog } from "./asset-form-dialog";
-import { LegacyHoldings } from "./legacy-holdings";
-
-const COLUMN_TO_KEY: Record<string, AssetSortKey> = {
-  name: "name",
-  category: "category",
-  liquidity: "liquidity",
-  currentValue: "value",
-};
-const KEY_TO_COLUMN: Record<AssetSortKey, string> = {
-  name: "name",
-  category: "category",
-  liquidity: "liquidity",
-  value: "currentValue",
-};
 
 type DialogState = { mode: "create" | "edit"; asset: SettingsAsset };
 
+/** Values older than this get a gentle "update me" nudge. */
+const STALE_DAYS = 90;
+
+function daysSince(iso: string | undefined): number | null {
+  if (!iso) return null;
+  const d = new Date(`${iso}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? null : Math.floor((Date.now() - d.getTime()) / 86_400_000);
+}
+
+function EmojiTile({ emoji }: { emoji: string }) {
+  return (
+    <span aria-hidden className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-base">
+      {emoji}
+    </span>
+  );
+}
+
+/** Net worth › Assets: everything owned, grouped by category, with quick value updates. */
 export function AssetsPage() {
   const [assets, setAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
-  const [legacy] = useTable<AssetsState>("assets", ASSETS_SEED);
+  const [legacy, setLegacy] = useTable<AssetsState>("assets", ASSETS_SEED);
+  const [goals, setGoals] = useTable("goals", GOALS_SEED);
+  const [incomeSources, setIncomeSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   const { t } = useI18n();
   const m = t.assets;
+  const w = t.wealth.assets;
 
-  const [sort, setSort] = useState<AssetSortState | null>(null);
   const [search, setSearch] = useState("");
   const [dialog, setDialog] = useState<DialogState | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<SettingsAsset | null>(null);
+  const [updating, setUpdating] = useState<SettingsAsset | null>(null);
 
   const categoryOptions = useMemo(() => mergeAssetCategoryOptions(prefs, assets), [prefs, assets]);
-
-  // Domain sort (keeps the id tie-break); the table only renders.
-  const displayed = useMemo(() => (sort ? sortSettingsAssets(assets, sort.key, sort.dir) : assets), [assets, sort]);
-  const visible = useMemo(
-    () => displayed.filter((a) => matchesSearch(`${a.name} ${a.category}`, search)),
-    [displayed, search],
-  );
-  const sorting: SortingState = sort ? [{ id: KEY_TO_COLUMN[sort.key], desc: sort.dir === "desc" }] : [];
+  const legacyCount = legacyHoldingsCount(legacy);
 
   const openCreate = useCallback(() => {
     setDialog({ mode: "create", asset: createSettingsAssetDraft() });
@@ -89,163 +95,172 @@ export function AssetsPage() {
     if (a) openEdit(a);
   });
 
-  const reorder = useCallback(
-    (activeId: string, overId: string) => {
-      const next = reorderVisible(displayed, activeId, overId);
-      if (!next) return;
-      setAssets(() => next);
-      setSort(null);
-    },
-    [displayed, setAssets],
-  );
+  const visible = useMemo(() => assets.filter((a) => matchesSearch(`${a.name} ${a.category} ${assetCategoryLabel(a.category)}`, search)), [assets, search]);
+  const groups = useMemo(() => {
+    const map = new Map<string, SettingsAsset[]>();
+    for (const a of visible) map.set(a.category, [...(map.get(a.category) ?? []), a]);
+    return [...map.entries()]
+      .map(([category, items]) => ({ category, items: items.sort((a, b) => b.currentValue - a.currentValue), total: items.reduce((s, a) => s + Math.max(0, a.currentValue), 0) }))
+      .sort((a, b) => b.total - a.total);
+  }, [visible]);
+  const byCategory = useMemo(() => assetTotalsByCategory(assets, legacy), [assets, legacy]);
 
-  const actionsFor = useCallback(
-    (asset: SettingsAsset, withMove: boolean): RowAction[] => {
-      const index = displayed.findIndex((a) => a.id === asset.id);
-      const canMove = !search.trim();
-      const moves: RowAction[] = withMove
-        ? [
-            {
-              label: m.list.moveUp,
-              icon: ArrowUp,
-              disabled: !canMove || index <= 0,
-              onSelect: () => reorder(asset.id, displayed[index - 1].id),
-            },
-            {
-              label: m.list.moveDown,
-              icon: ArrowDown,
-              disabled: !canMove || index === -1 || index >= displayed.length - 1,
-              onSelect: () => reorder(asset.id, displayed[index + 1].id),
-            },
-            "separator",
-          ]
-        : [];
-      return [
-        { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(asset) },
-        ...moves,
-        ...(withMove ? [] : (["separator"] as RowAction[])),
-        { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(asset) },
-      ];
-    },
-    [displayed, search, reorder, openEdit, m, t.common],
-  );
+  // Totals include the old imported holdings so they always add up to net worth.
+  const instant =
+    assets.filter((a) => resolveSettingsAssetLiquidity(a.liquidity) === "instant").reduce((s, a) => s + Math.max(0, a.currentValue), 0) +
+    legacy.cashAccounts.reduce((s, c) => s + Math.max(0, c.balance), 0);
+  const total = byCategory.reduce((s, c) => s + c.value, 0);
+  const stale = assets.filter((a) => (daysSince(a.updatedAt) ?? Infinity) > STALE_DAYS && a.currentValue > 0).length;
 
-  const catalogTotal = totalSettingsAssetsValue(assets);
-  const instantTotal = assets
-    .filter((a) => resolveSettingsAssetLiquidity(a.liquidity) === "instant")
-    .reduce((s, a) => s + Math.max(0, a.currentValue), 0);
-  const grossTotal = totalCombinedAssetValue(legacy, assets);
+  const actionsFor = (asset: SettingsAsset): RowAction[] => [
+    { label: w.updateValue, icon: RefreshCw, onSelect: () => setUpdating(asset) },
+    { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(asset) },
+    "separator",
+    { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(asset) },
+  ];
 
-  const columns = useMemo<ColumnDef<SettingsAsset>[]>(
-    () => [
-      {
-        accessorKey: "name",
-        header: ({ column }) => <DataTableColumnHeader column={column} title={m.list.colName} />,
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-      },
-      {
-        accessorKey: "category",
-        header: ({ column }) => <DataTableColumnHeader column={column} title={m.list.colCategory} />,
-        cell: ({ row }) => <CategoryBadge category={row.original.category} />,
-      },
-      {
-        id: "liquidity",
-        accessorFn: (a) => resolveSettingsAssetLiquidity(a.liquidity),
-        header: ({ column }) => <DataTableColumnHeader column={column} title={m.list.colAccess} />,
-        cell: ({ row }) => <LiquidityBadge liquidity={row.original.liquidity} />,
-      },
-      {
-        accessorKey: "currentValue",
-        header: ({ column }) => <DataTableColumnHeader column={column} title={m.list.colValue} align="right" />,
-        cell: ({ row }) => <Money value={row.original.currentValue} className="font-medium" />,
-        footer: () => <Money value={catalogTotal} className="font-semibold" />,
-        meta: { align: "right" },
-      },
-      {
-        id: "actions",
-        enableSorting: false,
-        header: () => <span className="sr-only">{t.common.actions}</span>,
-        cell: ({ row }) => <RowActions label={t.common.actionsFor({ name: row.original.name })} actions={actionsFor(row.original, false)} />,
-        meta: { className: "w-12" },
-      },
-    ],
-    [actionsFor, catalogTotal, m, t.common],
-  );
+  const migrate = () => {
+    const out = migrateLegacyHoldings({ assets: legacy, catalog: assets, goals, incomeSources });
+    // All four tables go out in the same sync.
+    setAssets(() => out.catalog);
+    setGoals(() => out.goals);
+    setIncomeSources(() => out.incomeSources);
+    setLegacy(() => out.assets);
+    toast.success(t.wealth.migrate.done({ count: legacyCount }));
+  };
 
   return (
     <TabContent>
       <TabToolbar
         actions={
-        <Button onClick={openCreate}>
-          <Plus />
-          {m.addAsset}
-        </Button>
+          <Button onClick={openCreate}>
+            <Plus />
+            {m.addAsset}
+          </Button>
         }
-      />
+      >
+        {assets.length > 5 ? (
+          <div className="relative max-w-xs">
+            <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={m.list.searchPlaceholder} aria-label={m.list.searchPlaceholder} className="pl-8" />
+          </div>
+        ) : null}
+      </TabToolbar>
 
-      <StatGrid>
-        <StatCard label={m.kpi.total.label} icon={Landmark} value={<Money value={grossTotal} compact />} hint={m.kpi.total.hint({ count: assets.length })} />
-        <StatCard label={m.kpi.instant.label} icon={Zap} value={<Money value={instantTotal} compact />} hint={m.kpi.instant.hint} />
-        <StatCard label={m.kpi.notInstant.label} icon={Clock} value={<Money value={catalogTotal - instantTotal} compact />} hint={m.kpi.notInstant.hint} />
-        <StatCard label={m.kpi.categories.label} value={new Set(assets.map((a) => a.category.trim())).size} hint={m.kpi.categories.hint({ count: categoryOptions.length })} />
-      </StatGrid>
+      {legacyCount > 0 ? (
+        <Callout tone="info" title={t.wealth.migrate.title({ count: legacyCount })} icon={History}>
+          <p>{t.wealth.migrate.body}</p>
+          <Button size="sm" className="mt-2" onClick={migrate}>
+            {t.wealth.migrate.action}
+          </Button>
+        </Callout>
+      ) : null}
 
-      <Section title={m.list.title} description={m.list.description} flush>
-        <div className="border-b px-5 py-3">
-          <DataTableToolbar search={search} onSearchChange={setSearch} placeholder={m.list.searchPlaceholder} />
-        </div>
-        <DataTable
-          columns={columns}
-          data={visible}
-          getRowId={(a) => a.id}
-          getRowLabel={(a) => a.name}
-          manualSorting
-          sorting={sorting}
-          onSortingChange={(updater) => {
-            const next = typeof updater === "function" ? updater(sorting) : updater;
-            const first = next[0];
-            setSort(first ? { key: COLUMN_TO_KEY[first.id], dir: first.desc ? "desc" : "asc" } : null);
-          }}
-          reorder={{
-            enabled: !search.trim(),
-            disabledReason: m.list.reorderDisabled,
-            onReorder: reorder,
-          }}
-          onRowClick={openEdit}
-          empty={
-            assets.length === 0 ? (
-              <EmptyState
-                icon={Landmark}
-                title={m.list.emptyTitle}
-                description={m.list.emptyDescription}
-                action={
-                  <Button variant="outline" onClick={openCreate}>
-                    <Plus />
-                    {m.addAsset}
-                  </Button>
-                }
+      {assets.length === 0 && legacyCount === 0 ? (
+        <Card className="gap-0 py-0">
+          <EmptyState
+            illustrated
+            title={m.list.emptyTitle}
+            description={m.list.emptyDescription}
+            action={
+              <Button onClick={openCreate}>
+                <Plus />
+                {m.addAsset}
+              </Button>
+            }
+          />
+        </Card>
+      ) : (
+        <>
+          <div className="grid gap-4 md:gap-6 xl:grid-cols-5">
+            <StatGrid className="grid-cols-2 xl:col-span-2 xl:grid-cols-1">
+              <StatCard label={m.kpi.instant.label} icon={Zap} value={<Money value={instant} compact />} hint={m.kpi.instant.hint} />
+              <StatCard label={m.kpi.notInstant.label} icon={Clock} value={<Money value={Math.max(0, total - instant)} compact />} hint={m.kpi.notInstant.hint} />
+            </StatGrid>
+            <Section title={w.byCategory} className="xl:col-span-3">
+              <BarList
+                items={byCategory.slice(0, 6).map((c) => ({
+                  key: c.category,
+                  label: (
+                    <span className="flex items-center gap-2">
+                      <span aria-hidden>{resolveAssetCategoryEmoji(c.category)}</span>
+                      {assetCategoryLabel(c.category)}
+                    </span>
+                  ),
+                  value: c.value,
+                  valueLabel: <Money value={c.value} compact interactive={false} />,
+                  share: total > 0 ? c.value / total : 0,
+                }))}
               />
-            ) : (
-              <EmptyState title={m.list.noMatch} />
-            )
-          }
-          renderMobileItem={(a) => (
-            <div className="flex items-center gap-3 px-4 py-3">
-              <button type="button" className="min-w-0 flex-1 text-left" onClick={() => openEdit(a)}>
-                <p className="truncate font-medium">{a.name}</p>
-                <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                  <CategoryBadge category={a.category} />
-                  <LiquidityBadge liquidity={a.liquidity} />
-                </div>
-              </button>
-              <Money value={a.currentValue} className="text-sm font-medium" />
-              <RowActions label={t.common.actionsFor({ name: a.name })} actions={actionsFor(a, true)} />
-            </div>
-          )}
-        />
-      </Section>
+            </Section>
+          </div>
 
-      <LegacyHoldings assets={legacy} />
+          {stale > 0 ? <p className="px-1 text-sm text-muted-foreground">{w.stale({ count: stale })}</p> : null}
+
+          {visible.length === 0 && search ? <p className="px-1 text-sm text-muted-foreground">{m.list.noMatch}</p> : null}
+          <div className="grid gap-5">
+            {groups.map((g) => (
+              <ListGroup
+                key={g.category}
+                title={
+                  <span className="flex items-center gap-2">
+                    <span aria-hidden>{resolveAssetCategoryEmoji(g.category)}</span>
+                    {assetCategoryLabel(g.category)}
+                  </span>
+                }
+                aside={<Money value={g.total} compact interactive={false} />}
+              >
+                {g.items.map((a) => {
+                  const days = daysSince(a.updatedAt);
+                  const isStale = days === null || days > STALE_DAYS;
+                  return (
+                    <ListRow
+                      key={a.id}
+                      leading={<EmojiTile emoji={resolveAssetCategoryEmoji(a.category)} />}
+                      title={a.name}
+                      subtitle={
+                        <span className="flex flex-wrap items-center gap-1.5">
+                          <LiquidityBadge liquidity={a.liquidity} />
+                          <span className={isStale ? "text-warning" : undefined}>
+                            {a.updatedAt ? w.updatedAgo({ ago: formatRelative(new Date(`${a.updatedAt}T12:00:00`)) }) : w.neverUpdated}
+                          </span>
+                        </span>
+                      }
+                      trailing={<Money value={a.currentValue} compact interactive={false} />}
+                      onClick={() => openEdit(a)}
+                      label={a.name}
+                      actions={
+                        <>
+                          <Button variant="ghost" size="icon-sm" aria-label={`${w.updateValue}: ${a.name}`} onClick={() => setUpdating(a)} className="text-muted-foreground">
+                            <RefreshCw />
+                          </Button>
+                          <RowActions label={t.common.actionsFor({ name: a.name })} actions={actionsFor(a)} />
+                        </>
+                      }
+                    />
+                  );
+                })}
+              </ListGroup>
+            ))}
+          </div>
+        </>
+      )}
+
+      <AmountSheet
+        open={updating !== null}
+        onOpenChange={(o) => !o && setUpdating(null)}
+        title={updating ? w.updateTitle({ name: updating.name }) : ""}
+        initial={updating?.currentValue ?? 0}
+        allowZero
+        amountLabel={m.form.currentValue}
+        confirmLabel={w.updateConfirm}
+        onConfirm={(value) => {
+          if (!updating) return;
+          const id = updating.id;
+          setAssets((prev) => prev.map((a) => (a.id === id ? { ...a, currentValue: value, updatedAt: todayIso() } : a)));
+          toast.success(w.updated);
+        }}
+      />
 
       <AssetFormDialog
         open={dialogOpen}
@@ -254,14 +269,16 @@ export function AssetsPage() {
         asset={dialog?.asset ?? null}
         categoryOptions={categoryOptions}
         onSubmit={(draft) => {
-          const next = sanitizeSettingsAsset(draft);
+          const prev = assets.find((a) => a.id === draft.id);
+          const valueChanged = !prev || prev.currentValue !== draft.currentValue;
+          const next = { ...sanitizeSettingsAsset(draft), updatedAt: valueChanged ? todayIso() : prev?.updatedAt };
           const custom = customCategoryToRegister(next.category);
           if (custom) setPrefs((p) => registerExtraAssetCategory(p, custom));
           if (dialog?.mode === "edit") {
-            setAssets((prev) => prev.map((a) => (a.id === next.id ? next : a)));
+            setAssets((all) => all.map((a) => (a.id === next.id ? next : a)));
             toast.success(m.toast.updated);
           } else {
-            setAssets((prev) => [...prev, next]);
+            setAssets((all) => [...all, next]);
             toast.success(m.toast.added);
           }
         }}
@@ -273,14 +290,14 @@ export function AssetsPage() {
         title={m.confirmDelete.title}
         confirmLabel={t.common.delete}
         cancelLabel={t.common.cancel}
-        description={
-          pendingDelete ? m.confirmDelete.description({ name: pendingDelete.name }) : null
-        }
+        destructive
+        description={pendingDelete ? m.confirmDelete.description({ name: pendingDelete.name }) : null}
         onConfirm={() => {
           if (!pendingDelete) return;
           const removed = pendingDelete;
-          setAssets((prev) => prev.filter((a) => a.id !== removed.id));
-          toast.success(m.toast.deleted, { description: removed.name });
+          const before = assets;
+          setAssets((all) => all.filter((a) => a.id !== removed.id));
+          toast.success(m.toast.deleted, { description: removed.name, action: { label: t.common.undo, onClick: () => setAssets(() => before) } });
         }}
       />
     </TabContent>

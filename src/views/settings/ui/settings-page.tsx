@@ -14,6 +14,8 @@ import { formatRelative, formatTime } from "@/shared/lib/format";
 import { useLastSyncedAt, useTable } from "@/shared/storage";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Button } from "@/shared/ui/kit/button";
+import { Label } from "@/shared/ui/kit/label";
+import { Switch } from "@/shared/ui/kit/switch";
 import { PageHeader } from "@/shared/ui/page-header";
 import { Section } from "@/shared/ui/section";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
@@ -55,6 +57,25 @@ export function SettingsPage() {
               toast.success(s.milestone.saved);
             }}
           />
+        </Section>
+      </div>
+
+      <div id="calculation" className="scroll-mt-20">
+        <Section title={s.calculation.title} description={s.calculation.description}>
+          <div className="flex items-start justify-between gap-4">
+            <div className="grid gap-1">
+              <Label htmlFor="loans-in-net-worth">{t.loans.netWorth.label}</Label>
+              <p className="text-sm text-muted-foreground">{t.loans.netWorth.description}</p>
+            </div>
+            <Switch
+              id="loans-in-net-worth"
+              checked={prefs.includeLoansInNetWorth === true}
+              onCheckedChange={(on) => {
+                setPrefs((p) => ({ ...p, includeLoansInNetWorth: on }));
+                toast.success(on ? t.loans.netWorth.on : t.loans.netWorth.off);
+              }}
+            />
+          </div>
         </Section>
       </div>
 

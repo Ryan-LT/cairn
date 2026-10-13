@@ -2,6 +2,10 @@ import type { Messages } from "../en";
 
 export const settings: Messages["settings"] = {
   description: "Mục tiêu cột mốc, giao diện, đồng bộ dữ liệu, mật khẩu và phiên đăng nhập.",
+  calculation: {
+    title: "Cách tính",
+    description: "Những lựa chọn ảnh hưởng tới tài sản ròng và dự phóng.",
+  },
   milestone: {
     title: "Mục tiêu cột mốc",
     description:

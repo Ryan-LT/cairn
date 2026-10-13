@@ -3,7 +3,6 @@ export { totalDebtBalance } from "@/entities/debt/lib/totals";
 export {
   createDebtDraft,
   debtPayoff,
-  describeDebtPayment,
   isValidDayOfMonth,
   monthlyInterest,
   sanitizeDebt,
@@ -11,3 +10,4 @@ export {
   weightedAverageRate,
   type DebtPayoff,
 } from "@/entities/debt/lib/debt";
+export { avalancheTarget, extraPaymentImpact, suggestedExtraPayment, type ExtraPaymentImpact } from "@/entities/debt/lib/extra-payment";
