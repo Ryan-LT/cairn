@@ -4,6 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useSyncExternalStore, 
 
 import { useAppPathname } from "@/shared/lib/use-app-pathname";
 import { PREFERENCES_SEED, type Preferences } from "@/entities/preferences";
+import { ExplainLayer } from "@/features/explain";
 import { useFollowAccountLanguage } from "@/features/switch-language";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
@@ -74,6 +75,7 @@ function AppShellFrame({ authEnabled, children }: AppShellProps) {
         </SidebarInset>
         <MobileTabBar />
         <AssistDock />
+        <ExplainLayer />
         {/* Reads and edits records, so it waits for real data like the pages. */}
         {dataState === "ready" ? <CommandMenu /> : null}
         <NavigationEffects />
