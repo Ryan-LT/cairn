@@ -11,6 +11,7 @@ export {
   estimatedMonthlyNetCashflow,
   netWorthTrackingUnchanged,
   fractionalMonthsUntilYearEnd,
+  legacySpendingEstimate,
   monthCalendarKey,
   monthToDateNetWorthChangePercent,
   projectNetWorthEndOfYear,

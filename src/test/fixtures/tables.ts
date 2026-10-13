@@ -1,5 +1,6 @@
 import type { AssetsState } from "@/entities/asset";
 import type { Debt } from "@/entities/debt";
+import type { ExpenseLogDoc, ExpensesDoc } from "@/entities/expense";
 import type { GoalProfile, GoalsState } from "@/entities/goal";
 import type { IncomeSource } from "@/entities/income";
 import type { PersonalLoan } from "@/entities/personal-loan";
@@ -136,3 +137,30 @@ export const fixtureLoans: PersonalLoan[] = [
   { id: "loan-2-b", person: "An", amount: 2_000_000, direction: "borrowed", date: "2026-04-10", status: "open", note: "Lunch" },
   { id: "loan-3-c", person: "Binh", amount: 1_000_000, direction: "lent_out", status: "settled" },
 ];
+
+/** Bills and budgets: 23,2tr/month live (7tr of it the car-loan payment linked to d1). */
+export const fixtureExpenses: ExpensesDoc = {
+  items: [
+    { id: "e1", name: "Electricity", category: "utilities", kind: "bill", amount: 1_200_000, frequency: "monthly", dueDay: 15, createdAt: "2026-01-01" },
+    { id: "e2", name: "Rent", category: "housing", kind: "bill", amount: 8_000_000, frequency: "monthly", dueDay: 5, autopay: true, createdAt: "2026-01-01" },
+    { id: "e3", name: "Groceries", category: "food", kind: "budget", amount: 6_000_000, frequency: "monthly", createdAt: "2026-01-01" },
+    { id: "e4", name: "Insurance", category: "insurance", kind: "bill", amount: 12_000_000, frequency: "yearly", dueMonth: 3, dueDay: 10, createdAt: "2026-01-01" },
+    { id: "e5", name: "Car loan", category: "debt", kind: "bill", amount: 7_000_000, frequency: "monthly", debtId: "d1", createdAt: "2026-01-01" },
+    { id: "e6", name: "Streaming", category: "subscriptions", kind: "bill", amount: 260_000, frequency: "monthly", paused: true, createdAt: "2026-01-01" },
+    { id: "e7", name: "Gym", category: "health", kind: "bill", amount: 700_000, frequency: "monthly", dueDay: 1, archivedAt: "2026-05-01", createdAt: "2026-01-01" },
+  ],
+};
+
+export const fixtureExpenseLog: ExpenseLogDoc = {
+  months: {
+    "2026-09": {
+      e1: { payments: [{ amount: 1_450_000, date: "2026-09-14" }], planned: 1_200_000 },
+      e3: { spent: 6_500_000, planned: 6_000_000 },
+      e5: { payments: [{ amount: 7_000_000, date: "2026-09-15" }] },
+    },
+    "2026-10": {
+      e1: { payments: [{ amount: 1_300_000, date: "2026-10-12" }] },
+      e3: { spent: 2_000_000 },
+    },
+  },
+};

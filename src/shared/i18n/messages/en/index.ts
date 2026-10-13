@@ -9,6 +9,7 @@ import { goals } from "./goals";
 import { allocations } from "./allocations";
 import { assets } from "./assets";
 import { income } from "./income";
+import { expenses } from "./expenses";
 import { debts } from "./debts";
 import { loans } from "./loans";
 import { settings } from "./settings";
@@ -26,6 +27,7 @@ export const en = {
   allocations,
   assets,
   income,
+  expenses,
   debts,
   loans,
   settings,

@@ -137,6 +137,20 @@ describe("financial health", () => {
     expect(h.yearsToFi).toBeCloseTo((6_000_000_000 - 270_000_000) / 15_000_000 / 12, 6);
   });
 
+  it("leaves debt repayments out of the FI number but not the emergency runway", () => {
+    const expenses = {
+      items: [
+        { id: "l", name: "Loan", category: "debt" as const, kind: "bill" as const, amount: 4_000_000, frequency: "monthly" as const, debtId: debts[0].id, createdAt: "2026-01-01" },
+      ],
+    };
+    const s2 = computeDashboardSummary({ assets: ASSETS_SEED, debts, settingsAssets: catalog, incomeSources: income, prefs, expenses });
+    const h2 = computeFinancialHealth({ summary: s2, assets: ASSETS_SEED, settingsAssets: catalog, debts, annualRealRate: 0 });
+    expect(s2.averageSpending).toBe(24_000_000);
+    expect(h2.emergencyMonths).toBe(2.5);
+    expect(h2.fiNumber).toBe(20_000_000 * 12 * 25);
+    expect(h2.passiveCoverage).toBeCloseTo(0.25, 10);
+  });
+
   it("nulls without spending", () => {
     const s0 = computeDashboardSummary({ assets: ASSETS_SEED, debts: [], settingsAssets: [], incomeSources: [], prefs: PREFERENCES_SEED });
     const h0 = computeFinancialHealth({ summary: s0, assets: ASSETS_SEED, settingsAssets: [], debts: [] });

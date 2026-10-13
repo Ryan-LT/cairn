@@ -17,7 +17,7 @@ import {
   totalCapitalAmount,
   type IncomeSource,
 } from "@/entities/income";
-import { summarizeCashflow } from "@/entities/portfolio";
+import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
 import { applyAverageMonthlySpending, PREFERENCES_SEED } from "@/entities/preferences";
 import { SETTINGS_ASSETS_SEED } from "@/entities/settings-asset";
 import { useI18n, type Messages } from "@/shared/i18n";
@@ -59,7 +59,7 @@ function paymentLabel(t: Messages, s: IncomeSource): string {
 export function IncomePage() {
   const { t } = useI18n();
   const [sources, setSources] = useTable("incomeSources", INCOME_SOURCES_SEED);
-  const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
+  const [, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   const [assets] = useTable<AssetsState>("assets", ASSETS_SEED);
   const [settingsAssets] = useTable("settingsAssets", SETTINGS_ASSETS_SEED);
 
@@ -67,7 +67,7 @@ export function IncomePage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<IncomeSource | null>(null);
 
-  const cash = summarizeCashflow(prefs, sources);
+  const cash = useHouseholdCashflow();
   const seedOptions = useMemo(() => buildGoalStartingOptions(assets, settingsAssets), [assets, settingsAssets]);
   const peers = useMemo(() => (dialog ? incomeCapitalPeers(sources, dialog.source.id) : []), [sources, dialog]);
 

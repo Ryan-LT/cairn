@@ -55,6 +55,7 @@ export const domain = {
     bandCustom: "Custom model",
   },
   startingOptions: {
+    customLine: "Custom amount",
     none: "No starting balance (0 ₫)",
     realEstate: (p: { name: string }) => `Real estate — ${p.name}`,
     cash: (p: { name: string }) => `Cash — ${p.name}`,

@@ -195,7 +195,7 @@ export function labelForSeedLine(
   line: GoalSeedLine,
   options: GoalStartingOption[],
 ): string {
-  if (line.sourceKey === "custom") return "Custom amount";
+  if (line.sourceKey === "custom") return activeMessages().domain.startingOptions.customLine;
   return options.find((o) => o.key === line.sourceKey)?.label ?? line.sourceKey;
 }
 

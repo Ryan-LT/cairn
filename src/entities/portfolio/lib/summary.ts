@@ -5,10 +5,11 @@ import {
   totalMonthlyIncomeFromSources,
   type IncomeSource,
 } from "@/entities/income";
+import { EXPENSES_SEED, resolveMonthlySpending, type ExpensesDoc, type SpendingResolution } from "@/entities/expense";
 import {
   estimatedMonthlyNetCashflow,
+  legacySpendingEstimate,
   projectNetWorthEndOfYear,
-  resolveAverageMonthlySpending,
   type Preferences,
 } from "@/entities/preferences";
 import type { PersonalLoan } from "@/entities/personal-loan";
@@ -20,22 +21,31 @@ export type CashflowSummary = {
   totalIncome: number;
   activeIncome: number;
   passiveIncome: number;
+  /** Monthly spending used by every projection (= `spending.total`). */
   averageSpending: number;
-  /** Household monthly net used by every projection. */
+  /** Household monthly net used by every projection: income − spending. */
   monthlyNet: number;
+  /** How spending is made up (items, debt repayments, the old estimate). */
+  spending: SpendingResolution;
 };
 
-export function summarizeCashflow(
-  prefs: Preferences,
-  sources: IncomeSource[],
-): CashflowSummary {
+export type CashflowInput = {
+  prefs: Preferences;
+  sources: IncomeSource[];
+  expenses?: ExpensesDoc;
+  debts?: Debt[];
+};
+
+export function summarizeCashflow({ prefs, sources, expenses = EXPENSES_SEED, debts = [] }: CashflowInput): CashflowSummary {
   const totalIncome = totalMonthlyIncomeFromSources(sources);
+  const spending = resolveMonthlySpending({ expenses, debts, legacyEstimate: legacySpendingEstimate(prefs) });
   return {
     totalIncome,
     activeIncome: monthlyIncomeByKind(sources, "active"),
     passiveIncome: monthlyIncomeByKind(sources, "passive"),
-    averageSpending: resolveAverageMonthlySpending(prefs),
-    monthlyNet: estimatedMonthlyNetCashflow(prefs, totalIncome),
+    averageSpending: spending.total,
+    monthlyNet: estimatedMonthlyNetCashflow(totalIncome, spending.total),
+    spending,
   };
 }
 
@@ -60,18 +70,19 @@ export function computeDashboardSummary(t: {
   incomeSources: IncomeSource[];
   prefs: Preferences;
   personalLoans?: PersonalLoan[];
+  expenses?: ExpensesDoc;
 }): DashboardSummary {
   const loans = t.prefs.includeLoansInNetWorth ? personalLoanBalances(t.personalLoans) : { lent: 0, borrowed: 0 };
   const grossAssets = totalCombinedAssetValue(t.assets, t.settingsAssets) + loans.lent;
   const liabilities = totalDebtBalance(t.debts) + loans.borrowed;
   const netWorth = grossAssets - liabilities;
-  const cashflow = summarizeCashflow(t.prefs, t.incomeSources);
+  const cashflow = summarizeCashflow({ prefs: t.prefs, sources: t.incomeSources, expenses: t.expenses, debts: t.debts });
   return {
     ...cashflow,
     grossAssets,
     liabilities,
     netWorth,
-    eoyProjection: projectNetWorthEndOfYear(netWorth, t.prefs, cashflow.totalIncome),
+    eoyProjection: projectNetWorthEndOfYear(netWorth, cashflow.monthlyNet, { principalMonthly: cashflow.spending.debtPrincipal }),
     portfolioDetailTotal: totalAssetValue(t.assets),
     assetConfigurationTotal: totalSettingsAssetsValue(t.settingsAssets),
     loansLent: loans.lent,

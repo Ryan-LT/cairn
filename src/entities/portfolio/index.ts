@@ -15,6 +15,7 @@ export { computeNetWorth, personalLoanBalances, totalCombinedAssetValue } from "
 export {
   computeDashboardSummary,
   summarizeCashflow,
+  type CashflowInput,
   type CashflowSummary,
   type DashboardSummary,
 } from "@/entities/portfolio/lib/summary";

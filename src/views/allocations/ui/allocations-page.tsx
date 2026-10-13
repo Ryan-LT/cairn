@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
-import { GOALS_SEED } from "@/entities/goal";
+import { GOALS_SEED, resolveMonthlyShares } from "@/entities/goal";
 import { INCOME_SOURCES_SEED } from "@/entities/income";
-import { buildAllocationReportForTables, filterAllocationRowsByBand, summarizeCashflow } from "@/entities/portfolio";
+import { buildAllocationReportForTables, filterAllocationRowsByBand } from "@/entities/portfolio";
+import { useHouseholdCashflow } from "@/entities/portfolio/model/use-household-cashflow";
 import {
   ALLOCATIONS_BAND_FILTERS,
   PREFERENCES_SEED,
@@ -46,7 +47,8 @@ export function AllocationsPage() {
     () => buildAllocationReportForTables({ goals, assets, settingsAssets, incomeSources }),
     [goals, assets, settingsAssets, incomeSources],
   );
-  const cash = summarizeCashflow(prefs, incomeSources);
+  const cash = useHouseholdCashflow();
+  const shares = useMemo(() => resolveMonthlyShares(goals.profiles), [goals.profiles]);
   const band = resolveAllocationsBandFilter(prefs);
   const sort = useMemo(() => normalizeMatrixColumnSort(prefs.allocationsMatrixColumnSort), [prefs.allocationsMatrixColumnSort]);
   const rows = useMemo(
@@ -118,7 +120,7 @@ export function AllocationsPage() {
                   <TableCell className="max-sm:hidden">
                     {p.usesMonthlyIncome ? (
                       <StatusBadge tone="success" dot>
-                        {m.plans.incomeOn} <Money value={cash.monthlyNet} compact signed />
+                        {m.plans.incomeOn} <Money value={cash.monthlyNet * (shares.byPlan.get(p.id) ?? 0)} compact signed />
                         {m.plans.perMonthShort}
                       </StatusBadge>
                     ) : (

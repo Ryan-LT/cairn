@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 
 import { ASSETS_SEED, type AssetsState } from "@/entities/asset";
 import { DEBTS_SEED } from "@/entities/debt";
+import { useExpenses } from "@/entities/expense/api/use-expenses";
 import { buildGoalPlanSummaries, buildGoalStartingOptions, GOALS_SEED } from "@/entities/goal";
 import { INCOME_SOURCES_SEED } from "@/entities/income";
 import { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
@@ -50,12 +51,13 @@ export function DashboardPage() {
   const [goals, setGoals] = useTable("goals", GOALS_SEED);
   const [prefs, setPrefs] = useTable("preferences", PREFERENCES_SEED);
   const [personalLoans] = useTable<PersonalLoan[]>("personalLoans", PERSONAL_LOANS_SEED);
+  const { expenses } = useExpenses();
   const milestoneConfig = useMilestoneConfig();
   const annualRealRate = milestoneConfig.config?.annualRealRate ?? 0;
 
   const summary = useMemo(
-    () => computeDashboardSummary({ assets, debts, settingsAssets, incomeSources, prefs, personalLoans }),
-    [assets, debts, settingsAssets, incomeSources, prefs, personalLoans],
+    () => computeDashboardSummary({ assets, debts, settingsAssets, incomeSources, prefs, personalLoans, expenses }),
+    [assets, debts, settingsAssets, incomeSources, prefs, personalLoans, expenses],
   );
   const health = useMemo(
     () => computeFinancialHealth({ summary, assets, settingsAssets, debts, annualRealRate }),

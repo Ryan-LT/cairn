@@ -54,6 +54,7 @@ export const domain: Messages["domain"] = {
     bandCustom: "Tự nhập",
   },
   startingOptions: {
+    customLine: "Khoản tự nhập",
     none: "Không có số dư ban đầu (0 ₫)",
     realEstate: (p) => `Bất động sản — ${p.name}`,
     cash: (p) => `Tiền mặt — ${p.name}`,
