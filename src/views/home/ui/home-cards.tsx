@@ -3,6 +3,7 @@
 import { ArrowRight, CheckCheck, ChevronRight, LifeBuoy, PiggyBank, Plus, Receipt, Scale, Sunrise, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { addMonths } from "date-fns";
 
 import type { BillLine, MonthView } from "@/entities/expense";
 import type { GoalPlanWithStatus } from "@/entities/goal";
@@ -13,6 +14,7 @@ import { buildNetWorthTrend } from "@/entities/preferences";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { formatDate, formatMoneyCompact, formatMonths, formatNumber, formatPercent } from "@/shared/lib/format";
+import { monthsToReach } from "@/shared/lib/growth";
 import type { StatusTone } from "@/shared/lib/tone";
 import { AnimatedMoney } from "@/shared/ui/animated-money";
 import { Sparkline } from "@/shared/ui/chart";
@@ -98,6 +100,9 @@ export function NetWorthHero({
           <StatusBadge tone={mtdPct >= 0 ? "success" : "danger"}>
             {formatPercent(mtdPct, { signDisplay: "exceptZero", maximumFractionDigits: 1 })} {h.thisMonthChange}
           </StatusBadge>
+        ) : values.length < 2 ? (
+          // Says when the trend line arrives, in the corner that's otherwise empty.
+          <p className="text-right text-xs text-muted-foreground">{h.trendSoon}</p>
         ) : null}
       </div>
       <p className="text-hero font-semibold **:normal-nums">
@@ -187,7 +192,7 @@ export function DueBills({
 }) {
   const { t } = useI18n();
   const h = t.home.due;
-  const later = upcoming.slice(0, Math.max(0, 4 - lines.length));
+  const later = upcoming.slice(0, Math.max(0, 3 - lines.length));
   // A card like its neighbours (title inside), so a row of cards shares one top and bottom edge.
   return (
     <Card className={cn("gap-0 py-0", className)}>
@@ -215,26 +220,26 @@ export function DueBills({
         </section>
       ) : null}
       {!lines.length && !later.length ? (
-        // Icon beside the text on phones, stacked and centred where the card has room.
-        <div className="flex flex-1 items-start gap-3 border-t px-4 py-4 sm:flex-col sm:items-center sm:justify-center sm:gap-2 sm:px-6 sm:py-6 sm:text-center">
+        // One compact row, so a quiet card never makes its row taller.
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-t px-4 py-4">
           <span
             className={cn("flex size-10 shrink-0 items-center justify-center rounded-full", hasBills ? "bg-success/12 text-success" : "bg-primary-soft text-primary")}
             aria-hidden
           >
             {hasBills ? <CheckCheck className="size-5" /> : <Receipt className="size-5" />}
           </span>
-          <div className="grid min-w-0 justify-items-start gap-1 sm:justify-items-center">
+          <div className="grid min-w-0 flex-1 basis-48 gap-0.5">
             <p className="text-sm font-medium">{!hasBills ? h.noBills : billsCount ? h.allPaid({ done: billsDone, total: billsCount }) : h.empty}</p>
-            <p className="max-w-sm text-xs text-muted-foreground">{hasBills ? h.allPaidHint : h.noBillsHint}</p>
-            {hasBills ? null : (
-              <Button asChild size="sm" variant="outline" className="mt-2">
-                <Link href="/cashflow/spending?new=1">
-                  <Plus />
-                  {h.addBill}
-                </Link>
-              </Button>
-            )}
+            <p className="text-xs text-muted-foreground">{hasBills ? h.allPaidHint : h.noBillsHint}</p>
           </div>
+          {hasBills ? null : (
+            <Button asChild size="sm" variant="outline" className="max-sm:ml-14">
+              <Link href="/cashflow/spending?new=1">
+                <Plus />
+                {h.addBill}
+              </Link>
+            </Button>
+          )}
         </div>
       ) : null}
     </Card>
@@ -277,6 +282,25 @@ function GoalButton({ plan: p, onOpen, size }: { plan: GoalPlanWithStatus; onOpe
   );
 }
 
+/** A goal without a date: what's still needed, and when today's saving gets there. */
+function UndatedGoalStats({ plan: p, stat }: { plan: GoalPlanWithStatus; stat: (label: string, value: ReactNode, sub?: ReactNode) => ReactNode }) {
+  const { t } = useI18n();
+  const h = t.home.goals;
+  const left = Math.max(0, p.targetAmount - p.saved);
+  const months = monthsToReach(p.saved, p.status.monthlyContribution, p.targetAmount, Math.max(0, p.expectedReturnPct) / 100);
+  const reach = left <= 0 || !Number.isFinite(months) ? null : addMonths(new Date(), Math.ceil(months));
+  return (
+    <>
+      {stat(h.stillNeeded, <Money value={left} compact interactive={false} />)}
+      {stat(
+        h.reachBy,
+        left <= 0 ? "—" : reach ? formatDate(reach, "monthYear") : "—",
+        left <= 0 ? null : reach ? h.monthsLeft({ months: formatMonths(Math.max(1, Math.ceil(months))) }) : h.noSaving,
+      )}
+    </>
+  );
+}
+
 /** Goal plans with progress rings and their status; a single plan gets its numbers spelled out. */
 export function GoalsGlance({ plans, onOpen, className }: { plans: GoalPlanWithStatus[]; onOpen: (id: string) => void; className?: string }) {
   const { t } = useI18n();
@@ -307,11 +331,17 @@ export function GoalsGlance({ plans, onOpen, className }: { plans: GoalPlanWithS
           <GoalButton plan={only} onOpen={onOpen} size="lg" />
           <dl className="grid gap-1.5 sm:grid-cols-3 sm:gap-2" data-private>
             {stat(h.contributing, <Money value={only.status.monthlyContribution} compact interactive={false} />)}
-            {stat(h.needed, only.status.requiredMonthly === null ? "—" : <Money value={only.status.requiredMonthly} compact interactive={false} />)}
-            {stat(
-              h.deadline,
-              only.targetDate ? formatDate(only.targetDate, "monthYear") : "—",
-              only.targetDate && only.status.monthsLeft > 0 ? h.monthsLeft({ months: formatMonths(Math.max(1, Math.round(only.status.monthsLeft))) }) : null,
+            {only.targetDate ? (
+              <>
+                {stat(h.needed, only.status.requiredMonthly === null ? "—" : <Money value={only.status.requiredMonthly} compact interactive={false} />)}
+                {stat(
+                  h.deadline,
+                  formatDate(only.targetDate, "monthYear"),
+                  only.status.monthsLeft > 0 ? h.monthsLeft({ months: formatMonths(Math.max(1, Math.round(only.status.monthsLeft))) }) : null,
+                )}
+              </>
+            ) : (
+              <UndatedGoalStats plan={only} stat={stat} />
             )}
           </dl>
         </div>

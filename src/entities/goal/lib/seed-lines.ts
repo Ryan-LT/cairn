@@ -9,6 +9,7 @@ export function migrateLegacySeedsToLines(profile: GoalProfile): GoalSeedLine[] 
       id: l.id || `seed-${Math.random().toString(36).slice(2, 11)}`,
       sourceKey: l.sourceKey,
       amount: typeof l.amount === "number" ? l.amount : 0,
+      ...(l.allIn === true && l.sourceKey !== "custom" && l.sourceKey !== "none" ? { allIn: true } : {}),
     }));
   }
   const key = profile.seedSourceKey ?? "none";
@@ -55,10 +56,54 @@ export function liveBalanceForSourceKey(
   return Math.max(0, opt.amount);
 }
 
+/** One plan's line on a keyed source, in plan order (the draft takes its saved plan's place). */
+type SourceClaim = { planId: string; planName: string; isDraft: boolean; line: GoalSeedLine };
+
+function claimsOnSource(sourceKey: string, savedPlans: GoalProfile[], draft: GoalProfile): SourceClaim[] {
+  const plans = savedPlans.some((p) => p.id === draft.id) ? savedPlans.map((p) => (p.id === draft.id ? draft : p)) : [...savedPlans, draft];
+  const out: SourceClaim[] = [];
+  for (const plan of plans) {
+    const isDraft = plan === draft;
+    const name = plan.name?.trim() || (isDraft ? activeMessages().domain.fallbacks.thisPlan : activeMessages().domain.fallbacks.untitledPlan);
+    for (const line of plan.seedLines ?? []) {
+      if (line.sourceKey === sourceKey) out.push({ planId: plan.id, planName: name, isDraft, line });
+    }
+  }
+  return out;
+}
+
 /**
- * Sum of stored `amount` for `sourceKey` across all saved plans, except the
+ * The line taking everything left in `sourceKey`: the first all-in line in plan
+ * order. Any later all-in line on the same source counts as a fixed amount.
+ */
+function allInHolder(claims: SourceClaim[]): SourceClaim | undefined {
+  return claims.find((c) => c.line.allIn === true);
+}
+
+/** `line` is the claim's line (ids alone can repeat across plans, e.g. migrated seeds). */
+function isSameLine(claim: SourceClaim, line: GoalSeedLine): boolean {
+  return claim.line === line || (claim.isDraft && claim.line.id === line.id);
+}
+
+/** Whether `line` (of `draft` or a saved plan) is the one taking everything left in its source. */
+export function isAllInHolder(line: GoalSeedLine, savedPlans: GoalProfile[], draft: GoalProfile): boolean {
+  if (line.allIn !== true || line.sourceKey === "custom" || line.sourceKey === "none") return false;
+  const holder = allInHolder(claimsOnSource(line.sourceKey, savedPlans, draft));
+  return holder ? isSameLine(holder, line) : false;
+}
+
+/** The other plan (not the draft) holding `sourceKey` all-in, if any. */
+export function allInPlanElsewhere(sourceKey: string, savedPlans: GoalProfile[], draft: GoalProfile): { planId: string; planName: string } | null {
+  if (sourceKey === "none" || sourceKey === "custom") return null;
+  const holder = allInHolder(claimsOnSource(sourceKey, savedPlans, draft));
+  return holder && !holder.isDraft ? { planId: holder.planId, planName: holder.planName } : null;
+}
+
+/**
+ * Sum of fixed `amount`s reserved from `sourceKey` across all saved plans, except the
  * active plan uses `draft.seedLines`. The line `excludeLineId` (if any) is
- * omitted so capacity for that row can be computed.
+ * omitted so capacity for that row can be computed. The all-in line reserves
+ * no fixed amount (it takes what is left).
  */
 export function allocatedFromSourceKeyAcrossPlans(
   sourceKey: string,
@@ -67,18 +112,13 @@ export function allocatedFromSourceKeyAcrossPlans(
   excludeLineId: string | undefined,
 ): number {
   if (sourceKey === "none" || sourceKey === "custom") return 0;
+  const claims = claimsOnSource(sourceKey, savedPlans, draft);
+  const holder = allInHolder(claims);
   let sum = 0;
-  for (const plan of savedPlans) {
-    if (plan.id === draft.id) continue;
-    for (const l of plan.seedLines ?? []) {
-      if (l.sourceKey !== sourceKey) continue;
-      sum += Math.max(0, l.amount);
-    }
-  }
-  for (const l of draft.seedLines ?? []) {
-    if (l.sourceKey !== sourceKey) continue;
-    if (excludeLineId && l.id === excludeLineId) continue;
-    sum += Math.max(0, l.amount);
+  for (const c of claims) {
+    if (c === holder) continue;
+    if (excludeLineId && c.isDraft && c.line.id === excludeLineId) continue;
+    sum += Math.max(0, c.line.amount);
   }
   return sum;
 }
@@ -88,51 +128,40 @@ export type SourceGoalUsage = {
   planName: string;
   amount: number;
   isDraft: boolean;
+  /** Takes everything left in the source. */
+  allIn?: boolean;
 };
 
 /**
- * Per-plan ₫ already allocated from `sourceKey`. By default returns only plans other than
- * the draft; pass `includeDraft` to also include the draft (useful for in-modal "this plan
- * still has X allocated elsewhere" displays).
+ * Per-plan ₫ already allocated from `sourceKey` (an all-in plan: what it takes
+ * now). By default returns only plans other than the draft; pass `includeDraft`
+ * to also include the draft (useful for in-modal "this plan still has X
+ * allocated elsewhere" displays).
  */
 export function goalUsageForSourceKey(
   sourceKey: string,
   savedPlans: GoalProfile[],
   draft: GoalProfile,
-  options?: { includeDraft?: boolean; excludeLineId?: string },
+  options?: { includeDraft?: boolean; excludeLineId?: string; seedOptions?: GoalStartingOption[] },
 ): SourceGoalUsage[] {
   if (sourceKey === "none" || sourceKey === "custom") return [];
+  const claims = claimsOnSource(sourceKey, savedPlans, draft);
+  const holder = allInHolder(claims);
   const out: SourceGoalUsage[] = [];
-  for (const plan of savedPlans) {
-    if (plan.id === draft.id) continue;
-    let sum = 0;
-    for (const l of plan.seedLines ?? []) {
-      if (l.sourceKey === sourceKey) sum += Math.max(0, l.amount);
-    }
-    if (sum > 0) {
-      out.push({
-        planId: plan.id,
-        planName: plan.name?.trim() || activeMessages().domain.fallbacks.untitledPlan,
-        amount: sum,
-        isDraft: false,
-      });
-    }
-  }
-  if (options?.includeDraft) {
-    let sum = 0;
-    for (const l of draft.seedLines ?? []) {
-      if (l.sourceKey !== sourceKey) continue;
-      if (options.excludeLineId && l.id === options.excludeLineId) continue;
-      sum += Math.max(0, l.amount);
-    }
-    if (sum > 0) {
-      out.push({
-        planId: draft.id,
-        planName: draft.name?.trim() || activeMessages().domain.fallbacks.thisPlan,
-        amount: sum,
-        isDraft: true,
-      });
-    }
+  // Other plans first, then the draft.
+  const ordered = [...claims.filter((c) => !c.isDraft), ...claims.filter((c) => c.isDraft)];
+  for (const c of ordered) {
+    if (c.isDraft && (!options?.includeDraft || (options.excludeLineId && c.line.id === options.excludeLineId))) continue;
+    const allIn = c === holder;
+    const amount = allIn
+      ? options?.seedOptions
+        ? effectiveGoalSeedLineAmount(c.line, options.seedOptions, savedPlans, draft)
+        : Math.max(0, c.line.amount)
+      : Math.max(0, c.line.amount);
+    if (amount <= 0 && !allIn) continue;
+    const prev = out.find((u) => u.planId === c.planId);
+    if (prev) prev.amount += amount;
+    else out.push({ planId: c.planId, planName: c.planName, amount, isDraft: c.isDraft, ...(allIn ? { allIn: true } : {}) });
   }
   return out;
 }
@@ -152,7 +181,13 @@ export function maxAllocationForSourceKey(
     draft,
     excludeLineId,
   );
-  return Math.max(0, live - takenElsewhere);
+  const free = Math.max(0, live - takenElsewhere);
+  // Another plan takes this source all-in: keep (or lower) what this line had, never more.
+  if (allInPlanElsewhere(sourceKey, savedPlans, draft)) {
+    const saved = savedPlans.find((p) => p.id === draft.id)?.seedLines?.find((l) => l.id === excludeLineId && l.sourceKey === sourceKey);
+    return Math.min(free, saved && saved.allIn !== true ? Math.max(0, saved.amount) : 0);
+  }
+  return free;
 }
 
 /**
@@ -171,11 +206,29 @@ export function effectiveGoalSeedLineAmount(
   const amount = Math.max(0, line.amount);
   if (line.sourceKey === "custom") return amount;
   const live = liveBalanceForSourceKey(line.sourceKey, options);
-  const reserved =
-    allocatedFromSourceKeyAcrossPlans(line.sourceKey, savedPlans, draft, line.id) + amount;
+  const claims = claimsOnSource(line.sourceKey, savedPlans, draft);
+  const holder = allInHolder(claims);
+  const fixed = claims.reduce((s, c) => (c === holder ? s : s + Math.max(0, c.line.amount)), 0);
+  // All-in: whatever the fixed reservations leave.
+  if (holder && isSameLine(holder, line)) {
+    return Math.max(0, live - fixed);
+  }
+  const reserved = fixed;
   if (reserved <= live) return amount;
   // Whole ₫, rounded down so the plans together never exceed the live balance.
   return live > 0 ? Math.floor((amount * live) / reserved) : 0;
+}
+
+/** What a line holds from its source: its amount, or for the all-in line what it takes now. */
+export function reservedAmountForSeedLine(
+  line: GoalSeedLine,
+  options: GoalStartingOption[],
+  savedPlans: GoalProfile[],
+  draft: GoalProfile,
+): number {
+  return isAllInHolder(line, savedPlans, draft)
+    ? effectiveGoalSeedLineAmount(line, options, savedPlans, draft)
+    : Math.max(0, line.amount);
 }
 
 export function totalGoalStartingBalance(
@@ -244,6 +297,8 @@ export function clampSeedLinesToAllocationPool(
   return lines.map((l) => {
     if (l.sourceKey === "custom") return l;
     const max = maxAllocationForSourceKey(l.sourceKey, options, savedPlans, draft, l.id);
+    // All in: store what it takes now.
+    if (l.allIn === true) return { ...l, amount: max };
     return { ...l, amount: Math.min(Math.max(0, l.amount), max) };
   });
 }
@@ -261,6 +316,7 @@ export function ensureKeyedSeedDefaults(
   return lines.map((l) => {
     if (l.sourceKey === "custom" || l.sourceKey === "none") return l;
     const max = maxAllocationForSourceKey(l.sourceKey, options, savedPlans, draft, l.id);
+    if (l.allIn === true) return { ...l, amount: max };
     if (l.amount > 0) {
       return { ...l, amount: Math.min(l.amount, max) };
     }
@@ -296,7 +352,7 @@ export function sourceAvailability(
   planDraft: GoalProfile,
 ): SourceAvailability {
   const live = Math.max(0, option.amount);
-  const usage = goalUsageForSourceKey(option.key, savedPlans, planDraft);
+  const usage = goalUsageForSourceKey(option.key, savedPlans, planDraft, { seedOptions: [option] });
   const reservedElsewhere = usage.reduce((s, u) => s + u.amount, 0);
   const remaining = Math.max(0, live - reservedElsewhere);
   return {
@@ -324,6 +380,10 @@ export type SeedLineAllocationView = {
   over: boolean;
   usage: SourceGoalUsage[];
   availabilityTone: "danger" | "warning" | "default";
+  /** This line takes everything left in the source. */
+  allIn: boolean;
+  /** Another plan already takes this source all-in (so this one can't). */
+  allInElsewhere: string | null;
 };
 
 /** Everything the allocation editor shows for one starting-balance line. */
@@ -340,7 +400,9 @@ export function seedLineAllocationView(
     ? maxAllocationForSourceKey(line.sourceKey, seedOptions, savedPlans, planDraft, line.id)
     : Number.POSITIVE_INFINITY;
   const effective = effectiveGoalSeedLineAmount(line, seedOptions, savedPlans, planDraft);
-  const allocatedNow = Math.max(0, line.amount);
+  const allIn = !isCustom && isAllInHolder(line, savedPlans, planDraft);
+  // All-in already counts everything free; nothing is left over for this plan.
+  const allocatedNow = allIn ? effective : Math.max(0, line.amount);
   const availableToPlan = Math.max(0, maxAlloc - allocatedNow);
   return {
     title: labelForSeedLine(line, seedOptions),
@@ -351,13 +413,43 @@ export function seedLineAllocationView(
     maxAlloc,
     effective,
     availableToPlan,
-    over: !isCustom && line.amount > maxAlloc,
-    usage: !isCustom ? goalUsageForSourceKey(line.sourceKey, savedPlans, planDraft) : [],
-    availabilityTone:
-      availableToPlan === 0 && maxAlloc > 0
+    over: !isCustom && !allIn && line.amount > maxAlloc,
+    usage: !isCustom ? goalUsageForSourceKey(line.sourceKey, savedPlans, planDraft, { seedOptions }) : [],
+    availabilityTone: allIn
+      ? "default"
+      : availableToPlan === 0 && maxAlloc > 0
         ? "danger"
         : maxAlloc < live
           ? "warning"
           : "default",
+    allIn,
+    allInElsewhere: isCustom ? null : (allInPlanElsewhere(line.sourceKey, savedPlans, planDraft)?.planName ?? null),
   };
+}
+
+/**
+ * Turn all-in on or off for one keyed line. On: it takes everything free in
+ * the source. Off: it keeps what it takes now as a fixed amount.
+ */
+export function setSeedLineAllIn(
+  lines: GoalSeedLine[],
+  lineId: string,
+  allIn: boolean,
+  seedOptions: GoalStartingOption[],
+  savedPlans: GoalProfile[],
+  draft: GoalProfile,
+): GoalSeedLine[] {
+  const target = lines.find((l) => l.id === lineId);
+  if (!target || target.sourceKey === "custom" || target.sourceKey === "none") return lines;
+  if (allIn && allInPlanElsewhere(target.sourceKey, savedPlans, { ...draft, seedLines: lines })) return lines;
+  const next = lines.map((l) => {
+    if (l.id !== lineId) return l;
+    const rest = { ...l };
+    delete rest.allIn;
+    return allIn ? { ...rest, allIn: true } : rest;
+  });
+  const nextDraft = { ...draft, seedLines: next };
+  const line = next.find((l) => l.id === lineId)!;
+  const amount = effectiveGoalSeedLineAmount(allIn ? line : target, seedOptions, savedPlans, allIn ? nextDraft : { ...draft, seedLines: lines });
+  return next.map((l) => (l.id === lineId ? { ...l, amount } : l));
 }

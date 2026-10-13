@@ -5,7 +5,9 @@ import {
   EMPTY_GOAL_PROFILE,
   liveBalanceForSourceKey,
   maxAllocationForSourceKey,
+  isAllInHolder,
   migrateLegacySeedsToLines,
+  reservedAmountForSeedLine,
   sanitizeSeedLinesAgainstOptions,
   totalGoalStartingBalance,
   type GoalProfile,
@@ -64,6 +66,8 @@ export type AllocationSourceRow = {
   /** How much more keyed capacity exists before hitting live minus others’ claims. */
   remainingPool: number;
   perPlanStored: Record<string, number>;
+  /** The plan taking everything left in this source, if any. */
+  allInPlanId?: string;
   /**
    * Sum of capital reserved against this source across all income sources
    * (collapsed column — capital reservations live in their own pool and do
@@ -84,10 +88,11 @@ export type AllocationReport = {
   };
 };
 
-function storedForPlan(plan: GoalProfile, sourceKey: string): number {
+/** What `plan` holds from `sourceKey` (an all-in plan: what it takes now). */
+function storedForPlan(plan: GoalProfile, sourceKey: string, seedOptions: GoalStartingOption[], saved: GoalProfile[]): number {
   return (plan.seedLines ?? [])
     .filter((l) => l.sourceKey === sourceKey)
-    .reduce((s, l) => s + Math.max(0, l.amount), 0);
+    .reduce((s, l) => s + reservedAmountForSeedLine(l, seedOptions, saved, plan), 0);
 }
 
 function labelForKey(sourceKey: string, seedOptions: GoalStartingOption[]): string {
@@ -171,8 +176,9 @@ export function buildAllocationReport(
 
     const perPlanStored: Record<string, number> = {};
     let totalReservedStored = 0;
+    const allInPlan = saved.find((p) => (p.seedLines ?? []).some((l) => l.sourceKey === sourceKey && isAllInHolder(l, saved, p)));
     for (const p of saved) {
-      const v = storedForPlan(p, sourceKey);
+      const v = storedForPlan(p, sourceKey, seedOptions, saved);
       if (v > 0) perPlanStored[p.id] = v;
       totalReservedStored += v;
     }
@@ -198,6 +204,7 @@ export function buildAllocationReport(
       totalReservedStored,
       remainingPool,
       perPlanStored,
+      ...(allInPlan ? { allInPlanId: allInPlan.id } : {}),
       totalIncomeCapital,
     });
   }

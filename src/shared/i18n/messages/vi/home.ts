@@ -11,6 +11,7 @@ export const home: Messages["home"] = {
   trendLabel: (p) => `Tài sản ròng thay đổi ${p.change} trong ${p.months} tháng`,
   assets: "Tài sản",
   debts: "Nợ",
+  trendSoon: "Biểu đồ xu hướng sẽ hiện từ tháng sau.",
   split: {
     label: (p) => `Tài sản dùng ngay ${p.instant}, còn lại ${p.other}`,
     instant: "Dùng ngay",
@@ -44,6 +45,9 @@ export const home: Messages["home"] = {
     needed: "Cần góp mỗi tháng",
     deadline: "Hạn",
     monthsLeft: (p) => `còn ${p.months}`,
+    stillNeeded: "Còn thiếu",
+    reachBy: "Dự kiến đạt",
+    noSaving: "Chưa có khoản góp hằng tháng",
     addAnother: "Thêm mục tiêu",
   },
   health: {

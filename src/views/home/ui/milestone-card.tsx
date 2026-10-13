@@ -13,7 +13,8 @@ import {
 } from "@/entities/milestone";
 import type { useMilestoneConfig } from "@/entities/milestone/api/use-milestone-config";
 import { useI18n } from "@/shared/i18n";
-import { formatDate, formatMoney, formatMonths, formatOrdinal, formatPercent, formatUsd, formatUsdCompact } from "@/shared/lib/format";
+import { cn } from "@/shared/lib/cn";
+import { formatDate, formatMoney, formatMoneyCompact, formatMonths, formatOrdinal, formatPercent, formatUsd, formatUsdCompact } from "@/shared/lib/format";
 import { Callout } from "@/shared/ui/callout";
 import { DescriptionList } from "@/shared/ui/description-list";
 import { Button } from "@/shared/ui/kit/button";
@@ -41,12 +42,15 @@ const FMT: MilestoneFormatters = {
   money: (n, o) => formatMoney(n, { signDisplay: o?.signed ? "always" : "auto" }),
   usd: formatUsd,
 };
+/** The short line under the progress bar reads better rounded (+556 tr ₫, not +555.639.901 ₫). */
+const FMT_COMPACT: MilestoneFormatters = { ...FMT, money: (n, o) => formatMoneyCompact(n, { signDisplay: o?.signed ? "always" : "auto" }) };
 
 export function MilestoneCard({
   netWorth,
   monthlyNet,
   settings: rawSettings,
   configState,
+  wide = false,
 }: {
   netWorth: number;
   monthlyNet: number;
@@ -54,6 +58,8 @@ export function MilestoneCard({
   settings: MilestoneSettings | undefined;
   /** From `useMilestoneConfig()` (the dashboard shares it with the health card). */
   configState: ReturnType<typeof useMilestoneConfig>;
+  /** Full-width row: progress and numbers side by side. */
+  wide?: boolean;
 }) {
   const { config, error, reload } = configState;
   const { t } = useI18n();
@@ -118,7 +124,7 @@ export function MilestoneCard({
       : a.kind === "past_deadline"
         ? { tone: "danger" as const, icon: TriangleAlert, label: t.domain.milestone.pastMilestone }
         : { tone: a.tone, icon: a.verdict === "on_track" ? TrendingUp : a.verdict === "tight" ? Gauge : TriangleAlert, label: t.domain.milestone.verdict[a.verdict] };
-  const detail = milestoneChipDetail(a, netWorth, FMT);
+  const detail = milestoneChipDetail(a, netWorth, FMT_COMPACT);
 
   return (
     <Section
@@ -144,7 +150,7 @@ export function MilestoneCard({
         </>
       }
     >
-      <div className="grid gap-4">
+      <div className={cn("grid gap-4", wide && "md:grid-cols-2 md:items-center md:gap-8")}>
         <div>
           <p className="text-2xl font-semibold tracking-tight">
             <Money value={netWorth} compact className="normal-nums" />
