@@ -6,7 +6,7 @@ import { cn } from "@/shared/lib/cn";
 import { Card } from "@/shared/ui/kit/card";
 import { Skeleton } from "@/shared/ui/kit/skeleton";
 
-import { HubFrame } from "./hub-layout";
+import { HubFrame, TabToolbar } from "./hub-layout";
 import { PageContainer } from "./page-container";
 
 /*
@@ -42,16 +42,16 @@ function SummaryStripSkeleton({ footer }: { footer?: boolean }) {
 }
 
 /** `TabToolbar`: context on the left (the month switcher), actions on the right. */
+/** Same placement as the real `TabToolbar` (desktop: actions in the tab bar). */
 function ToolbarSkeleton({ month, actions }: { month?: boolean; actions: string[] }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="min-w-0 flex-1">{month ? <Skeleton className="h-8 w-48" /> : null}</div>
-      <div className="flex shrink-0 gap-2">
-        {actions.map((w, i) => (
-          <Skeleton key={i} className={cn("h-9 rounded-md", w)} />
-        ))}
-      </div>
-    </div>
+    <TabToolbar
+      actions={actions.map((w, i) => (
+        <Skeleton key={i} className={cn("h-9 rounded-md", w)} />
+      ))}
+    >
+      {month ? <Skeleton className="h-8 w-48" /> : null}
+    </TabToolbar>
   );
 }
 
@@ -319,6 +319,14 @@ function CashflowSpendingSkeleton() {
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-9 w-40 md:h-11" />
             <Skeleton className="h-3 w-72 max-w-full" />
+          </div>
+          <div className="grid grid-cols-3 gap-3 rounded-xl border p-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className="grid gap-1.5">
+                <Skeleton className="h-3 w-20 max-w-full" />
+                <Skeleton className="h-5 w-16" />
+              </div>
+            ))}
           </div>
           <div className="mt-auto grid gap-2">
             <Skeleton className="h-4 w-48" />

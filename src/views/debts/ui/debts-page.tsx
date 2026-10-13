@@ -22,7 +22,7 @@ import { useExpenses } from "@/entities/expense/api/use-expenses";
 import { useI18n, type Messages } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { todayIso } from "@/shared/lib/date";
-import { formatDate, formatMoney, formatPercent } from "@/shared/lib/format";
+import { formatDate, formatMoney, formatMoneyCompact, formatPercent } from "@/shared/lib/format";
 import { useCreateParam } from "@/shared/lib/use-create-param";
 import { useTable } from "@/shared/storage";
 import { ConfirmDialog } from "@/shared/ui/confirm-dialog";
@@ -146,6 +146,7 @@ export function DebtsPage() {
               const sub = debtSubtitle(t, d);
               const bill = billForDebt(expenses.items, d.id);
               const canAdd = !bill && (d.monthlyPayment ?? 0) > 0 && d.balance > 0;
+              const isPriority = target?.id === d.id && debts.length > 1;
               return (
                 <ListRow
                   key={d.id}
@@ -153,16 +154,31 @@ export function DebtsPage() {
                   title={
                     <span className="flex items-center gap-2">
                       <span className="truncate">{d.name}</span>
-                      {target?.id === d.id && debts.length > 1 ? (
-                        <Badge variant="outline" className="border-capstone/60 text-capstone-ink">
+                      {isPriority ? (
+                        <Badge variant="outline" className="border-capstone/60 text-capstone-ink max-sm:hidden">
                           {w.priority}
                         </Badge>
                       ) : null}
                     </span>
                   }
-                  subtitle={<span className={cn(sub.tone === "danger" && "text-danger")}>{sub.text}</span>}
+                  subtitle={
+                    <span className={cn(sub.tone === "danger" && "text-danger")}>
+                      {/* Phones: the badge moves here so the name keeps its width. */}
+                      {isPriority ? <span className="font-medium text-capstone-ink sm:hidden">{w.priority} · </span> : null}
+                      {sub.text}
+                    </span>
+                  }
                   trailing={<Money value={d.balance} compact interactive={false} />}
-                  trailingSub={(d.monthlyPayment ?? 0) > 0 ? <span data-private>{w.perMonth({ amount: formatMoney(d.monthlyPayment!) })}</span> : w.noPayment}
+                  trailingSub={
+                    (d.monthlyPayment ?? 0) > 0 ? (
+                      <span data-private>
+                        <span className="max-sm:hidden">{w.perMonth({ amount: formatMoney(d.monthlyPayment!) })}</span>
+                        <span className="sm:hidden">{w.perMonth({ amount: formatMoneyCompact(d.monthlyPayment!) })}</span>
+                      </span>
+                    ) : (
+                      w.noPayment
+                    )
+                  }
                   onClick={() => openEdit(d)}
                   label={d.name}
                   actions={
@@ -173,14 +189,15 @@ export function DebtsPage() {
                           {w.inSpending}
                         </span>
                       ) : canAdd ? (
-                        <Button variant="outline" size="sm" onClick={() => addToSpending(d)}>
+                        <Button variant="outline" size="sm" className="max-sm:hidden" onClick={() => addToSpending(d)}>
                           <Plus />
-                          <span className="max-sm:sr-only">{w.addToSpending}</span>
+                          {w.addToSpending}
                         </Button>
                       ) : null}
                       <RowActions
                         label={t.common.actionsFor({ name: d.name })}
                         actions={[
+                          ...(canAdd ? [{ label: w.addToSpending, icon: Plus, onSelect: () => addToSpending(d) }] : []),
                           { label: t.common.edit, icon: Pencil, onSelect: () => openEdit(d) },
                           "separator",
                           { label: t.common.delete, icon: Trash2, destructive: true, onSelect: () => setPendingDelete(d) },

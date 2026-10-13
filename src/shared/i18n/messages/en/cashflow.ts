@@ -69,6 +69,7 @@ export const cashflow = {
       noIncome: "Add income to see the split.",
     },
     byCategory: "By category",
+    mix: { bills: "Fixed bills", budgets: "Flexible budgets", perDay: "Per day", label: "Where the monthly total comes from" },
     otherCategories: (p: { count: number }) => (p.count === 1 ? "1 more category" : `${p.count} more categories`),
     paused: "Paused",
     unitemizedRow: "Not itemized yet (old estimate)",

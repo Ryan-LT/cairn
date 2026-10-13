@@ -213,7 +213,7 @@ export function PlanWorkspace({ editor }: { editor: GoalPlanEditor }) {
 
       <Card className="bg-hero gap-3 px-5">
         <div className="flex items-center gap-4 md:gap-6">
-          <ProgressRing value={status.progress} size={84} stroke={9} tone={RING_TONE[status.tone]} label={g.hero.ringLabel({ pct })}>
+          <ProgressRing value={status.progress} size={84} stroke={9} tone={RING_TONE[status.tone]} complete={status.progress >= 1} label={g.hero.ringLabel({ pct })}>
             <span className="text-sm">{pct}</span>
           </ProgressRing>
           <div className="grid min-w-0 flex-1 gap-1">
