@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { errorText } from "@/shared/i18n/error-text";
+import { en } from "@/shared/i18n/messages/en";
+import { vi } from "@/shared/i18n/messages/vi";
 import { validateNewPassword } from "@/shared/lib/password-policy";
 
 describe("validateNewPassword", () => {
@@ -23,10 +26,8 @@ describe("validateNewPassword", () => {
 });
 
 describe("validation codes have messages in both languages", () => {
-  it("errorText fills in the limits", async () => {
-    const { errorText } = await import("@/shared/i18n/error-text");
-    const { en } = await import("@/shared/i18n/messages/en");
-    const { vi } = await import("@/shared/i18n/messages/vi");
+  // The message bundles load with the file, not inside the test's time limit.
+  it("errorText fills in the limits", () => {
     expect(errorText(en, "password_short")).toBe("Use at least 10 characters.");
     expect(errorText(vi, "password_short")).toBe("Dùng ít nhất 10 ký tự.");
     expect(errorText(vi, "locked")).toContain("15 phút");
