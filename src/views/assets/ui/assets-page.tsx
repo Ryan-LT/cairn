@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeftRight, Clock, History, Pencil, Plus, RefreshCw, ScrollText, Search, Trash2, TrendingUp, Zap } from "lucide-react";
+import { ArrowLeftRight, ChartPie, Clock, History, Pencil, Plus, RefreshCw, ScrollText, Search, Trash2, TrendingUp, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -172,7 +172,7 @@ export function AssetsPage() {
       {assets.length === 0 && legacyCount === 0 ? (
         <Card className="gap-0 py-0">
           <EmptyState
-            illustrated
+            art="coins"
             title={m.list.emptyTitle}
             description={m.list.emptyDescription}
             action={
@@ -187,10 +187,10 @@ export function AssetsPage() {
         <>
           <div className="grid gap-4 md:gap-6 xl:grid-cols-5">
             <StatGrid className="grid-cols-2 xl:col-span-2 xl:grid-cols-1">
-              <StatCard help="assetInstant" label={m.kpi.instant.label} icon={Zap} value={<Money value={instant} compact />} hint={m.kpi.instant.hint} />
-              <StatCard help="assetNotInstant" label={m.kpi.notInstant.label} icon={Clock} value={<Money value={Math.max(0, total - instant)} compact />} hint={m.kpi.notInstant.hint} />
+              <StatCard help="assetInstant" tone="teal" label={m.kpi.instant.label} icon={Zap} value={<Money value={instant} compact />} hint={m.kpi.instant.hint} />
+              <StatCard help="assetNotInstant" tone="blue" label={m.kpi.notInstant.label} icon={Clock} value={<Money value={Math.max(0, total - instant)} compact />} hint={m.kpi.notInstant.hint} />
             </StatGrid>
-            <Section title={w.byCategory} className="xl:col-span-3" help="assetsByCategory">
+            <Section title={w.byCategory} className="xl:col-span-3" help="assetsByCategory" icon={ChartPie} tone="amber">
               <BarList
                 items={byCategory.slice(0, 6).map((c) => ({
                   key: c.category,

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { isNavActive, NAV_HUBS } from "@/shared/config";
 import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
+import { toneColors } from "@/shared/lib/tone";
 
 import { useOptimisticNavigation } from "../model/navigation";
 import { QuickAddSheet } from "./quick-add-sheet";
@@ -36,11 +37,15 @@ export function MobileTabBar() {
           aria-current={active ? "page" : undefined}
           className={cn(
             "flex h-full flex-col items-center justify-center gap-1 rounded-xl text-xs font-medium transition-[color,transform] duration-200 outline-none focus-visible:ring-2 focus-visible:ring-ring active:scale-95",
-            active ? "text-primary-soft-foreground" : "text-muted-foreground",
+            active ? "text-foreground" : "text-muted-foreground",
           )}
         >
-          <span className={cn("flex h-7 w-12 items-center justify-center rounded-full transition-colors duration-300", active && "bg-primary-soft")}>
-            <item.icon aria-hidden className={cn("size-5 transition-transform duration-300 motion-reduce:transition-none", active && "scale-105")} />
+          {/* The active tab lights up in its section's colour. */}
+          <span
+            className="flex h-7 w-12 items-center justify-center rounded-full transition-colors duration-300"
+            style={active ? { background: toneColors(item.tone).background, color: toneColors(item.tone).color } : undefined}
+          >
+            <item.icon aria-hidden className={cn("size-5 transition-transform duration-300 motion-reduce:transition-none", active && "scale-110")} />
           </span>
           <span className="leading-none">{t.nav.hubs[item.id].short}</span>
         </Link>

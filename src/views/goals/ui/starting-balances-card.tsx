@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Wallet } from "lucide-react";
 import { useState } from "react";
 
 import { AllocateSourcesDialog } from "@/features/allocate-sources";
@@ -39,6 +39,8 @@ export function StartingBalancesCard({ draft, savedPlans, seedOptions, total, on
       title={m.title}
       description={m.description}
       help="startingBalances"
+      icon={Wallet}
+      tone="teal"
       actions={
         <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
           <Pencil />
@@ -49,6 +51,7 @@ export function StartingBalancesCard({ draft, savedPlans, seedOptions, total, on
     >
       {lines.length === 0 ? (
         <EmptyState
+          art="wallet"
           title={m.emptyTitle}
           description={m.emptyDescription}
           className="py-8"

@@ -1,8 +1,11 @@
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 import type { HelpTopic } from "@/shared/config/help";
 import { cn } from "@/shared/lib/cn";
+import type { TileTone } from "@/shared/lib/tone";
 import { HelpHint } from "@/shared/ui/help-hint";
+import { IconTile } from "@/shared/ui/icon-tile";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/kit/card";
 
 type SectionProps = {
@@ -18,11 +21,14 @@ type SectionProps = {
   contentClassName?: string;
   /** Explains the section: a "?" beside the title, and found by "explain this screen" and the tour. */
   help?: HelpTopic;
+  /** A small icon tile before the title, in `tone` colours. */
+  icon?: LucideIcon;
+  tone?: TileTone;
   children: ReactNode;
 };
 
 /** A titled card — the standard container for page sections. */
-export function Section({ title, description, actions, flush, variant = "card", className, contentClassName, help, children }: SectionProps) {
+export function Section({ title, description, actions, flush, variant = "card", className, contentClassName, help, icon, tone, children }: SectionProps) {
   if (variant === "plain") {
     return (
       <section className={cn("grid gap-3", className)} data-help={help}>
@@ -44,7 +50,8 @@ export function Section({ title, description, actions, flush, variant = "card", 
     <Card className={cn(flush && "gap-0 overflow-hidden pb-0", className)} data-help={help}>
       <CardHeader className={cn("flex flex-wrap items-start justify-between gap-x-4 gap-y-3", flush && "pb-4")}>
         <div className="grid min-w-0 flex-1 basis-56 gap-1">
-          <CardTitle className={help ? "flex items-center gap-1" : undefined}>
+          <CardTitle className={help || icon ? "flex items-center gap-1" : undefined}>
+            {icon ? <IconTile icon={icon} tone={tone} size="sm" className="mr-1.5" /> : null}
             {title}
             {help ? <HelpHint topic={help} /> : null}
           </CardTitle>

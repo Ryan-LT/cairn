@@ -1,5 +1,6 @@
 "use client";
 
+import { ListChecks } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { CategoryTile, TRACKED_COVERAGE, type ItemDrift, type PlanVsActual } from "@/entities/expense";
@@ -32,7 +33,7 @@ export function PlanVsActualCard({ data, onUpdatePlan }: { data: PlanVsActual; o
           : h.driftDown({ amount: formatMoney(-data.drift) });
 
   return (
-    <Section title={h.title} description={h.description} help="planVsActual">
+    <Section title={h.title} description={h.description} help="planVsActual" icon={ListChecks} tone="teal">
       <div className="grid gap-4">
         <p className="text-sm" data-private>
           {summary}

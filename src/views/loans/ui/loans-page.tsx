@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { ArrowDownLeft, ArrowUpRight, CircleCheck, HandCoins, Info, Pencil, Plus, RotateCcw, Scale, Trash2 } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CircleCheck, Info, NotebookPen, Pencil, Plus, RotateCcw, Scale, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -187,14 +187,16 @@ export function LoansPage() {
       <StatGrid className="xl:grid-cols-3">
         <StatCard
           help="loansOwedToYou"
+          tone="teal"
           label={t.loans.kpi.owedToYou.label}
           icon={ArrowUpRight}
           value={<Money value={owedToYou} compact tone="success" />}
           hint={t.loans.kpi.owedToYou.hint}
         />
-        <StatCard help="loansYouOwe" label={t.loans.kpi.youOwe.label} icon={ArrowDownLeft} value={<Money value={youOwe} compact tone="danger" />} hint={t.loans.kpi.youOwe.hint} />
+        <StatCard help="loansYouOwe" tone="rose" label={t.loans.kpi.youOwe.label} icon={ArrowDownLeft} value={<Money value={youOwe} compact tone="danger" />} hint={t.loans.kpi.youOwe.hint} />
         <StatCard
           help="loansNet"
+          tone="indigo"
           label={t.loans.kpi.net.label}
           icon={Scale}
           value={<Money value={owedToYou - youOwe} compact signed tone="auto" />}
@@ -210,7 +212,7 @@ export function LoansPage() {
         </Link>
       </p>
 
-      <Section title={t.loans.log.title} description={t.loans.log.description} flush help="loanLog">
+      <Section title={t.loans.log.title} description={t.loans.log.description} flush help="loanLog" icon={NotebookPen} tone="violet">
         <div className="border-b px-5 py-3">
           <DataTableToolbar search={search} onSearchChange={setSearch} placeholder={t.loans.log.searchPlaceholder}>
             <SegmentedControl<DirectionFilter>
@@ -244,7 +246,7 @@ export function LoansPage() {
           empty={
             loans.length === 0 ? (
               <EmptyState
-                icon={HandCoins}
+                art="handshake"
                 title={t.loans.empty.title}
                 description={t.loans.empty.description}
                 action={
@@ -255,7 +257,7 @@ export function LoansPage() {
                 }
               />
             ) : (
-              <EmptyState title={t.loans.empty.filteredTitle} description={t.loans.empty.filteredDescription} />
+              <EmptyState art="search" title={t.loans.empty.filteredTitle} description={t.loans.empty.filteredDescription} />
             )
           }
           renderMobileItem={(l) => (

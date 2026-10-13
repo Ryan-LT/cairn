@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, RefreshCw, X } from "lucide-react";
+import { Coins, Pencil, RefreshCw, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -58,6 +58,8 @@ export function CurrencySection() {
       <Section
         title={s.title}
       help="settingsCurrency"
+      icon={Coins}
+      tone="amber"
         description={s.description}
         actions={
           <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>

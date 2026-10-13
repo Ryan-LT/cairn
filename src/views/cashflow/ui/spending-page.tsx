@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Link2Off, Plus, ScrollText, Sparkles, Zap } from "lucide-react";
+import { Calculator, ChartPie, Download, Link2Off, Plus, ScrollText, Sparkles, Zap } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -170,7 +170,7 @@ export function SpendingPage() {
             <TemplatePicker debts={debts} onAdd={editor.addMany} />
           </div>
         </Card>
-        <Section title={sp.estimate.title} description={sp.estimate.description}>
+        <Section title={sp.estimate.title} description={sp.estimate.description} icon={Calculator} tone="stone">
           <EstimateForm
             value={spending.legacyEstimate}
             onSave={(amount) => {
@@ -265,7 +265,7 @@ export function SpendingPage() {
           </div>
         </Card>
 
-        <Section title={sp.byCategory} className="xl:col-span-2" help="spendingByCategory">
+        <Section title={sp.byCategory} className="xl:col-span-2" help="spendingByCategory" icon={ChartPie} tone="orange">
           <ul className="grid gap-3">
             {categories.slice(0, TOP_CATEGORIES).map((c) => (
               <li key={c.category} className="grid grid-cols-[auto_1fr_auto] items-center gap-3">

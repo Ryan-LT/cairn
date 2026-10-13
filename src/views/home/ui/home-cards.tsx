@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CheckCheck, ChevronRight, LifeBuoy, PiggyBank, Plus, Receipt, Scale, Sunrise, type LucideIcon } from "lucide-react";
+import { ArrowRight, CalendarCheck, CheckCheck, ChevronRight, HeartPulse, LifeBuoy, PiggyBank, Plus, Receipt, Scale, Sunrise, Target, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { addMonths } from "date-fns";
@@ -16,9 +16,10 @@ import { useI18n } from "@/shared/i18n";
 import { cn } from "@/shared/lib/cn";
 import { formatDate, formatMoneyCompact, formatMonths, formatNumber, formatPercent } from "@/shared/lib/format";
 import { monthsToReach } from "@/shared/lib/growth";
-import type { StatusTone } from "@/shared/lib/tone";
+import type { StatusTone, TileTone } from "@/shared/lib/tone";
 import { AnimatedMoney } from "@/shared/ui/animated-money";
 import { HelpHint } from "@/shared/ui/help-hint";
+import { IconTile } from "@/shared/ui/icon-tile";
 import { Sparkline } from "@/shared/ui/chart";
 import { Button } from "@/shared/ui/kit/button";
 import { Card } from "@/shared/ui/kit/card";
@@ -27,10 +28,25 @@ import { ProgressRing } from "@/shared/ui/progress-ring";
 import { StatusBadge } from "@/shared/ui/status-badge";
 import { BillRow, type RecordActions } from "@/widgets/bill-list";
 
-function CardHeading({ title, href, linkLabel, help }: { title: string; href?: string; linkLabel?: string; help?: HelpTopic }) {
+function CardHeading({
+  title,
+  href,
+  linkLabel,
+  help,
+  icon,
+  tone,
+}: {
+  title: string;
+  href?: string;
+  linkLabel?: string;
+  help?: HelpTopic;
+  icon?: LucideIcon;
+  tone?: TileTone;
+}) {
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-1">
+        {icon ? <IconTile icon={icon} tone={tone} size="sm" className="mr-1.5" /> : null}
         <h2 className="text-base font-semibold">{title}</h2>
         {help ? <HelpHint topic={help} /> : null}
       </div>
@@ -153,7 +169,7 @@ export function MonthGlance({ month, cash, className }: { month: MonthView; cash
   );
   return (
     <Card className={cn("gap-4 px-5", className)} data-help="monthGlance">
-      <CardHeading title={h.title} href="/cashflow" linkLabel={h.open} help="monthGlance" />
+      <CardHeading title={h.title} href="/cashflow" linkLabel={h.open} help="monthGlance" icon={CalendarCheck} tone="teal" />
       <div className="flex items-center gap-4">
         <ProgressRing value={share} size={64} stroke={7} label={t.cashflow.month.ringLabel({ pct: formatPercent(share * 100, { maximumFractionDigits: 0 }) })}>
           {formatPercent(Math.min(999, share * 100), { maximumFractionDigits: 0 })}
@@ -205,7 +221,7 @@ export function DueBills({
   return (
     <Card className={cn("gap-0 py-0", className)} data-help="dueBills">
       <div className="px-4 pt-4 pb-2">
-        <CardHeading title={h.title} href="/cashflow" linkLabel={h.viewAll} help="dueBills" />
+        <CardHeading title={h.title} href="/cashflow" linkLabel={h.viewAll} help="dueBills" icon={Receipt} tone="amber" />
       </div>
       {lines.length ? (
         <ul className="divide-y border-t">
@@ -326,7 +342,7 @@ export function GoalsGlance({ plans, onOpen, className }: { plans: GoalPlanWithS
   );
   return (
     <Card className={cn("gap-3 px-5", className)} data-help="goalsGlance">
-      <CardHeading title={h.title} href="/goals" linkLabel={h.viewAll} help="goalsGlance" />
+      <CardHeading title={h.title} href="/goals" linkLabel={h.viewAll} help="goalsGlance" icon={Target} tone="orange" />
       {plans.length === 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">{h.empty}</p>
@@ -417,6 +433,7 @@ export function HealthTiles({
     <Card className={cn("gap-3 px-5", className)} data-help="healthScore">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
+          {!score ? <IconTile icon={HeartPulse} tone="rose" size="sm" /> : null}
           {score ? (
             <button type="button" onClick={onDetails} className="shrink-0 rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring" aria-label={t.health.ringLabel({ score: score.value })}>
               <ProgressRing value={score.value / 100} size={40} stroke={4} tone={score.value >= 70 ? "success" : score.value >= 45 ? "warning" : "danger"} label={t.health.ringLabel({ score: score.value })}>

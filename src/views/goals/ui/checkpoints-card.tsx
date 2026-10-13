@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, CircleDashed, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { CalendarClock, CircleCheck, CircleDashed, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -36,6 +36,8 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
   return (
     <Section
       help="checkpoints"
+      icon={CalendarClock}
+      tone="orange"
       title={c.title}
       description={c.description}
       actions={
@@ -48,6 +50,7 @@ export function CheckpointsCard({ checkpoints, onApply, onTogglePaid }: Checkpoi
     >
       {rows.length === 0 ? (
         <EmptyState
+          art="calendar"
           title={c.emptyTitle}
           description={c.emptyDescription}
           className="py-8"

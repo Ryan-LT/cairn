@@ -26,7 +26,9 @@ export function SummaryStrip({ items, footer, className }: { items: SummaryItem[
         {items.map(({ key, icon: Icon, tone, label, value, sub, help }) => (
           <div key={key} className="grid min-w-0 gap-1 px-3 first:pl-4 last:pr-4 md:px-5 md:first:pl-5 md:last:pr-5" data-help={help}>
             <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground md:text-sm">
-              <Icon className={cn("size-3.5 shrink-0 md:size-4", tone)} aria-hidden />
+              <span className={cn("flex size-5 shrink-0 items-center justify-center rounded-full bg-current/12 md:size-6", tone)} aria-hidden>
+                <Icon className="size-3 md:size-3.5" />
+              </span>
               <span className="truncate">{label}</span>
               {help ? <HelpHint topic={help} className="-my-1 max-sm:hidden" /> : null}
             </p>

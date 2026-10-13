@@ -102,7 +102,7 @@ export function DebtsPage() {
       {debts.length === 0 ? (
         <Card className="gap-0 py-0">
           <EmptyState
-            illustrated
+            art="shield"
             title={t.debts.empty.title}
             description={t.debts.empty.description}
             action={
@@ -116,11 +116,12 @@ export function DebtsPage() {
       ) : (
         <>
           <StatGrid className="xl:grid-cols-3">
-            <StatCard help="debtAvgRate" label={t.debts.kpi.avgRate.label} icon={Percent} value={formatPercent(weightedAverageRate(debts))} hint={t.debts.kpi.avgRate.hint} />
-            <StatCard help="debtInterest" label={t.debts.kpi.interest.label} icon={Flame} value={<Money value={totalMonthlyInterest(debts)} compact />} hint={t.debts.kpi.interest.hint} />
+            <StatCard help="debtAvgRate" tone="rose" label={t.debts.kpi.avgRate.label} icon={Percent} value={formatPercent(weightedAverageRate(debts))} hint={t.debts.kpi.avgRate.hint} />
+            <StatCard help="debtInterest" tone="orange" label={t.debts.kpi.interest.label} icon={Flame} value={<Money value={totalMonthlyInterest(debts)} compact />} hint={t.debts.kpi.interest.hint} />
             <StatCard
               className="max-xl:col-span-2"
               help="debtMonthly"
+              tone="amber"
               label={t.debts.form.monthlyPayment}
               icon={TrendingDown}
               value={<Money value={monthlyTotal} compact />}

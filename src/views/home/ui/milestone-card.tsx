@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleCheck, Gauge, Pencil, RotateCw, Settings, TrendingUp, TriangleAlert } from "lucide-react";
+import { CircleCheck, Gauge, Mountain, Pencil, RotateCw, Settings, TrendingUp, TriangleAlert } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -69,7 +69,7 @@ export function MilestoneCard({
 
   if (error) {
     return (
-      <Section title={heading} help="milestone">
+      <Section title={heading} help="milestone" icon={Mountain} tone="capstone">
         <Callout tone="danger" title={m.loadError}>
           {error}
           <Button variant="outline" size="sm" className="mt-2" onClick={reload}>
@@ -83,7 +83,7 @@ export function MilestoneCard({
 
   if (!config) {
     return (
-      <Section title={heading} help="milestone">
+      <Section title={heading} help="milestone" icon={Mountain} tone="capstone">
         <div className="grid gap-3">
           <Skeleton className="h-8 w-40" />
           <Skeleton className="h-1.5 w-full" />
@@ -99,7 +99,7 @@ export function MilestoneCard({
   if (a.kind === "incomplete") {
     return (
       <Section
-        help="milestone"
+        help="milestone" icon={Mountain} tone="capstone"
         title={heading}
         description={m.description({ age: a.targetAge, ordinal: formatOrdinal(a.targetAge) })}
         actions={a.missing === "BIRTH_DATE" ? undefined : <EditGoalLink />}
@@ -129,7 +129,7 @@ export function MilestoneCard({
 
   return (
     <Section
-      help="milestone"
+      help="milestone" icon={Mountain} tone="capstone"
       title={heading}
       description={
         a.kind === "projection" && a.annualRealRate > 0

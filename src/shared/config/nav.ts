@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import type { Messages } from "@/shared/i18n";
+import type { TileTone } from "@/shared/lib/tone";
 
 export type HubId = keyof Messages["nav"]["hubs"];
 export type TabId = keyof Messages["nav"]["tabs"];
@@ -31,17 +32,20 @@ export type NavHub = {
   id: HubId;
   href: string;
   icon: LucideIcon;
+  /** The section's colour (icon tiles in the sidebar, tab bar and page header). */
+  tone: TileTone;
   /** Shown in the mobile bottom bar. */
   mobileTab?: boolean;
   tabs?: NavTab[];
 };
 
 export const NAV_HUBS: NavHub[] = [
-  { id: "home", href: "/", icon: House, mobileTab: true },
+  { id: "home", href: "/", icon: House, tone: "indigo", mobileTab: true },
   {
     id: "cashflow",
     href: "/cashflow",
     icon: ArrowLeftRight,
+    tone: "teal",
     mobileTab: true,
     tabs: [
       { id: "cashflowMonth", href: "/cashflow", icon: CalendarCheck },
@@ -54,6 +58,7 @@ export const NAV_HUBS: NavHub[] = [
     id: "wealth",
     href: "/wealth",
     icon: Landmark,
+    tone: "amber",
     mobileTab: true,
     tabs: [
       { id: "wealthAssets", href: "/wealth", icon: Landmark },
@@ -65,6 +70,7 @@ export const NAV_HUBS: NavHub[] = [
     id: "goals",
     href: "/goals",
     icon: Target,
+    tone: "orange",
     mobileTab: true,
     tabs: [
       { id: "goalsPlans", href: "/goals", icon: Target },
@@ -75,6 +81,7 @@ export const NAV_HUBS: NavHub[] = [
     id: "settings",
     href: "/settings",
     icon: Settings,
+    tone: "stone",
     tabs: [
       { id: "settingsGeneral", href: "/settings", icon: Settings },
       { id: "settingsActivity", href: "/settings/activity", icon: History },

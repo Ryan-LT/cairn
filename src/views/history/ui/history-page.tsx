@@ -284,7 +284,7 @@ export function HistoryPage() {
         <Card className="gap-0 py-0">
           {narrowed ? (
             <EmptyState
-              icon={Search}
+              art="search"
               title={h.emptyFiltered}
               action={
                 <Button variant="outline" size="sm" onClick={clearFilters}>
@@ -294,7 +294,7 @@ export function HistoryPage() {
             />
           ) : (
             <EmptyState
-              illustrated
+              art={isExpense ? "receipts" : "sprout"}
               title={isExpense ? h.emptyExpense.title : h.emptyIncome.title}
               description={isExpense ? h.emptyExpense.description : h.emptyIncome.description}
               action={
