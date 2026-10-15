@@ -40,6 +40,8 @@ export const common: Messages["common"] = {
   themeLight: "Sáng",
   themeDark: "Tối",
   themeSystem: "Theo hệ thống",
+  copy: "Sao chép",
+  copied: "Đã sao chép",
   networkError: "Không kết nối được máy chủ. Hãy kiểm tra mạng và thử lại.",
   undo: "Hoàn tác",
   viewAll: "Xem tất cả",

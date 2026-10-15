@@ -37,6 +37,7 @@ export const help: Messages["help"] = {
     funding: { title: "Phân bổ", body: "Tài sản và khoản tiết kiệm hằng tháng được chia cho các kế hoạch thế nào, và phần nào còn trống." },
     settings: { title: "Cài đặt", body: "Tiền tệ hiển thị và tỷ giá, mục tiêu cột mốc, cách tính tổng, và dữ liệu của bạn." },
     activity: { title: "Nhật ký thay đổi", body: "Mọi thay đổi đã lưu vào tài khoản, để bạn luôn biết đã đổi gì và khi nào." },
+    connect: { title: "Kết nối & chia sẻ", body: "Cho ngân hàng tự gửi giao dịch vào đây, và chia sẻ bản chụp số liệu có mật khẩu." },
   },
   topics: {
     setupGuide: {
@@ -286,6 +287,16 @@ export const help: Messages["help"] = {
     activityLog: {
       title: "Nhật ký thay đổi",
       body: "Mọi thay đổi đã lưu vào tài khoản, mới nhất trước: đổi gì, khi nào, giá trị trước và sau. Bản thân các khoản chi và thu nằm ở mục Lịch sử.",
+    },
+    connectWebhook: {
+      title: "Webhook ngân hàng",
+      body: "Một dịch vụ như SePay, Casso (hoặc script của bạn) gửi từng giao dịch ngân hàng tới địa chỉ webhook bằng một khoá của bạn. Lần tới mở ứng dụng, giao dịch sẽ vào Lịch sử; tiền ra được tính vào ngân sách duy nhất cùng danh mục, nếu không thì là chi ngoài kế hoạch.",
+      tip: "Xoá một giao dịch ngân hàng trong Lịch sử thì nó sẽ không quay lại, kể cả khi ngân hàng gửi lại.",
+    },
+    connectShares: {
+      title: "Báo cáo chia sẻ",
+      body: "Mỗi đường dẫn là một bản chụp cố định của khoảng thời gian và các phần bạn chọn, được mã hoá bằng mật khẩu riêng. Chỉ người có cả hai mới mở được, và xoá đường dẫn là nó ngừng hoạt động ngay.",
+      tip: "Gửi đường dẫn và mật khẩu qua hai ứng dụng khác nhau.",
     },
   },
 };

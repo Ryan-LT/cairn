@@ -18,6 +18,7 @@ export const nav = {
     goalsPlans: { label: "Plans", description: "Each goal, its progress and whether it's on track" },
     settingsGeneral: { label: "General", description: "Account, appearance and your data" },
     settingsActivity: { label: "Change log", description: "Every add, edit and removal, so you can trace back a decision" },
+    settingsConnect: { label: "Connect & share", description: "Bank webhook and password-protected report links" },
     goalsFunding: { label: "Funding", description: "Which money is set aside for which plan" },
   },
   quickAdd: {

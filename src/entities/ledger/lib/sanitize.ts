@@ -1,7 +1,7 @@
 import { EXPENSE_CATEGORY_IDS, type ExpenseCategoryId } from "@/entities/expense/model";
 import { isMonthKey } from "@/shared/lib/month";
 
-import type { LedgerMonth, LedgerTxn, TxnSource } from "../model";
+import { WEBHOOK_PROVIDERS, type LedgerMonth, type LedgerTxn, type TxnSource, type WebhookProvider } from "../model";
 
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -74,6 +74,9 @@ export function sanitizeTxn(raw: unknown): LedgerTxn | null {
   if (raw.auto === true) txn.auto = true;
   if (raw.legacy === true) txn.legacy = true;
   if (correction) txn.correction = true;
+  if (isRecord(raw.via) && raw.via.kind === "webhook" && (WEBHOOK_PROVIDERS as readonly string[]).includes(raw.via.provider as string)) {
+    txn.via = { kind: "webhook", provider: raw.via.provider as WebhookProvider };
+  }
   const original = finite(raw.originalAmount);
   if (original !== undefined) txn.originalAmount = Math.round(original);
   if (typeof raw.editedAt === "string" && !Number.isNaN(Date.parse(raw.editedAt))) txn.editedAt = raw.editedAt;

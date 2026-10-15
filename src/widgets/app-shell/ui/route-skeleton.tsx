@@ -683,6 +683,28 @@ function CashflowHistorySkeleton() {
   );
 }
 
+function SettingsConnectSkeleton() {
+  return (
+    <div className="flex max-w-3xl flex-col gap-5 md:gap-6">
+      {["w-28", "w-36"].map((action, s) => (
+        <SectionSkeleton key={s} actions={action}>
+          <div className="grid gap-3">
+            {Array.from({ length: 2 }, (_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 border-t pt-3">
+                <div className="grid flex-1 gap-1.5">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-56 max-w-full" />
+                </div>
+                <Skeleton className="h-8 w-20 shrink-0 rounded-md" />
+              </div>
+            ))}
+          </div>
+        </SectionSkeleton>
+      ))}
+    </div>
+  );
+}
+
 const TAB_SKELETONS: Record<TabId, () => React.ReactNode> = {
   cashflowHistory: CashflowHistorySkeleton,
   cashflowMonth: CashflowMonthSkeleton,
@@ -695,6 +717,7 @@ const TAB_SKELETONS: Record<TabId, () => React.ReactNode> = {
   goalsFunding: GoalsFundingSkeleton,
   settingsGeneral: SettingsGeneralSkeleton,
   settingsActivity: SettingsActivitySkeleton,
+  settingsConnect: SettingsConnectSkeleton,
 };
 
 /** The loading placeholder for whichever page `pathname` belongs to. */

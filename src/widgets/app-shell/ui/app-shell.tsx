@@ -17,6 +17,7 @@ import { retryInitialLoad, useAppDataState, useAppSync, type AppDataState } from
 import { useNavigationSkeletonPath } from "../model/navigation";
 import { ShellProvider } from "../model/shell-context";
 import { useLedgerAutomation } from "../model/use-ledger-automation";
+import { useBankInbox } from "../model/use-bank-inbox";
 import { useNetWorthTracking } from "../model/use-net-worth-tracking";
 import { AppErrorScreen } from "./app-error-screen";
 import { AppSidebar } from "./app-sidebar";
@@ -56,6 +57,7 @@ function AppShellFrame({ authEnabled, children }: AppShellProps) {
   useFollowAccountLanguage();
   useNetWorthTracking();
   useLedgerAutomation();
+  useBankInbox();
   const { t } = useI18n();
   const sidebarOpen = useSidebarOpenPreference();
 

@@ -40,6 +40,7 @@ export const help = {
     funding: { title: "Funding", body: "How your assets and monthly savings are shared between your plans, and what's still free." },
     settings: { title: "Settings", body: "Display currency and rates, your milestone, how totals are worked out, and your data." },
     activity: { title: "Change log", body: "Every change saved to your account, so you can always see what changed and when." },
+    connect: { title: "Connect & share", body: "Let your bank send transactions here automatically, and share a password-protected snapshot of your numbers." },
   } satisfies Record<HelpPage, { title: string; body: string }>,
   topics: {
     setupGuide: {
@@ -289,6 +290,16 @@ export const help = {
     activityLog: {
       title: "Change log",
       body: "Every change saved to your account, newest first: what changed, when, and the value before and after. Expenses and income themselves are in History.",
+    },
+    connectWebhook: {
+      title: "Bank webhook",
+      body: "A service such as SePay or Casso (or your own script) sends each bank transaction to the webhook URL with one of your keys. The app adds it to History the next time it's open; money out counts toward the one budget of its category, otherwise it's spending outside the plan.",
+      tip: "Deleting a bank transaction in History keeps it deleted, even if the bank sends it again.",
+    },
+    connectShares: {
+      title: "Shared reports",
+      body: "Each link is a frozen snapshot of the period and sections you chose, encrypted with its password. Only someone with both can open it, and removing the link stops it at once.",
+      tip: "Send the link and the password through different apps.",
     },
   } satisfies Record<HelpTopic, HelpCopy> as Record<HelpTopic, HelpCopy>,
 };

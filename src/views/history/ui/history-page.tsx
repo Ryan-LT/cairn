@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUp, Gift, Plus, Search, TrendingUp, X, Zap } from "lucide-react";
+import { ArrowUp, Gift, Plus, Search, Share2, TrendingUp, X, Zap } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -11,6 +11,7 @@ import { useIncomeSources } from "@/entities/income";
 import { isAccountAsset, useLedger, type LedgerTxn } from "@/entities/ledger";
 import { resolveAssetCategoryEmoji, useSettingsAssets } from "@/entities/settings-asset";
 import { TxnSheet, type TxnSheetMode } from "@/features/record-transaction";
+import { ShareReportDialog } from "@/features/share-report";
 import { useI18n } from "@/shared/i18n";
 import { todayIso } from "@/shared/lib/date";
 import { formatDate, formatMoney, formatNumber } from "@/shared/lib/format";
@@ -26,7 +27,7 @@ import { Input } from "@/shared/ui/kit/input";
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Money } from "@/shared/ui/money";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
-import { TabContent, TabToolbar } from "@/widgets/app-shell";
+import { TabContent, TabToolbar, useShell } from "@/widgets/app-shell";
 
 import { filterRows, groupRows, historyRows, summarize, type HistoryFilters, type HistoryRow } from "../lib/history";
 
@@ -66,6 +67,8 @@ export function HistoryPage() {
   const accounts = useMemo(() => assets.filter(isAccountAsset), [assets]);
   const accountById = useMemo(() => new Map(assets.map((a) => [a.id, a])), [assets]);
   const [sheet, setSheet] = useState<TxnSheetMode | null>(null);
+  const [sharing, setSharing] = useState(false);
+  const { authEnabled } = useShell();
   const [searchInput, setSearchInput] = useState("");
   // `?account=` (from an asset) opens the list on that account.
   const [filters, setFilters] = useState<HistoryFilters>(() => ({ search: "", category: "all", account: params.get("account") ?? "all", kind: "all" }));
@@ -148,10 +151,18 @@ export function HistoryPage() {
     <TabContent>
       <TabToolbar
         actions={
-          <Button onClick={() => setSheet(isExpense ? { kind: "instant" } : { kind: "extra" })}>
-            {isExpense ? <Zap /> : <Plus />}
-            {isExpense ? h.addExpense : h.addIncome}
-          </Button>
+          <>
+            {authEnabled ? (
+              <Button variant="outline" onClick={() => setSharing(true)}>
+                <Share2 />
+                {h.share}
+              </Button>
+            ) : null}
+            <Button onClick={() => setSheet(isExpense ? { kind: "instant" } : { kind: "extra" })}>
+              {isExpense ? <Zap /> : <Plus />}
+              {isExpense ? h.addExpense : h.addIncome}
+            </Button>
+          </>
         }
       >
         <div ref={rootRef}>
@@ -345,6 +356,7 @@ export function HistoryPage() {
                                   <span className="flex min-w-0 items-center gap-1.5">
                                     <span className="truncate font-medium">{titleFor(r)}</span>
                                     {txn.auto ? <Badge variant="neutral">{l.badges.auto}</Badge> : null}
+                                    {txn.via ? <Badge variant="info">{l.badges.bank}</Badge> : null}
                                     {edited ? <Badge variant="info">{l.badges.edited}</Badge> : null}
                                     {txn.correction ? <Badge variant="neutral">{l.badges.correction}</Badge> : null}
                                     {txn.legacy && txn.source.type === "budget" ? <Badge variant="neutral">{l.badges.legacy}</Badge> : null}
@@ -398,6 +410,7 @@ export function HistoryPage() {
       )}
 
       <TxnSheet mode={sheet} onOpenChange={(o) => !o && setSheet(null)} onSave={save} onDelete={remove} />
+      <ShareReportDialog open={sharing} onOpenChange={setSharing} />
     </TabContent>
   );
 }

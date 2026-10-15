@@ -77,6 +77,8 @@ export const HELP_TOPICS = [
   "settingsCalculation",
   "settingsData",
   "activityLog",
+  "connectWebhook",
+  "connectShares",
 ] as const;
 
 export type HelpTopic = (typeof HELP_TOPICS)[number];
@@ -101,6 +103,7 @@ export const HELP_PAGES = {
   "/goals/funding": "funding",
   "/settings": "settings",
   "/settings/activity": "activity",
+  "/settings/connect": "connect",
 } as const;
 
 export type HelpPage = (typeof HELP_PAGES)[keyof typeof HELP_PAGES];
