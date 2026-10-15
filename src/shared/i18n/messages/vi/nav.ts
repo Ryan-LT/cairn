@@ -19,6 +19,7 @@ export const nav: Messages["nav"] = {
     goalsPlans: { label: "Kế hoạch", description: "Từng mục tiêu, tiến độ và có kịp hạn hay không" },
     settingsGeneral: { label: "Chung", description: "Tài khoản, giao diện và dữ liệu của bạn" },
     settingsActivity: { label: "Nhật ký thay đổi", description: "Mọi lần thêm, sửa, xóa, để xem lại quyết định tiền bạc của bạn" },
+    settingsConnect: { label: "Kết nối & chia sẻ", description: "Webhook ngân hàng và đường dẫn báo cáo có mật khẩu" },
     goalsFunding: { label: "Phân bổ", description: "Khoản tiền nào đã dành cho kế hoạch nào" },
   },
   quickAdd: {

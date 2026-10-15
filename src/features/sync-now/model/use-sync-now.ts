@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
+import { requestBankInboxSync } from "@/entities/ledger";
 import { useI18n } from "@/shared/i18n";
 import { backgroundRefetchTables, flushTablesNow } from "@/shared/storage/store";
 
@@ -22,6 +23,7 @@ export function useSyncNow() {
         return;
       }
       await backgroundRefetchTables();
+      requestBankInboxSync();
       toast.success(t.shell.sync.synced);
     } finally {
       setSyncing(false);

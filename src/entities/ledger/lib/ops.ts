@@ -82,8 +82,8 @@ export function putTxn(tables: LedgerTables, txn: LedgerTxn): LedgerWrites {
 }
 
 /**
- * Remove transactions. `dismiss`: also remember the ids so the schedule or
- * the carry-over never recreates them (used for automatic and carried entries).
+ * Remove transactions. `dismiss`: also remember the ids so the schedule, the
+ * carry-over or the bank inbox never recreates them (automatic, carried and webhook entries).
  */
 export function removeTxns(tables: LedgerTables, ids: readonly string[], opts: { dismiss?: boolean } = {}): LedgerWrites {
   const writes: LedgerWrites = {};
@@ -93,7 +93,7 @@ export function removeTxns(tables: LedgerTables, ids: readonly string[], opts: {
     const removed = month.txns.filter((t) => drop.has(t.id));
     if (!removed.length) continue;
     const m = monthOf(tables, writes, key);
-    const dismissed = opts.dismiss ? [...new Set([...(m.dismissed ?? []), ...removed.filter((t) => t.auto || t.legacy).map((t) => t.id)])] : m.dismissed;
+    const dismissed = opts.dismiss ? [...new Set([...(m.dismissed ?? []), ...removed.filter((t) => t.auto || t.legacy || t.via).map((t) => t.id)])] : m.dismissed;
     writes[key] = { txns: m.txns.filter((t) => !drop.has(t.id)), ...(dismissed?.length ? { dismissed } : {}) };
   }
   return writes;

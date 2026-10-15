@@ -7,6 +7,7 @@ import { LEDGER_PREFIX, readTableFamily, useTableFamily, writeTable } from "@/sh
 import type { LedgerMonth, LedgerTxn } from "../model";
 import { addTxns, allTxns, putTxn, removeTxns, restoreTxns, type LedgerTables, type LedgerWrites } from "../lib/ops";
 import { sanitizeLedgerMonth } from "../lib/sanitize";
+import { dismissBankTxns } from "./bank-dismiss";
 
 /** Sanitized month per stored value, so unchanged months aren't re-read. */
 const sanitized = new WeakMap<object, LedgerMonth>();
@@ -46,8 +47,14 @@ export function useLedger() {
 
   const add = useCallback((list: LedgerTxn | readonly LedgerTxn[]) => writeLedger(addTxns(currentLedger(), Array.isArray(list) ? list : [list as LedgerTxn])), []);
   const put = useCallback((txn: LedgerTxn) => writeLedger(putTxn(currentLedger(), txn)), []);
-  const remove = useCallback((ids: readonly string[]) => writeLedger(removeTxns(currentLedger(), ids, { dismiss: true })), []);
-  const restore = useCallback((list: readonly LedgerTxn[]) => writeLedger(restoreTxns(currentLedger(), list)), []);
+  const remove = useCallback((ids: readonly string[]) => {
+    writeLedger(removeTxns(currentLedger(), ids, { dismiss: true }));
+    dismissBankTxns(ids);
+  }, []);
+  const restore = useCallback((list: readonly LedgerTxn[]) => {
+    writeLedger(restoreTxns(currentLedger(), list));
+    dismissBankTxns(list.map((t) => t.id), true);
+  }, []);
 
   return { tables, txns, add, put, remove, restore };
 }

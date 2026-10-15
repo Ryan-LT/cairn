@@ -23,6 +23,10 @@ export type TxnSource =
 
 export type TxnKind = "expense" | "income";
 
+/** Services that can send bank transactions to the webhook. */
+export const WEBHOOK_PROVIDERS = ["generic", "sepay", "casso"] as const;
+export type WebhookProvider = (typeof WEBHOOK_PROVIDERS)[number];
+
 export type LedgerTxn = {
   id: string;
   kind: TxnKind;
@@ -50,6 +54,8 @@ export type LedgerTxn = {
   legacy?: boolean;
   /** A budget total corrected by hand ("set what I spent"). */
   correction?: boolean;
+  /** Sent by the bank webhook (id `hook-<inbox id>`). */
+  via?: { kind: "webhook"; provider: WebhookProvider };
   /** First amount before any adjustment, and when it was last adjusted (ISO). */
   originalAmount?: number;
   editedAt?: string;
@@ -57,7 +63,7 @@ export type LedgerTxn = {
 
 export type LedgerMonth = {
   txns: LedgerTxn[];
-  /** Automatic or carried-over entries removed by hand: never recreate them. */
+  /** Automatic, carried-over or webhook entries removed by hand: never recreate them. */
   dismissed?: string[];
 };
 

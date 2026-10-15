@@ -4,7 +4,8 @@ import { Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 
 import { CategoryTile, EXPENSE_CATEGORY_IDS, type ExpenseCategoryId } from "@/entities/expense";
-import { accountUsdFor, newTxnId, type LedgerTxn } from "@/entities/ledger";
+import { useExpenses } from "@/entities/expense/api/use-expenses";
+import { accountUsdFor, newTxnId, sourceForCategory, type LedgerTxn } from "@/entities/ledger";
 import { useSettingsAssets } from "@/entities/settings-asset";
 import { AccountSelect } from "@/entities/settings-asset/ui";
 import { useI18n } from "@/shared/i18n";
@@ -92,6 +93,11 @@ function TxnForm({ mode, onCancel, onSave, onDelete }: { mode: TxnSheetMode; onC
   const rate = useCurrency()?.rates.vndPerUsd ?? null;
   const [, , , storedAssets] = useSettingsAssets();
   const editing = mode.kind === "edit" ? mode.txn : null;
+  const { expenses } = useExpenses();
+  // Bank transactions: the category decides which budget they count toward, so it stays editable.
+  const bankExpense = editing?.via !== undefined && editing.kind === "expense";
+  const bankBudgetId = bankExpense && editing.source.type === "budget" ? editing.source.itemId : null;
+  const bankItem = bankBudgetId ? expenses.items.find((i) => i.id === bankBudgetId) : undefined;
   const kind: "expense" | "income" = mode.kind === "instant" ? "expense" : mode.kind === "edit" ? mode.txn.kind : "income";
 
   // Amount in the currency it's typed in (dollars kept as dollars).
@@ -99,7 +105,7 @@ function TxnForm({ mode, onCancel, onSave, onDelete }: { mode: TxnSheetMode; onC
   const [currency, setCurrency] = useState<Currency>(startUsd ? "USD" : "VND");
   const [amount, setAmount] = useState<number>(startUsd ?? editing?.amount ?? (mode.kind === "receive" ? mode.amount : 0));
   const [name, setName] = useState(editing?.name ?? "");
-  const [category, setCategory] = useState<ExpenseCategoryId>(editing?.category ?? "other");
+  const [category, setCategory] = useState<ExpenseCategoryId>(editing?.category ?? bankItem?.category ?? "other");
   const [accountId, setAccountId] = useState<string | undefined>(() =>
     editing ? editing.accountId : mode.kind === "receive" ? (mode.accountId ?? lastAccount("income")) : lastAccount(kind),
   );
@@ -110,8 +116,8 @@ function TxnForm({ mode, onCancel, onSave, onDelete }: { mode: TxnSheetMode; onC
   const vnd = isUsd ? (rate ? Math.round(amount * rate) : (editing?.amount ?? 0)) : Math.round(amount);
   // A budget correction may be negative; everything else must be above zero.
   const valid = editing?.correction ? vnd !== 0 : vnd > 0 && Number.isFinite(vnd) && /^\d{4}-\d{2}-\d{2}$/.test(date);
-  const showName = mode.kind === "instant" || mode.kind === "extra" || (editing && (editing.source.type === "instant" || editing.source.type === "extra"));
-  const showCategory = mode.kind === "instant" || editing?.source.type === "instant";
+  const showName = mode.kind === "instant" || mode.kind === "extra" || bankExpense || (editing && (editing.source.type === "instant" || editing.source.type === "extra"));
+  const showCategory = mode.kind === "instant" || bankExpense || editing?.source.type === "instant";
 
   const copy =
     mode.kind === "instant"
@@ -152,6 +158,11 @@ function TxnForm({ mode, onCancel, onSave, onDelete }: { mode: TxnSheetMode; onC
       next.editedAt = new Date().toISOString();
     } else {
       rememberAccount(kind, accountId);
+    }
+    if (bankExpense) {
+      next.source = sourceForCategory(category, date.slice(0, 7), expenses.items);
+      if (next.source.type === "instant") next.category = category;
+      else delete next.category;
     }
     if (!next.accountId) delete next.accountUsd;
     onSave(next);
@@ -238,6 +249,7 @@ function TxnForm({ mode, onCancel, onSave, onDelete }: { mode: TxnSheetMode; onC
           <Input id={ids.note} value={note} onChange={(e) => setNote(e.target.value)} maxLength={200} placeholder={l.fields.notePlaceholder} />
         </div>
         {editing?.auto ? <p className="text-xs text-muted-foreground">{l.edit.autoNote}</p> : null}
+        {bankExpense ? <p className="text-xs text-muted-foreground">{l.edit.webhookNote}</p> : null}
         {editing?.legacy && editing.source.type === "budget" ? <p className="text-xs text-muted-foreground">{l.edit.legacyNote}</p> : null}
       </DialogBody>
       <DialogFooter>

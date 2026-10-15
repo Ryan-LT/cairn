@@ -50,6 +50,7 @@ export const ledger = {
     adjustedFrom: (p: { amount: string }) => `Adjusted from ${p.amount}`,
     autoNote: "This was recorded automatically; delete it and the schedule won't record it again.",
     legacyNote: "The month's total, recorded before detailed history existed.",
+    webhookNote: "Sent by your bank. Change the category to count it toward another budget.",
   },
   fields: {
     amount: "Amount",
@@ -65,7 +66,7 @@ export const ledger = {
     income: "Regular income",
     extra: "Other money in",
   },
-  badges: { auto: "Automatic", edited: "Adjusted", legacy: "Month total", correction: "Correction" },
+  badges: { auto: "Automatic", edited: "Adjusted", legacy: "Month total", correction: "Correction", bank: "Bank" },
   history: {
     views: { expense: "Money out", income: "Money in" },
     viewLabel: "Show",
@@ -93,6 +94,7 @@ export const ledger = {
     loadMore: "Load older transactions",
     endOfList: (p: { count: number }) => (p.count === 1 ? "That's the only transaction" : `That's all ${p.count} transactions`),
     backToTop: "Back to top",
+    share: "Share",
     addExpense: "Spend now",
     addIncome: "Record money in",
     openHistoryExpense: "Spending history",

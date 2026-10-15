@@ -51,6 +51,7 @@ export const ledger: Messages["ledger"] = {
     adjustedFrom: (p) => `Đã chỉnh từ ${p.amount}`,
     autoNote: "Khoản này được ghi tự động; xóa đi thì lịch tự động sẽ không ghi lại.",
     legacyNote: "Tổng chi của tháng, ghi trước khi có lịch sử chi tiết.",
+    webhookNote: "Do ngân hàng gửi tới. Đổi danh mục để tính vào ngân sách khác.",
   },
   fields: {
     amount: "Số tiền",
@@ -66,7 +67,7 @@ export const ledger: Messages["ledger"] = {
     income: "Thu nhập định kỳ",
     extra: "Tiền vào khác",
   },
-  badges: { auto: "Tự động", edited: "Đã chỉnh", legacy: "Tổng tháng", correction: "Điều chỉnh" },
+  badges: { auto: "Tự động", edited: "Đã chỉnh", legacy: "Tổng tháng", correction: "Điều chỉnh", bank: "Ngân hàng" },
   history: {
     views: { expense: "Tiền ra", income: "Tiền vào" },
     viewLabel: "Xem",
@@ -94,6 +95,7 @@ export const ledger: Messages["ledger"] = {
     loadMore: "Xem giao dịch cũ hơn",
     endOfList: (p) => `Đã hiện hết ${p.count} giao dịch`,
     backToTop: "Lên đầu trang",
+    share: "Chia sẻ",
     addExpense: "Chi ngay",
     addIncome: "Ghi tiền vào",
     openHistoryExpense: "Xem lịch sử chi",

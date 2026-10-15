@@ -17,6 +17,13 @@ export const errors = {
   cross_site: "This request didn't come from the app. Reload the page and try again.",
   login_rate_limited: "Too many sign-in attempts from this network. Try again in 15 minutes.",
   too_large: "This is too much data to save at once.",
+  rate_limited: "Too many requests at once. Try again in a moment.",
+  not_found: "It's gone — it may have been removed already.",
+  webhook_key_limit: "You can have at most 10 webhook keys. Revoke one you don't use.",
+  share_password_short: "The password needs at least 8 characters.",
+  share_limit: "You have 50 share links. Remove an old one first.",
+  share_invalid: "The link or the password is wrong, or the link has expired.",
+  share_rate_limited: "Too many wrong tries. Wait 15 minutes and try again.",
   generic: (p: { status: number }) => `Something went wrong (${p.status})`,
   // Field validation (shared by forms and the API).
   username_length: "Use 3–32 characters.",

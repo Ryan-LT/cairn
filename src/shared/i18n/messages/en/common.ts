@@ -39,6 +39,8 @@ export const common = {
   themeLight: "Light",
   themeDark: "Dark",
   themeSystem: "System",
+  copy: "Copy",
+  copied: "Copied",
   networkError: "Couldn't reach the server. Check your connection and try again.",
   undo: "Undo",
   viewAll: "View all",

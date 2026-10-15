@@ -57,9 +57,17 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api/auth/logout") ||
     pathname.startsWith("/api/auth/register") ||
     // Public market data (exchange rate, gold prices), cached at the CDN.
-    pathname === "/api/rates"
+    pathname === "/api/rates" ||
+    // Bank webhook (its own key) and opening a shared report (its password).
+    pathname === "/api/webhooks/transactions" ||
+    pathname === "/api/shares/view"
   ) {
     return NextResponse.next();
+  }
+
+  // Shared report page: anyone with the link and password, signed in or not.
+  if (pathname === "/share" || LOCALES.some((l) => pathname === `/${l}/share`)) {
+    return servePage(request);
   }
 
   if (!ok) {

@@ -13,6 +13,7 @@ import {
   Settings,
   Target,
   TrendingUp,
+  Webhook,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -85,6 +86,7 @@ export const NAV_HUBS: NavHub[] = [
     tabs: [
       { id: "settingsGeneral", href: "/settings", icon: Settings },
       { id: "settingsActivity", href: "/settings/activity", icon: History },
+      { id: "settingsConnect", href: "/settings/connect", icon: Webhook },
     ],
   },
 ];

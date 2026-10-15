@@ -16,6 +16,7 @@ export const SHELL_ROUTES: readonly string[] = [
   "/goals/funding",
   "/settings",
   "/settings/activity",
+  "/settings/connect",
 ];
 
 /** Client → worker message: cache any shell route missing from the offline cache. */
