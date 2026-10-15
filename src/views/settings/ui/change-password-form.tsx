@@ -8,8 +8,9 @@ import { apiErrorText, errorText, useI18n } from "@/shared/i18n";
 import { PASSWORD_MIN_LENGTH, validateNewPassword } from "@/shared/lib/password-policy";
 import { Alert, AlertDescription } from "@/shared/ui/kit/alert";
 import { Button } from "@/shared/ui/kit/button";
-import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
+import { FieldError } from "@/shared/ui/field-error";
+import { PasswordInput } from "@/shared/ui/password-input";
 
 const EMPTY = { current: "", next: "", confirm: "" };
 
@@ -18,13 +19,20 @@ export function ChangePasswordForm() {
   const { t } = useI18n();
   const p = t.settings.password;
   const [values, setValues] = useState(EMPTY);
-  const [touched, setTouched] = useState({ next: false, confirm: false });
+  const [touched, setTouched] = useState({ current: false, next: false, confirm: false });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const policyError = values.next ? validateNewPassword(values.next, { current: values.current || undefined }) : null;
-  const mismatch = values.confirm.length > 0 && values.confirm !== values.next;
-  const valid = values.current.length > 0 && values.next.length > 0 && !policyError && values.confirm === values.next;
+  const currentMissing = values.current.length === 0;
+  const policyError = validateNewPassword(values.next, { current: values.current || undefined });
+  const mismatch = values.confirm !== values.next;
+  const valid = !currentMissing && !policyError && !mismatch;
+  const show = {
+    current: touched.current && currentMissing,
+    next: touched.next && !!policyError,
+    // A mismatch shows once left, or as soon as the confirmation is as long as the new password.
+    confirm: mismatch && (touched.confirm || (values.confirm.length > 0 && values.confirm.length >= values.next.length)),
+  };
 
   const set = (field: keyof typeof EMPTY) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setValues((v) => ({ ...v, [field]: e.target.value }));
@@ -32,9 +40,15 @@ export function ChangePasswordForm() {
   return (
     <form
       className="grid gap-4 sm:max-w-sm"
+      noValidate
       onSubmit={async (e) => {
         e.preventDefault();
-        if (!valid || busy) return;
+        if (busy) return;
+        if (!valid) {
+          setTouched({ current: true, next: true, confirm: true });
+          document.getElementById(currentMissing ? "current-password" : policyError ? "new-password" : "confirm-password")?.focus();
+          return;
+        }
         setBusy(true);
         setError(null);
         try {
@@ -48,7 +62,7 @@ export function ChangePasswordForm() {
             return;
           }
           setValues(EMPTY);
-          setTouched({ next: false, confirm: false });
+          setTouched({ current: false, next: false, confirm: false });
           toast.success(p.changed, { description: p.changedDescription });
         } catch {
           setError(t.common.networkError);
@@ -64,45 +78,49 @@ export function ChangePasswordForm() {
       ) : null}
       <div className="grid gap-1.5">
         <Label htmlFor="current-password">{p.current}</Label>
-        <Input
+        <PasswordInput
           id="current-password"
-          type="password"
           autoComplete="current-password"
           value={values.current}
           onChange={set("current")}
+          onBlur={() => setTouched((prev) => ({ ...prev, current: true }))}
+          aria-invalid={show.current}
         />
+        <FieldError>{show.current ? p.currentRequired : null}</FieldError>
       </div>
       <div className="grid gap-1.5">
         <Label htmlFor="new-password">{p.next}</Label>
-        <Input
+        <PasswordInput
           id="new-password"
-          type="password"
           autoComplete="new-password"
           value={values.next}
           onChange={set("next")}
           onBlur={() => setTouched((prev) => ({ ...prev, next: true }))}
-          aria-invalid={touched.next && !!policyError}
+          aria-invalid={show.next}
           aria-describedby="new-password-hint"
         />
-        <p id="new-password-hint" className={touched.next && policyError ? "text-xs text-destructive" : "text-xs text-muted-foreground"}>
-          {touched.next && policyError ? errorText(t, policyError) : p.hint({ min: PASSWORD_MIN_LENGTH })}
-        </p>
+        {show.next && policyError ? (
+          <FieldError id="new-password-hint">{errorText(t, policyError)}</FieldError>
+        ) : (
+          <p id="new-password-hint" className="text-xs text-muted-foreground">
+            {p.hint({ min: PASSWORD_MIN_LENGTH })}
+          </p>
+        )}
       </div>
       <div className="grid gap-1.5">
         <Label htmlFor="confirm-password">{p.confirm}</Label>
-        <Input
+        <PasswordInput
           id="confirm-password"
-          type="password"
           autoComplete="new-password"
           value={values.confirm}
           onChange={set("confirm")}
           onBlur={() => setTouched((prev) => ({ ...prev, confirm: true }))}
-          aria-invalid={touched.confirm && mismatch}
+          aria-invalid={show.confirm}
         />
-        {touched.confirm && mismatch ? <p className="text-xs text-destructive">{t.errors.password_mismatch}</p> : null}
+        <FieldError>{show.confirm ? t.errors.password_mismatch : null}</FieldError>
       </div>
       <div>
-        <Button type="submit" disabled={!valid || busy}>
+        <Button type="submit" disabled={busy}>
           <KeyRound />
           {busy ? p.submitting : p.submit}
         </Button>

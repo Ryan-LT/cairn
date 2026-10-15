@@ -77,6 +77,7 @@ export const settings = {
     title: "Password",
     description: "Changing it signs you out on your other devices. Forgot it? Ask the app admin to reset it.",
     current: "Current password",
+    currentRequired: "Enter your current password.",
     next: "New password",
     hint: (p: { min: number }) => `At least ${p.min} characters.`,
     confirm: "Confirm new password",

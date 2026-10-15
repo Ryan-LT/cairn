@@ -16,6 +16,7 @@ import { Button } from "@/shared/ui/kit/button";
 import { DatePicker } from "@/shared/ui/kit/date-picker";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
+import { FieldError } from "@/shared/ui/field-error";
 
 type Draft = { birthDate: string; targetUsd: number | undefined; targetAge: number | undefined };
 
@@ -116,9 +117,7 @@ export function MilestoneForm({
           />
         </div>
       </div>
-      {!ageValid ? (
-        <p className="text-xs text-destructive">{m.ageRange({ min: MIN_MILESTONE_AGE, max: MAX_MILESTONE_AGE })}</p>
-      ) : null}
+      <FieldError>{!ageValid ? m.ageRange({ min: MIN_MILESTONE_AGE, max: MAX_MILESTONE_AGE }) : null}</FieldError>
       <div className="flex gap-2">
         <Button type="submit" disabled={!dirty || !ageValid || !targetValid}>
           <Check />

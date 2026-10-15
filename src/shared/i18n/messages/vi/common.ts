@@ -42,6 +42,8 @@ export const common: Messages["common"] = {
   themeSystem: "Theo hệ thống",
   copy: "Sao chép",
   copied: "Đã sao chép",
+  showPassword: "Hiện mật khẩu",
+  hidePassword: "Ẩn mật khẩu",
   networkError: "Không kết nối được máy chủ. Hãy kiểm tra mạng và thử lại.",
   undo: "Hoàn tác",
   viewAll: "Xem tất cả",
