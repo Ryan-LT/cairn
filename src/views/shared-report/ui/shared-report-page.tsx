@@ -11,9 +11,9 @@ import { Callout } from "@/shared/ui/callout";
 import { Alert, AlertDescription } from "@/shared/ui/kit/alert";
 import { Button } from "@/shared/ui/kit/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/kit/card";
-import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 import { Logo } from "@/shared/ui/logo";
+import { PasswordInput } from "@/shared/ui/password-input";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
 
 import { ReportView } from "./report-view";
@@ -101,9 +101,15 @@ function Viewer({ switcher }: { switcher: React.ReactNode }) {
           ) : (
             <form
               className="flex flex-col gap-4"
+              noValidate
               onSubmit={async (e) => {
                 e.preventDefault();
-                if (!id || !password || busy) return;
+                if (!id || busy) return;
+                if (!password) {
+                  setError(v.passwordRequired);
+                  document.getElementById("share-password")?.focus();
+                  return;
+                }
                 setBusy(true);
                 setError(null);
                 try {
@@ -137,9 +143,9 @@ function Viewer({ switcher }: { switcher: React.ReactNode }) {
               ) : null}
               <div className="flex flex-col gap-1.5">
                 <Label htmlFor="share-password">{v.password}</Label>
-                <Input id="share-password" type="password" autoComplete="off" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus required />
+                <PasswordInput id="share-password" autoComplete="off" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus aria-invalid={!!error} />
               </div>
-              <Button type="submit" className="w-full" disabled={busy || !password || !id}>
+              <Button type="submit" className="w-full" disabled={busy || !id}>
                 {busy ? v.opening : v.open}
               </Button>
             </form>

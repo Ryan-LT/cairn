@@ -20,6 +20,7 @@ import {
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 import { Logo } from "@/shared/ui/logo";
+import { PasswordInput } from "@/shared/ui/password-input";
 
 /**
  * The in-app page to return to after sign-in, else `/`. Resolved as a URL so
@@ -108,10 +109,9 @@ export function LoginForm() {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="login-password">{t.auth.login.password}</Label>
-              <Input
+              <PasswordInput
                 id="login-password"
                 name="password"
-                type="password"
                 autoComplete="current-password"
                 value={password}
                 onChange={(ev) => setPassword(ev.target.value)}

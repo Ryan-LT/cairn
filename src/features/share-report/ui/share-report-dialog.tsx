@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, Copy, Link2, Loader2 } from "lucide-react";
-import { useId, useMemo, useState } from "react";
+import { Check, CircleAlert, Copy, Link2, Loader2 } from "lucide-react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 
 import { buildSharedReport, REPORT_SECTIONS, SHARE_PASSWORD_MIN, SHARE_TITLE_MAX, type ReportSection } from "@/entities/report";
@@ -14,6 +14,8 @@ import { Button } from "@/shared/ui/kit/button";
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/kit/dialog";
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
+import { FieldError } from "@/shared/ui/field-error";
+import { PasswordInput } from "@/shared/ui/password-input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/kit/select";
 import { Switch } from "@/shared/ui/kit/switch";
 import { SegmentedControl } from "@/shared/ui/segmented-control";
@@ -67,12 +69,9 @@ function ShareForm({ onClose, onCreated }: { onClose: () => void; onCreated?: (s
   const current = today.slice(0, 7);
 
   // Months that can be picked: from the first record (or two years back) to this month, newest first.
-  const months = useMemo(() => {
-    const first = data.txns.reduce((m, x) => (x.date.slice(0, 7) < m ? x.date.slice(0, 7) : m), addMonths(current, -23));
-    const out: string[] = [];
-    for (let m = current; m >= first && out.length < 120; m = addMonths(m, -1)) out.push(m);
-    return out;
-  }, [data.txns, current]);
+  const first = data.txns.reduce((m, x) => (x.date.slice(0, 7) < m ? x.date.slice(0, 7) : m), addMonths(current, -23));
+  const months: string[] = [];
+  for (let m = current; m >= first && months.length < 120; m = addMonths(m, -1)) months.push(m);
 
   const [title, setTitle] = useState(d.defaultTitle);
   const [all, setAll] = useState(false);
@@ -85,9 +84,24 @@ function ShareForm({ onClose, onCreated }: { onClose: () => void; onCreated?: (s
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [created, setCreated] = useState<ShareLink | null>(null);
+  // Fields left (or a submit tried): only then are their problems shown.
+  const [touched, setTouched] = useState({ title: false, password: false, confirm: false });
+  const [attempted, setAttempted] = useState(false);
+  const touch = (f: keyof typeof touched) => () => setTouched((prev) => ({ ...prev, [f]: true }));
 
-  const mismatch = confirm.length > 0 && confirm !== password;
-  const valid = title.trim().length > 0 && password.length >= SHARE_PASSWORD_MIN && password === confirm && (all || from <= to);
+  const problems = {
+    title: title.trim() ? null : d.titleRequired,
+    password: password.length >= SHARE_PASSWORD_MIN ? null : d.passwordShort({ min: SHARE_PASSWORD_MIN, count: password.length }),
+    confirm: confirm === password ? null : t.errors.password_mismatch,
+  };
+  const shown = {
+    title: touched.title ? problems.title : null,
+    password: touched.password ? problems.password : null,
+    // A mismatch shows as soon as the confirmation is as long as the password.
+    confirm: touched.confirm || (confirm.length >= password.length && confirm.length > 0) ? problems.confirm : null,
+  };
+  const valid = !problems.title && !problems.password && !problems.confirm && (all || from <= to);
+  const problemCount = [problems.title, problems.password, problems.confirm].filter(Boolean).length;
 
   if (created) {
     return (
@@ -116,7 +130,15 @@ function ShareForm({ onClose, onCreated }: { onClose: () => void; onCreated?: (s
   }
 
   const submit = async () => {
-    if (!valid || busy) return;
+    if (busy) return;
+    if (!valid) {
+      setAttempted(true);
+      setTouched({ title: true, password: true, confirm: true });
+      // Take the person to the first field that needs fixing.
+      const first = problems.title ? ids.title : problems.password ? ids.password : ids.confirm;
+      document.getElementById(first)?.focus();
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -185,7 +207,17 @@ function ShareForm({ onClose, onCreated }: { onClose: () => void; onCreated?: (s
         ) : null}
         <div className="grid gap-1.5">
           <Label htmlFor={ids.title}>{d.name}</Label>
-          <Input id={ids.title} value={title} maxLength={SHARE_TITLE_MAX} placeholder={d.namePlaceholder} onChange={(e) => setTitle(e.target.value)} />
+          <Input
+            id={ids.title}
+            value={title}
+            maxLength={SHARE_TITLE_MAX}
+            placeholder={d.namePlaceholder}
+            onChange={(e) => setTitle(e.target.value)}
+            onBlur={touch("title")}
+            aria-invalid={!!shown.title}
+            aria-describedby={shown.title ? `${ids.title}-error` : undefined}
+          />
+          <FieldError id={`${ids.title}-error`}>{shown.title}</FieldError>
         </div>
 
         <div className="grid gap-2">
@@ -245,17 +277,39 @@ function ShareForm({ onClose, onCreated }: { onClose: () => void; onCreated?: (s
         </fieldset>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <Label htmlFor={ids.password}>{d.password}</Label>
-            <Input id={ids.password} type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <PasswordInput
+              id={ids.password}
+              autoComplete="new-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onBlur={touch("password")}
+              aria-invalid={!!shown.password}
+              aria-describedby={`${ids.password}-hint`}
+            />
+            {shown.password ? (
+              <FieldError id={`${ids.password}-hint`}>{shown.password}</FieldError>
+            ) : (
+              <p id={`${ids.password}-hint`} className="text-xs text-muted-foreground">
+                {/* While typing: how far off the minimum it still is. */}
+                {problems.password && password.length > 0 ? problems.password : d.passwordHint({ min: SHARE_PASSWORD_MIN })}
+              </p>
+            )}
           </div>
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <Label htmlFor={ids.confirm}>{d.confirm}</Label>
-            <Input id={ids.confirm} type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} aria-invalid={mismatch} />
+            <PasswordInput
+              id={ids.confirm}
+              autoComplete="new-password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              onBlur={touch("confirm")}
+              aria-invalid={!!shown.confirm}
+              aria-describedby={shown.confirm ? `${ids.confirm}-error` : undefined}
+            />
+            <FieldError id={`${ids.confirm}-error`}>{shown.confirm}</FieldError>
           </div>
-          <p className={mismatch ? "text-xs text-destructive sm:col-span-2" : "text-xs text-muted-foreground sm:col-span-2"}>
-            {mismatch ? t.errors.password_mismatch : d.passwordHint({ min: SHARE_PASSWORD_MIN })}
-          </p>
         </div>
 
         <div className="grid gap-2">
@@ -269,10 +323,17 @@ function ShareForm({ onClose, onCreated }: { onClose: () => void; onCreated?: (s
         </div>
       </DialogBody>
       <DialogFooter>
+        {attempted && problemCount > 0 ? (
+          // Beside the button that was pressed, so a refused submit is never silent.
+          <p role="status" className="flex items-center gap-1.5 text-sm font-medium text-danger max-sm:order-last max-sm:justify-center sm:mr-auto">
+            <CircleAlert className="size-4 shrink-0" aria-hidden />
+            {d.fixErrors({ count: problemCount })}
+          </p>
+        ) : null}
         <Button type="button" variant="outline" onClick={onClose} disabled={busy}>
           {t.common.cancel}
         </Button>
-        <Button type="submit" disabled={!valid || busy}>
+        <Button type="submit" disabled={busy}>
           {busy ? <Loader2 className="animate-spin" /> : <Link2 />}
           {busy ? d.submitting : d.submit}
         </Button>

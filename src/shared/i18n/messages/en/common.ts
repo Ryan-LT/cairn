@@ -41,6 +41,8 @@ export const common = {
   themeSystem: "System",
   copy: "Copy",
   copied: "Copied",
+  showPassword: "Show password",
+  hidePassword: "Hide password",
   networkError: "Couldn't reach the server. Check your connection and try again.",
   undo: "Undo",
   viewAll: "View all",

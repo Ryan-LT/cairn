@@ -1,5 +1,6 @@
 "use client";
 
+import { CircleAlert } from 'lucide-react'
 import * as React from 'react'
 import {
   Controller,
@@ -146,10 +147,12 @@ function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot='form-message'
       id={formMessageId}
-      className={cn('text-xs font-medium text-danger', className)}
+      role={error ? 'alert' : undefined}
+      className={cn('flex items-start gap-1.5 text-sm font-medium text-danger', className)}
       {...props}
     >
-      {body}
+      {error ? <CircleAlert className='mt-0.5 size-4 shrink-0' aria-hidden /> : null}
+      <span>{body}</span>
     </p>
   )
 }

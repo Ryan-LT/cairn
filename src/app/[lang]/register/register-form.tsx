@@ -15,6 +15,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Input } from "@/shared/ui/kit/input";
 import { Label } from "@/shared/ui/kit/label";
 import { Logo } from "@/shared/ui/logo";
+import { FieldError } from "@/shared/ui/field-error";
+import { PasswordInput } from "@/shared/ui/password-input";
 
 type Field = "username" | "displayName" | "email" | "password" | "confirm";
 const EMPTY: Record<Field, string> = { username: "", displayName: "", email: "", password: "", confirm: "" };
@@ -63,12 +65,7 @@ export function RegisterForm() {
     "aria-describedby": shown(f) ? `register-${f}-error` : undefined,
   });
 
-  const errorText = (f: Field) =>
-    shown(f) ? (
-      <p id={`register-${f}-error`} className="text-xs text-destructive">
-        {shown(f)}
-      </p>
-    ) : null;
+  const errorText = (f: Field) => (shown(f) ? <FieldError id={`register-${f}-error`}>{shown(f)}</FieldError> : null);
 
   return (
     <main className="relative flex min-h-svh flex-col items-center justify-center gap-6 bg-background px-4 py-12">
@@ -145,12 +142,12 @@ export function RegisterForm() {
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="register-password">{t.auth.register.password}</Label>
-              <Input {...bind("password")} name="new-password" type="password" autoComplete="new-password" />
+              <PasswordInput {...bind("password")} name="new-password" autoComplete="new-password" />
               {errorText("password") ?? <p className="text-xs text-muted-foreground">{t.auth.register.passwordHint({ min: PASSWORD_MIN_LENGTH })}</p>}
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="register-confirm">{t.auth.register.confirm}</Label>
-              <Input {...bind("confirm")} name="confirm-password" type="password" autoComplete="new-password" />
+              <PasswordInput {...bind("confirm")} name="confirm-password" autoComplete="new-password" />
               {errorText("confirm")}
             </div>
             {/* Honeypot: hidden from people and assistive tech; bots tend to fill it. */}

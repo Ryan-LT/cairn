@@ -8,7 +8,7 @@ export const fieldClassName = cn(
   "placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground",
   "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
   "focus-visible:border-primary focus-visible:ring-[3px] focus-visible:ring-ring",
-  "aria-invalid:border-danger aria-invalid:ring-danger/20",
+  "aria-invalid:border-danger aria-invalid:ring-[3px] aria-invalid:ring-danger/25",
 );
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {

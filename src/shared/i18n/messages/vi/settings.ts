@@ -78,6 +78,7 @@ export const settings: Messages["settings"] = {
     title: "Mật khẩu",
     description: "Đổi mật khẩu sẽ đăng xuất bạn khỏi các thiết bị khác. Quên mật khẩu? Hãy nhờ quản trị viên ứng dụng đặt lại.",
     current: "Mật khẩu hiện tại",
+    currentRequired: "Hãy nhập mật khẩu hiện tại.",
     next: "Mật khẩu mới",
     hint: (p) => `Tối thiểu ${p.min} ký tự.`,
     confirm: "Xác nhận mật khẩu mới",
