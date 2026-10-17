@@ -1,4 +1,4 @@
--- WealthTracker cloud sync (Neon Postgres). Run once per project: Neon SQL Editor or `psql "$DATABASE_URL" -f db/schema.sql`
+-- Cairn cloud sync (Neon Postgres). Run once per project: Neon SQL Editor or `psql "$DATABASE_URL" -f db/schema.sql`
 -- Upgrading a database created before multi-account login? Run db/migrations/2026-10-multi-user.sql instead.
 
 -- bcrypt password hashing (`crypt` / `gen_salt`) so accounts can be created in plain SQL.

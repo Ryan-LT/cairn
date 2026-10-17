@@ -107,7 +107,6 @@ Calm, plain and precise, like a good accountant who is on your side.
 These still use `wealthtracker`, so that existing data, caches and installs
 keep working:
 
-- the npm package name
 - the browser cache key (`wealthtracker:tables:v1`)
 - the service-worker cache names
 - the database tables (`wealthtracker_kv`, `wealthtracker_fx_cache`)
