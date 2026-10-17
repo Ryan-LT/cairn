@@ -59,7 +59,7 @@ export function normalizeStoredCheckpoints(
       if (delta < 0 && !warnedNonMonotonic) {
         warnedNonMonotonic = true;
         console.warn(
-          "[wealthtracker] legacy checkpoint cumulativeAmount is not monotonic; negative delta clamped to 0 during migration",
+          "[cairn] legacy checkpoint cumulativeAmount is not monotonic; negative delta clamped to 0 during migration",
           { id: r.id, date: r.date, prevCumulative, cumulativeAmount: cum },
         );
       }

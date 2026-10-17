@@ -1,5 +1,6 @@
 "use client";
 
+import "@/shared/lib/legacy-storage";
 import { useCallback, useSyncExternalStore } from "react";
 
 import { readSessionUser } from "@/shared/lib/session-user";
@@ -12,8 +13,8 @@ function storedKeysIn(source: object): StoredKey[] {
 }
 
 const tablesUrl = "/api/tables";
-/** Device cache, one per account: `wealthtracker:tables:v1:<userId>` (`:local` without login). */
-const LOCAL_CACHE_PREFIX = "wealthtracker:tables:v1";
+/** Device cache, one per account: `cairn:tables:v1:<userId>` (`:local` without login). */
+const LOCAL_CACHE_PREFIX = "cairn:tables:v1";
 /** Before multi-account login the cache had no account suffix; dropped on first load. */
 const LEGACY_LOCAL_CACHE_KEY = LOCAL_CACHE_PREFIX;
 /** PUT header naming the account the pending edits belong to (checked against the session). */
@@ -292,7 +293,7 @@ async function flushDirty(): Promise<boolean> {
       persistLocalCache();
       return true;
     } catch (e) {
-      console.error("[wealthtracker] persist to Neon failed", e);
+      console.error("[cairn] persist to Neon failed", e);
       flushFailures = Math.min(flushFailures + 1, 10);
       return false;
     } finally {

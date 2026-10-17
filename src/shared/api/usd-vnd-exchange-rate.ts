@@ -92,7 +92,7 @@ async function readCache(sql: Sql): Promise<CacheRow | null> {
       fetched_at::text AS fetched_at,
       api_time_last_update_utc::text AS api_time_last_update_utc,
       api_time_next_update_utc::text AS api_time_next_update_utc
-    FROM wealthtracker_fx_cache
+    FROM cairn_fx_cache
     WHERE base_code = 'USD'
       AND quote_code = 'VND'
     LIMIT 1
@@ -120,7 +120,7 @@ async function upsertCache(
   apiNextUpdate: Date | null,
 ): Promise<void> {
   await sql`
-    INSERT INTO wealthtracker_fx_cache (
+    INSERT INTO cairn_fx_cache (
       base_code,
       quote_code,
       rate,

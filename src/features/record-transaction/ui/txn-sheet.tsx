@@ -1,5 +1,6 @@
 "use client";
 
+import "@/shared/lib/legacy-storage";
 import { Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 
@@ -28,7 +29,7 @@ export type TxnSheetMode =
   | { kind: "receive"; sourceId: string; sourceName: string; month: string; amount: number; amountUsd?: number; date: string; accountId?: string }
   | { kind: "edit"; txn: LedgerTxn; title?: string };
 
-const LAST_ACCOUNT_KEY = "wealthtracker:last-account";
+const LAST_ACCOUNT_KEY = "cairn:last-account";
 
 function lastAccount(kind: "expense" | "income"): string | undefined {
   try {

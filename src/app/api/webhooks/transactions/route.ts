@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     const sql = getSql();
     const [key] = (await sql`
       SELECT id::text AS id, user_id::text AS user_id
-      FROM wealthtracker_webhook_tokens
+      FROM cairn_webhook_tokens
       WHERE token_hash = ${hashWebhookToken(token)} AND revoked_at IS NULL
     `) as TokenRow[];
     if (!key) return jsonError("Unknown or revoked webhook key", 401, "webhook_unauthorized");
@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       SELECT
         count(*) FILTER (WHERE token_id = ${key.id} AND received_at > now() - interval '1 minute')::int AS minute,
         count(*)::int AS day
-      FROM wealthtracker_inbox
+      FROM cairn_inbox
       WHERE user_id = ${key.user_id} AND received_at > now() - interval '1 day'
     `) as { minute: number; day: number }[];
     if (usage.minute + parsed.items.length > MAX_PER_TOKEN_MINUTE || usage.day + parsed.items.length > MAX_PER_USER_DAY) {
@@ -77,13 +77,13 @@ export async function POST(req: Request) {
     // Without the sender's id each delivery is new; with it, a repeat is ignored.
     const rows = [...new Map(parsed.items.map((i) => [i.ref ?? `auto:${randomUUID()}`, i.txn])).entries()].map(([ref, txn]) => ({ ref, txn }));
     const created = (await sql`
-      INSERT INTO wealthtracker_inbox (user_id, token_id, provider, external_ref, txn)
+      INSERT INTO cairn_inbox (user_id, token_id, provider, external_ref, txn)
       SELECT ${key.user_id}::uuid, ${key.id}::uuid, ${parsed.provider}, r.ref, r.txn
       FROM jsonb_to_recordset(${JSON.stringify(rows)}::jsonb) AS r(ref text, txn jsonb)
       ON CONFLICT (user_id, provider, external_ref) DO NOTHING
       RETURNING id::text AS id
     `) as { id: string }[];
-    await sql`UPDATE wealthtracker_webhook_tokens SET last_used_at = now() WHERE id = ${key.id}`;
+    await sql`UPDATE cairn_webhook_tokens SET last_used_at = now() WHERE id = ${key.id}`;
 
     return Response.json({
       success: true,
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
       ids: created.map((c) => c.id),
     });
   } catch (e) {
-    console.error("[wealthtracker] webhook failed", e);
+    console.error("[cairn] webhook failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }

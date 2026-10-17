@@ -54,13 +54,13 @@ export async function GET(req: Request) {
     if (!(await ensureSchema("shares"))) return Response.json({ available: false, shares: [] });
     const rows = (await getSql()`
       SELECT id, title, period, sections, created_at, expires_at, view_count, last_viewed_at
-      FROM wealthtracker_shares
+      FROM cairn_shares
       WHERE user_id = ${user.sub}
       ORDER BY created_at DESC
     `) as ShareRow[];
     return Response.json({ available: true, shares: rows.map(toShare) });
   } catch (e) {
-    console.error("[wealthtracker] shares query failed", e);
+    console.error("[cairn] shares query failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }
@@ -99,17 +99,17 @@ export async function POST(req: Request) {
     const sql = getSql();
     const sealed = await sealWithPassword(plaintext, password);
     const rows = (await sql`
-      INSERT INTO wealthtracker_shares (id, user_id, title, period, sections, salt, iv, ciphertext, expires_at)
+      INSERT INTO cairn_shares (id, user_id, title, period, sections, salt, iv, ciphertext, expires_at)
       SELECT ${newShareId()}, ${user.sub}, ${report.title.slice(0, SHARE_TITLE_MAX)}, ${JSON.stringify(report.period)}::jsonb, ${sections}::text[],
              ${sealed.salt}, ${sealed.iv}, ${sealed.ciphertext},
              CASE WHEN ${expiresInDays}::int IS NULL THEN NULL ELSE now() + make_interval(days => ${expiresInDays}::int) END
-      WHERE (SELECT count(*) FROM wealthtracker_shares WHERE user_id = ${user.sub}) < ${MAX_SHARES}
+      WHERE (SELECT count(*) FROM cairn_shares WHERE user_id = ${user.sub}) < ${MAX_SHARES}
       RETURNING id, title, period, sections, created_at, expires_at, view_count, last_viewed_at
     `) as ShareRow[];
     if (!rows[0]) return jsonError(`At most ${MAX_SHARES} share links; remove an old one first`, 409, "share_limit");
     return Response.json({ share: toShare(rows[0]) });
   } catch (e) {
-    console.error("[wealthtracker] share create failed", e);
+    console.error("[cairn] share create failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }
@@ -123,11 +123,11 @@ export async function DELETE(req: Request) {
     const user = await requireActiveUser(req);
     if (!user) return jsonError("Unauthorized", 401, "unauthorized");
     if (!(await ensureSchema("shares"))) return jsonError("Share storage unavailable", 503, "unavailable");
-    const rows = (await getSql()`DELETE FROM wealthtracker_shares WHERE id = ${id} AND user_id = ${user.sub} RETURNING id`) as unknown[];
+    const rows = (await getSql()`DELETE FROM cairn_shares WHERE id = ${id} AND user_id = ${user.sub} RETURNING id`) as unknown[];
     if (!rows.length) return jsonError("Unknown link", 404, "not_found");
     return Response.json({ ok: true });
   } catch (e) {
-    console.error("[wealthtracker] share delete failed", e);
+    console.error("[cairn] share delete failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }

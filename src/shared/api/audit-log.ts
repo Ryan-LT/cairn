@@ -12,13 +12,13 @@ type Sql = ReturnType<typeof getSql>;
 type Save = { key: StoredKey; value: unknown; payload: string };
 
 async function readTable(sql: Sql, userId: string, key: StoredKey): Promise<unknown> {
-  const rows = (await sql`SELECT value FROM wealthtracker_kv WHERE user_id = ${userId} AND key = ${key}`) as { value: unknown }[];
+  const rows = (await sql`SELECT value FROM cairn_kv WHERE user_id = ${userId} AND key = ${key}`) as { value: unknown }[];
   return rows[0]?.value ?? null;
 }
 
 async function plainUpsert(sql: Sql, userId: string, key: StoredKey, payload: string) {
   await sql`
-    INSERT INTO wealthtracker_kv (user_id, key, value, updated_at)
+    INSERT INTO cairn_kv (user_id, key, value, updated_at)
     VALUES (${userId}, ${key}, ${payload}::jsonb, now())
     ON CONFLICT (user_id, key)
     DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at
@@ -32,15 +32,15 @@ async function plainUpsert(sql: Sql, userId: string, key: StoredKey, payload: st
 async function swapTable(sql: Sql, userId: string, key: StoredKey, payload: string): Promise<unknown> {
   for (;;) {
     const updated = (await sql`
-      UPDATE wealthtracker_kv AS k
+      UPDATE cairn_kv AS k
       SET value = ${payload}::jsonb, updated_at = now()
-      FROM (SELECT user_id, key, value FROM wealthtracker_kv WHERE user_id = ${userId} AND key = ${key} FOR UPDATE) AS old
+      FROM (SELECT user_id, key, value FROM cairn_kv WHERE user_id = ${userId} AND key = ${key} FOR UPDATE) AS old
       WHERE k.user_id = old.user_id AND k.key = old.key
       RETURNING old.value AS before
     `) as { before: unknown }[];
     if (updated.length) return updated[0].before;
     const inserted = (await sql`
-      INSERT INTO wealthtracker_kv (user_id, key, value, updated_at)
+      INSERT INTO cairn_kv (user_id, key, value, updated_at)
       VALUES (${userId}, ${key}, ${payload}::jsonb, now())
       ON CONFLICT (user_id, key) DO NOTHING
       RETURNING 1
@@ -108,14 +108,14 @@ export async function saveTablesWithAudit(userId: string, saves: Save[], userAge
       const beforeJson = before === null ? null : JSON.stringify(before);
       const rows = (await sql`
         WITH saved AS (
-          INSERT INTO wealthtracker_kv (user_id, key, value, updated_at)
+          INSERT INTO cairn_kv (user_id, key, value, updated_at)
           VALUES (${userId}, ${key}, ${payload}::jsonb, now())
           ON CONFLICT (user_id, key)
           DO UPDATE SET value = EXCLUDED.value, updated_at = EXCLUDED.updated_at
-          WHERE wealthtracker_kv.value IS NOT DISTINCT FROM ${beforeJson}::jsonb
+          WHERE cairn_kv.value IS NOT DISTINCT FROM ${beforeJson}::jsonb
           RETURNING 1
         ), logged AS (
-          INSERT INTO wealthtracker_audit_log
+          INSERT INTO cairn_audit_log
             (user_id, batch_id, table_key, entity_type, entity_id, entity_name, action, changes, before, after, user_agent)
           SELECT ${userId}, ${batchId}, ${key}, e.entity_type, e.entity_id, e.entity_name, e.action, e.changes, e.before, e.after, ${agent}
           FROM jsonb_to_recordset(${logRows(changes)}::jsonb)
@@ -133,7 +133,7 @@ export async function saveTablesWithAudit(userId: string, saves: Save[], userAge
       changes = diffTable(key, before, value, ctx);
       if (changes.length) {
         await sql`
-          INSERT INTO wealthtracker_audit_log
+          INSERT INTO cairn_audit_log
             (user_id, batch_id, table_key, entity_type, entity_id, entity_name, action, changes, before, after, user_agent)
           SELECT ${userId}, ${batchId}, ${key}, e.entity_type, e.entity_id, e.entity_name, e.action, e.changes, e.before, e.after, ${agent}
           FROM jsonb_to_recordset(${logRows(changes)}::jsonb)
@@ -188,7 +188,7 @@ export async function readActivity(userId: string, q: ActivityQuery): Promise<Ac
   const pattern = containsPattern(q.search);
   return (await getSql()`
     SELECT id::text, occurred_at, batch_id, table_key, entity_type, entity_id, entity_name, action, changes, before, after
-    FROM wealthtracker_audit_log
+    FROM cairn_audit_log
     WHERE user_id = ${userId}
       AND (${q.before ?? null}::bigint IS NULL OR id < ${q.before ?? null}::bigint)
       AND (${q.until ?? null}::timestamptz IS NULL OR occurred_at < ${q.until ?? null}::timestamptz)
@@ -209,7 +209,7 @@ export async function summarizeActivity(userId: string, q: ActivityFilters): Pro
   const pattern = containsPattern(q.search);
   const rows = (await getSql()`
     SELECT count(*)::int AS total, min(occurred_at) AS oldest
-    FROM wealthtracker_audit_log
+    FROM cairn_audit_log
     WHERE user_id = ${userId}
       AND (${types}::text[] IS NULL OR entity_type = ANY(${types}::text[]))
       AND (${actions}::text[] IS NULL OR action = ANY(${actions}::text[]))

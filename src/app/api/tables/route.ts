@@ -20,7 +20,7 @@ type Row = { key: string; value: unknown };
 
 /** Log the real failure; the client only learns that the database failed. */
 function databaseError(e: unknown) {
-  console.error("[wealthtracker] tables query failed", e);
+  console.error("[cairn] tables query failed", e);
   return jsonError("Database error", 500, "unavailable");
 }
 
@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     const sql = getSql();
     const rows = (await sql`
       SELECT key, value
-      FROM wealthtracker_kv
+      FROM cairn_kv
       WHERE user_id = ${user.sub}
     `) as Row[];
 

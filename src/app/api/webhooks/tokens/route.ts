@@ -55,14 +55,14 @@ export async function GET(req: Request) {
     const [keys, recent] = await Promise.all([
       sql`
         SELECT id::text AS id, name, token_hint, default_account_id, created_at, last_used_at
-        FROM wealthtracker_webhook_tokens
+        FROM cairn_webhook_tokens
         WHERE user_id = ${user.sub} AND revoked_at IS NULL
         ORDER BY created_at DESC
       `,
       sql`
         SELECT i.id::text AS id, i.provider, i.txn, i.received_at, i.acked_at, i.dismissed_at, t.name AS key_name
-        FROM wealthtracker_inbox i
-        LEFT JOIN wealthtracker_webhook_tokens t ON t.id = i.token_id
+        FROM cairn_inbox i
+        LEFT JOIN cairn_webhook_tokens t ON t.id = i.token_id
         WHERE i.user_id = ${user.sub}
         ORDER BY i.received_at DESC
         LIMIT 20
@@ -82,7 +82,7 @@ export async function GET(req: Request) {
       })),
     });
   } catch (e) {
-    console.error("[wealthtracker] webhook keys query failed", e);
+    console.error("[cairn] webhook keys query failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }
@@ -101,15 +101,15 @@ export async function POST(req: Request) {
     const token = newWebhookToken();
     // Inserted only while under the limit.
     const rows = (await sql`
-      INSERT INTO wealthtracker_webhook_tokens (user_id, name, token_hash, token_hint, default_account_id)
+      INSERT INTO cairn_webhook_tokens (user_id, name, token_hash, token_hint, default_account_id)
       SELECT ${user.sub}, ${name}, ${hashWebhookToken(token)}, ${token.slice(-4)}, ${accountOf(body.defaultAccountId)}
-      WHERE (SELECT count(*) FROM wealthtracker_webhook_tokens WHERE user_id = ${user.sub} AND revoked_at IS NULL) < ${MAX_KEYS}
+      WHERE (SELECT count(*) FROM cairn_webhook_tokens WHERE user_id = ${user.sub} AND revoked_at IS NULL) < ${MAX_KEYS}
       RETURNING id::text AS id, name, token_hint, default_account_id, created_at, last_used_at
     `) as KeyRow[];
     if (!rows[0]) return jsonError(`At most ${MAX_KEYS} webhook keys`, 409, "webhook_key_limit");
     return Response.json({ key: toKey(rows[0]), token });
   } catch (e) {
-    console.error("[wealthtracker] webhook key create failed", e);
+    console.error("[cairn] webhook key create failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }
@@ -128,7 +128,7 @@ export async function PATCH(req: Request) {
     if (!user) return jsonError("Unauthorized", 401, "unauthorized");
     if (!(await ensureSchema("webhooks"))) return jsonError("Webhook storage unavailable", 503, "unavailable");
     const rows = (await getSql()`
-      UPDATE wealthtracker_webhook_tokens
+      UPDATE cairn_webhook_tokens
       SET name = coalesce(${name}, name),
           default_account_id = CASE WHEN ${setAccount} THEN ${accountOf(body.defaultAccountId)} ELSE default_account_id END
       WHERE id = ${id} AND user_id = ${user.sub} AND revoked_at IS NULL
@@ -137,7 +137,7 @@ export async function PATCH(req: Request) {
     if (!rows[0]) return jsonError("Unknown key", 404, "not_found");
     return Response.json({ key: toKey(rows[0]) });
   } catch (e) {
-    console.error("[wealthtracker] webhook key update failed", e);
+    console.error("[cairn] webhook key update failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }
@@ -152,14 +152,14 @@ export async function DELETE(req: Request) {
     if (!user) return jsonError("Unauthorized", 401, "unauthorized");
     if (!(await ensureSchema("webhooks"))) return jsonError("Webhook storage unavailable", 503, "unavailable");
     const rows = (await getSql()`
-      UPDATE wealthtracker_webhook_tokens SET revoked_at = now()
+      UPDATE cairn_webhook_tokens SET revoked_at = now()
       WHERE id = ${id} AND user_id = ${user.sub} AND revoked_at IS NULL
       RETURNING id
     `) as unknown[];
     if (!rows.length) return jsonError("Unknown key", 404, "not_found");
     return Response.json({ ok: true });
   } catch (e) {
-    console.error("[wealthtracker] webhook key revoke failed", e);
+    console.error("[cairn] webhook key revoke failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }

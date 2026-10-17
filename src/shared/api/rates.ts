@@ -150,7 +150,7 @@ async function fetchUsd(): Promise<RatesSnapshot["usd"]> {
     const vcb = parseVietcombank(await getJson(`https://www.vietcombank.com.vn/api/exchangerates?date=${vnToday()}`));
     if (vcb) return { rate: vcb.rate, buy: vcb.buy, sell: vcb.sell, source: "vietcombank", at: vcb.at ?? now };
   } catch (e) {
-    console.warn("[wealthtracker] Vietcombank rate unavailable", String(e));
+    console.warn("[cairn] Vietcombank rate unavailable", String(e));
   }
   const key = process.env.EXCHANGERATE_API_KEY?.trim();
   try {
@@ -158,7 +158,7 @@ async function fetchUsd(): Promise<RatesSnapshot["usd"]> {
     const er = parseExchangeRateApi(await getJson(url));
     if (er) return { rate: er.rate, source: key ? "exchangerate-api" : "open-er-api", at: er.at ?? now };
   } catch (e) {
-    console.warn("[wealthtracker] ExchangeRate-API unavailable", String(e));
+    console.warn("[cairn] ExchangeRate-API unavailable", String(e));
   }
   return null;
 }
@@ -175,8 +175,8 @@ async function fetchGold(usdRate: number | null): Promise<RatesSnapshot["gold"]>
     return { prices, source: "pnj", at: fromPnj.at ?? now, worldUsdPerOunce: fromVt?.worldUsdPerOunce };
   }
   if (fromVt) return { prices: fromVt.prices, source: "vang-today", at: fromVt.at ?? now, worldUsdPerOunce: fromVt.worldUsdPerOunce };
-  if (pnj.status === "rejected") console.warn("[wealthtracker] PNJ gold unavailable", String(pnj.reason));
-  if (vt.status === "rejected") console.warn("[wealthtracker] vang.today unavailable", String(vt.reason));
+  if (pnj.status === "rejected") console.warn("[cairn] PNJ gold unavailable", String(pnj.reason));
+  if (vt.status === "rejected") console.warn("[cairn] vang.today unavailable", String(vt.reason));
   if (!usdRate) return null;
   try {
     const ounce = parseGoldApi(await getJson("https://api.gold-api.com/price/XAU"));
@@ -186,7 +186,7 @@ async function fetchGold(usdRate: number | null): Promise<RatesSnapshot["gold"]>
     const prices: GoldPrices = { ring_9999: { buy: pure, sell: pure } };
     return { prices, source: "world", at: now, worldUsdPerOunce: ounce };
   } catch (e) {
-    console.warn("[wealthtracker] world gold price unavailable", String(e));
+    console.warn("[cairn] world gold price unavailable", String(e));
     return null;
   }
 }
@@ -198,7 +198,7 @@ let inFlight: Promise<RatesSnapshot> | null = null;
 async function readStored(): Promise<RatesSnapshot | null> {
   if (!tryGetSql() || !(await ensureSchema("rates"))) return null;
   try {
-    const rows = (await getSql()`SELECT payload FROM wealthtracker_rates_cache WHERE id = ${CACHE_ID}`) as { payload: RatesSnapshot }[];
+    const rows = (await getSql()`SELECT payload FROM cairn_rates_cache WHERE id = ${CACHE_ID}`) as { payload: RatesSnapshot }[];
     return rows[0]?.payload ?? null;
   } catch {
     return null;
@@ -209,11 +209,11 @@ async function writeStored(snapshot: RatesSnapshot): Promise<void> {
   if (!tryGetSql() || !(await ensureSchema("rates"))) return;
   try {
     await getSql()`
-      INSERT INTO wealthtracker_rates_cache (id, payload, fetched_at) VALUES (${CACHE_ID}, ${JSON.stringify(snapshot)}::jsonb, now())
+      INSERT INTO cairn_rates_cache (id, payload, fetched_at) VALUES (${CACHE_ID}, ${JSON.stringify(snapshot)}::jsonb, now())
       ON CONFLICT (id) DO UPDATE SET payload = EXCLUDED.payload, fetched_at = EXCLUDED.fetched_at
     `;
   } catch (e) {
-    console.warn("[wealthtracker] could not keep rates", String(e));
+    console.warn("[cairn] could not keep rates", String(e));
   }
 }
 

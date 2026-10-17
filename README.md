@@ -55,14 +55,14 @@ Each account has its own data; a new account starts empty.
 name and email, password) and is signed in right away. To limit abuse: 3 new accounts
 per IP per hour, 20 attempts per IP per hour, 50 new accounts per day in total, plus a
 hidden honeypot field. IPs are stored only as an HMAC and pruned after a day
-(`wealthtracker_signup_attempts`).
+(`cairn_signup_attempts`).
 
 An admin can still create an account in SQL (Neon SQL Editor): copy
 [`db/create-user.sql`](db/create-user.sql), fill in the username, display name
 and password, and run it:
 
 ```sql
-INSERT INTO wealthtracker_users (username, display_name, password_hash)
+INSERT INTO cairn_users (username, display_name, password_hash)
 VALUES (lower('alice'), 'Alice Nguyen', crypt('a-strong-password', gen_salt('bf', 12)));
 ```
 
@@ -80,6 +80,12 @@ an admin password reset, unlocking an account and deleting one with its data.
 
 **Database upgrades** live in [`db/migrations/`](db/migrations/); run each one in
 the Neon SQL Editor before deploying the code that needs it.
+
+**Upgrading to the Cairn table names:** run
+[`db/migrations/2026-10-rename-to-cairn.sql`](db/migrations/2026-10-rename-to-cairn.sql)
+(renames `wealthtracker_*` to `cairn_*` in place, no data moves), deploy straight after,
+then run [`2026-10-rename-to-cairn-cleanup.sql`](db/migrations/2026-10-rename-to-cairn-cleanup.sql)
+to drop the old-name views. Devices carry their cached data over on first load.
 
 **Upgrading from the single-login version:** sync every device, run
 [`db/migrations/2026-10-multi-user.sql`](db/migrations/2026-10-multi-user.sql) with
@@ -139,7 +145,7 @@ src/
 
 ### Data
 
-All data lives in one Neon table (`wealthtracker_kv`) as JSON documents per user and key
+All data lives in one Neon table (`cairn_kv`) as JSON documents per user and key
 (`assets`, `settingsAssets`, `incomeSources`, `debts`, `goals`, `preferences`,
 `personalLoans`, `expenses`, `expenseLog`), read and written through `GET/PUT /api/tables`,
 which only ever see the signed-in user's rows. A new key is just a new row, so no
@@ -157,18 +163,18 @@ uses: itemized lines plus whatever the old single estimate still covers until it
 broken down or retired. A bill linked to a debt takes its amount from the debt's
 monthly payment; the principal part isn't counted as lost net worth.
 
-**Change log** (`wealthtracker_audit_log`): every save through `PUT /api/tables` is
+**Change log** (`cairn_audit_log`): every save through `PUT /api/tables` is
 compared with what was stored, and each record added, edited or removed gets a row
 (entity type and id, readable name, changed fields, the whole record before and after,
 a batch id per sync), written in the same statement as the save. The table is created on
 first use (`src/shared/api/lazy-schema.ts`; the DDL is also in
 [`db/migrations/2026-10-activity-feedback.sql`](db/migrations/2026-10-activity-feedback.sql)).
 Browse it in Settings → Change log (`GET /api/activity`), or query it directly, e.g. a
-debt's history: `SELECT occurred_at, action, changes FROM wealthtracker_audit_log WHERE
+debt's history: `SELECT occurred_at, action, changes FROM cairn_audit_log WHERE
 user_id = '…' AND entity_type = 'debt' AND entity_id = 'd1' ORDER BY id`. View state (which
 plan is open, table sort) and net worth the app recomputes itself aren't logged.
 
-**Feedback** (`wealthtracker_feedback`): the floating "Góp ý" button stores the kind, an
+**Feedback** (`cairn_feedback`): the floating "Góp ý" button stores the kind, an
 optional 1–5 rating, the message, and the page, language, window size and browser it came
 from (`status` starts as `new`; there's no reading screen yet). The "Hỏi AI" button opens
 an assistant bubble that says it's still in development; nothing is sent anywhere.

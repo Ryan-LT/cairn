@@ -24,22 +24,22 @@ async function ipIsThrottled(sql: Sql, ipHash: string): Promise<boolean> {
   try {
     const [row] = (await sql`
       SELECT count(*)::int AS n
-      FROM wealthtracker_login_failures
+      FROM cairn_login_failures
       WHERE ip_hash = ${ipHash} AND created_at > now() - make_interval(mins => ${FAILURE_WINDOW_MINUTES})
     `) as { n: number }[];
     return (row?.n ?? 0) >= MAX_FAILURES_PER_IP;
   } catch (e) {
-    console.error("[wealthtracker] login throttle unavailable", e);
+    console.error("[cairn] login throttle unavailable", e);
     return false;
   }
 }
 
 async function recordFailure(sql: Sql, ipHash: string): Promise<void> {
   try {
-    await sql`DELETE FROM wealthtracker_login_failures WHERE created_at < now() - interval '1 day'`;
-    await sql`INSERT INTO wealthtracker_login_failures (ip_hash) VALUES (${ipHash})`;
+    await sql`DELETE FROM cairn_login_failures WHERE created_at < now() - interval '1 day'`;
+    await sql`INSERT INTO cairn_login_failures (ip_hash) VALUES (${ipHash})`;
   } catch (e) {
-    console.error("[wealthtracker] login throttle unavailable", e);
+    console.error("[cairn] login throttle unavailable", e);
   }
 }
 
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
   try {
     check = await checkPassword({ identifier: username }, password);
   } catch (e) {
-    console.error("[wealthtracker] login query failed", e);
+    console.error("[cairn] login query failed", e);
     return jsonError("unavailable", 500);
   }
 

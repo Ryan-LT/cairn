@@ -63,7 +63,7 @@ export async function GET(req: Request) {
       nextBefore: rows.length > limit ? page[page.length - 1].id : null,
     });
   } catch (e) {
-    console.error("[wealthtracker] activity query failed", e);
+    console.error("[cairn] activity query failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }

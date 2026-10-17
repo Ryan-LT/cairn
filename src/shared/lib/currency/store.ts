@@ -1,5 +1,6 @@
 "use client";
 
+import "@/shared/lib/legacy-storage";
 import type { RatesSnapshot } from "./rates";
 
 /**
@@ -8,7 +9,7 @@ import type { RatesSnapshot } from "./rates";
  * reader (`useSyncExternalStore`).
  */
 
-const CACHE_KEY = "wealthtracker:rates:v1";
+const CACHE_KEY = "cairn:rates:v1";
 const STALE_MS = 30 * 60_000;
 
 type State = { snapshot: RatesSnapshot | null; loading: boolean; error: boolean; loadedAt: number | null };
@@ -71,7 +72,7 @@ export function loadRates(force = false): Promise<void> {
       }
     })
     .catch((e: unknown) => {
-      console.warn("[wealthtracker] rates unavailable", e);
+      console.warn("[cairn] rates unavailable", e);
       emit({ loading: false, error: true });
     })
     .finally(() => {

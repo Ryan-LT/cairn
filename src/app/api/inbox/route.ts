@@ -24,8 +24,8 @@ export async function GET(req: Request) {
     const pending = new URL(req.url).searchParams.get("scope") === "pending";
     const rows = (await getSql()`
       SELECT i.id::text AS id, i.provider, i.txn, i.received_at, i.acked_at, t.default_account_id
-      FROM wealthtracker_inbox i
-      LEFT JOIN wealthtracker_webhook_tokens t ON t.id = i.token_id
+      FROM cairn_inbox i
+      LEFT JOIN cairn_webhook_tokens t ON t.id = i.token_id
       WHERE i.user_id = ${user.sub} AND i.dismissed_at IS NULL
         AND (${pending} AND i.acked_at IS NULL OR NOT ${pending} AND i.received_at > now() - make_interval(days => ${RECHECK_DAYS}))
       ORDER BY i.received_at DESC
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (e) {
-    console.error("[wealthtracker] inbox query failed", e);
+    console.error("[cairn] inbox query failed", e);
     return Response.json({ error: "Database error", code: "unavailable" }, { status: 500 });
   }
 }
