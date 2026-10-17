@@ -61,16 +61,16 @@ export async function POST(req: Request) {
   const sql = getSql();
   const ipHash = clientIpHash(req);
   const recordAttempt = (succeeded: boolean) =>
-    sql`INSERT INTO wealthtracker_signup_attempts (ip_hash, succeeded) VALUES (${ipHash}, ${succeeded})`;
+    sql`INSERT INTO cairn_signup_attempts (ip_hash, succeeded) VALUES (${ipHash}, ${succeeded})`;
 
   try {
-    await sql`DELETE FROM wealthtracker_signup_attempts WHERE created_at < now() - interval '1 day'`;
+    await sql`DELETE FROM cairn_signup_attempts WHERE created_at < now() - interval '1 day'`;
     const [limits] = (await sql`
       SELECT
         count(*) FILTER (WHERE ip_hash = ${ipHash} AND created_at > now() - interval '1 hour')::int AS ip_attempts,
         count(*) FILTER (WHERE ip_hash = ${ipHash} AND succeeded AND created_at > now() - interval '1 hour')::int AS ip_created,
         count(*) FILTER (WHERE succeeded)::int AS day_created
-      FROM wealthtracker_signup_attempts
+      FROM cairn_signup_attempts
     `) as Limits[];
     if (limits.ip_attempts >= MAX_ATTEMPTS_PER_IP_HOUR || limits.ip_created >= MAX_ACCOUNTS_PER_IP_HOUR) {
       return jsonError("signup_rate_limited", 429);
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
       SELECT
         bool_or(username = ${username} OR email = ${username}) AS username_taken,
         bool_or(${email} <> '' AND (username = ${email} OR email = ${email})) AS email_taken
-      FROM wealthtracker_users
+      FROM cairn_users
     `) as { username_taken: boolean | null; email_taken: boolean | null }[];
     if (taken[0]?.username_taken) {
       await recordAttempt(false);
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
     let created: { id: string }[];
     try {
       created = (await sql`
-        INSERT INTO wealthtracker_users (username, display_name, email, password_hash)
+        INSERT INTO cairn_users (username, display_name, email, password_hash)
         VALUES (${username}, ${displayName || null}, ${email || null}, crypt(${password}, gen_salt('bf', 12)))
         RETURNING id::text AS id
       `) as { id: string }[];
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
     await issueSessionCookies(res, { sub: created[0]!.id, name: displayName || username });
     return res;
   } catch (e) {
-    console.error("[wealthtracker] sign-up failed", e);
+    console.error("[cairn] sign-up failed", e);
     return jsonError("unavailable", 500);
   }
 }

@@ -107,7 +107,7 @@ describe("unsynced edits", () => {
     await expect(store.flushTablesNow()).resolves.toBe(true);
     const put = fetchMock.mock.calls.find(([, init]) => init?.method === "PUT");
     expect(JSON.parse(String(put?.[1]?.body))).toEqual({ tables: { personalLoans: [{ id: "offline-edit" }] } });
-    expect(JSON.parse(storage.get("wealthtracker:tables:v1:local") ?? "{}").dirty).toEqual([]);
+    expect(JSON.parse(storage.get("cairn:tables:v1:local") ?? "{}").dirty).toEqual([]);
   });
 
   it("stay dirty when the table is edited again while its PUT is in flight", async () => {
@@ -131,16 +131,16 @@ describe("unsynced edits", () => {
 
 describe("per-account cache", () => {
   it("keys the device cache by account and drops the legacy shared cache", async () => {
-    const storage = new Map([["wealthtracker:tables:v1", JSON.stringify({ tables: { debts: [{ id: "legacy" }] } })]]);
+    const storage = new Map([["cairn:tables:v1", JSON.stringify({ tables: { debts: [{ id: "legacy" }] } })]]);
     const fetchMock = vi.fn().mockResolvedValue(ok({ ok: true }));
     installBrowser(fetchMock, storage, { userId: "user-a" });
     const store = await import("@/shared/storage/store");
     expect(store.readTable("debts", [])).toEqual([]);
-    expect(storage.has("wealthtracker:tables:v1")).toBe(false);
+    expect(storage.has("cairn:tables:v1")).toBe(false);
 
     store.writeTable("debts", [{ id: "a-debt" }]);
     await expect(store.flushTablesNow()).resolves.toBe(true);
-    expect(JSON.parse(storage.get("wealthtracker:tables:v1:user-a") ?? "{}").tables).toEqual({ debts: [{ id: "a-debt" }] });
+    expect(JSON.parse(storage.get("cairn:tables:v1:user-a") ?? "{}").tables).toEqual({ debts: [{ id: "a-debt" }] });
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect((init.headers as Record<string, string>)["X-WT-User"]).toBe("user-a");
 
@@ -170,20 +170,20 @@ describe("per-account cache", () => {
     await vi.advanceTimersByTimeAsync(60_000);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect((window.location.reload as ReturnType<typeof vi.fn>)).toHaveBeenCalled();
-    const cached = JSON.parse(storage.get("wealthtracker:tables:v1:user-a") ?? "{}");
+    const cached = JSON.parse(storage.get("cairn:tables:v1:user-a") ?? "{}");
     expect(cached.dirty).toEqual(["debts"]);
   });
 
   it("clearLocalTables removes only this account's cache", async () => {
-    const storage = new Map([["wealthtracker:tables:v1:user-b", "{}"]]);
+    const storage = new Map([["cairn:tables:v1:user-b", "{}"]]);
     installBrowser(vi.fn().mockResolvedValue(ok({ ok: true })), storage, { userId: "user-a" });
     const store = await import("@/shared/storage/store");
     store.writeTable("debts", [{ id: "a" }]);
     await store.flushTablesNow();
     store.clearLocalTables();
     store.writeTable("debts", [{ id: "after" }]);
-    expect(storage.has("wealthtracker:tables:v1:user-a")).toBe(false);
-    expect(storage.has("wealthtracker:tables:v1:user-b")).toBe(true);
+    expect(storage.has("cairn:tables:v1:user-a")).toBe(false);
+    expect(storage.has("cairn:tables:v1:user-b")).toBe(true);
   });
 });
 
@@ -200,7 +200,7 @@ describe("revoked session (401)", () => {
     await vi.waitFor(() => expect(window.location.replace).toHaveBeenCalledWith("/login?from=%2Fdebts"));
     expect(fetchMock.mock.calls.filter(([u]) => u === "/api/auth/logout")).toHaveLength(1);
     expect(window.location.replace).toHaveBeenCalledTimes(1);
-    expect(JSON.parse(storage.get("wealthtracker:tables:v1:user-a") ?? "{}").dirty).toEqual(["debts"]);
+    expect(JSON.parse(storage.get("cairn:tables:v1:user-a") ?? "{}").dirty).toEqual(["debts"]);
   });
 
   it("does nothing without a signed-in cookie (local sandbox)", async () => {

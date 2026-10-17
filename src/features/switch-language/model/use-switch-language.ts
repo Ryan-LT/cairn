@@ -1,5 +1,6 @@
 "use client";
 
+import "@/shared/lib/legacy-storage";
 import { useCallback, useEffect, useState } from "react";
 
 import { PREFERENCES_SEED } from "@/entities/preferences";
@@ -50,7 +51,7 @@ export function useSwitchLanguageSignedOut() {
   return { locale, switchTo, pending: false };
 }
 
-const SYNC_GUARD = "wealthtracker:locale-sync";
+const SYNC_GUARD = "cairn:locale-sync";
 
 /**
  * Keep the account and this device on the same language:

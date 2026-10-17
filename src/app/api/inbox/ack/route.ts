@@ -25,13 +25,13 @@ export async function POST(req: Request) {
     if (!user) return Response.json({ error: "Unauthorized", code: "unauthorized" }, { status: 401 });
     if (!ids.length || !(await ensureSchema("webhooks"))) return Response.json({ ok: true, acked: 0 });
     const rows = (await getSql()`
-      UPDATE wealthtracker_inbox SET acked_at = now()
+      UPDATE cairn_inbox SET acked_at = now()
       WHERE user_id = ${user.sub} AND id = ANY(${ids}::uuid[]) AND acked_at IS NULL
       RETURNING id
     `) as unknown[];
     return Response.json({ ok: true, acked: rows.length });
   } catch (e) {
-    console.error("[wealthtracker] inbox ack failed", e);
+    console.error("[cairn] inbox ack failed", e);
     return Response.json({ error: "Database error", code: "unavailable" }, { status: 500 });
   }
 }

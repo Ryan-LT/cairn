@@ -47,13 +47,13 @@ export async function POST(req: Request) {
     if (!(await ensureSchema("shares"))) return jsonError("Sharing is unavailable", 503, "unavailable");
     const sql = getSql();
     const ipHash = clientIpHash(req);
-    await sql`DELETE FROM wealthtracker_share_failures WHERE created_at < now() - interval '1 day'`;
+    await sql`DELETE FROM cairn_share_failures WHERE created_at < now() - interval '1 day'`;
     const [tries] = (await sql`
       SELECT
         count(*) FILTER (WHERE ip_hash = ${ipHash} AND share_id = ${id} AND created_at > now() - interval '15 minutes')::int AS ip_share,
         count(*) FILTER (WHERE share_id = ${id})::int AS share_hour,
         count(*) FILTER (WHERE ip_hash = ${ipHash})::int AS ip_hour
-      FROM wealthtracker_share_failures
+      FROM cairn_share_failures
       WHERE created_at > now() - interval '1 hour' AND (ip_hash = ${ipHash} OR share_id = ${id})
     `) as { ip_share: number; share_hour: number; ip_hour: number }[];
     if (tries.ip_share >= MAX_IP_SHARE_15M || tries.share_hour >= MAX_SHARE_HOUR || tries.ip_hour >= MAX_IP_HOUR) {
@@ -61,19 +61,19 @@ export async function POST(req: Request) {
     }
 
     const [row] = (await sql`
-      SELECT salt, iv, ciphertext FROM wealthtracker_shares
+      SELECT salt, iv, ciphertext FROM cairn_shares
       WHERE id = ${id} AND (expires_at IS NULL OR expires_at > now())
     `) as ShareRow[];
     // Run the key derivation either way, so timing doesn't tell whether the link exists.
     const plaintext = await openWithPassword(row ?? DECOY, password);
     if (plaintext === null) {
-      await sql`INSERT INTO wealthtracker_share_failures (share_id, ip_hash) VALUES (${id}, ${ipHash})`;
+      await sql`INSERT INTO cairn_share_failures (share_id, ip_hash) VALUES (${id}, ${ipHash})`;
       return jsonError("Link or password is wrong", 403, "share_invalid");
     }
-    await sql`UPDATE wealthtracker_shares SET view_count = view_count + 1, last_viewed_at = now() WHERE id = ${id}`;
+    await sql`UPDATE cairn_shares SET view_count = view_count + 1, last_viewed_at = now() WHERE id = ${id}`;
     return new Response(`{"report":${plaintext}}`, { headers: { "Content-Type": "application/json", ...NO_STORE } });
   } catch (e) {
-    console.error("[wealthtracker] share view failed", e);
+    console.error("[cairn] share view failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }

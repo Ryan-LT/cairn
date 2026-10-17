@@ -102,13 +102,19 @@ Calm, plain and precise, like a good accountant who is on your side.
   full-bleed; iOS rounds it) and the PWA icons in `public/icons/`, where the
   maskable versions keep the stones inside the 80% safe zone.
 
-## Names that did not change
+## Internal names
 
-These still use `wealthtracker`, so that existing data, caches and installs
-keep working:
+Everything internal uses `cairn` too: the npm package, the database tables
+(`cairn_kv`, `cairn_users`, …), the browser storage keys (`cairn:tables:v1:<user>`)
+and the service-worker caches (`cairn-*`).
 
-- the browser cache key (`wealthtracker:tables:v1`)
-- the service-worker cache names
-- the database tables (`wealthtracker_kv`, `wealthtracker_fx_cache`)
+The rename (Oct 2026) came with its own migrations so nothing was lost:
 
-Don't rename them without a migration.
+- `db/migrations/2026-10-rename-to-cairn.sql` renames the tables, indexes and
+  constraints in place and leaves old-name views for the release still running;
+  `2026-10-rename-to-cairn-cleanup.sql` drops those views afterwards.
+- `src/shared/lib/legacy-storage.ts` moves any `wealthtracker:*` localStorage keys to
+  `cairn:*` on first load, and the service worker deletes the old `wealthtracker-*`
+  caches.
+
+The `X-WT-User` request header keeps its old abbreviation.

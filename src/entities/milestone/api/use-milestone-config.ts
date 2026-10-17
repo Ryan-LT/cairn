@@ -1,14 +1,15 @@
 "use client";
 
+import "@/shared/lib/legacy-storage";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { MilestoneConfigResponse } from "@/entities/milestone/model";
 import { onAppForeground } from "@/shared/lib/app-foreground";
 import { useCurrency } from "@/shared/lib/currency/provider";
 
-const CACHE_KEY = "wealthtracker:milestone-config:v2";
+const CACHE_KEY = "cairn:milestone-config:v2";
 /** v1 also held the single owner's birthday deadline; dropped on first read. */
-const LEGACY_CACHE_KEY = "wealthtracker:milestone-config:v1";
+const LEGACY_CACHE_KEY = "cairn:milestone-config:v1";
 let memoryCache: MilestoneConfigResponse | null = null;
 
 function readCache(): MilestoneConfigResponse | null {

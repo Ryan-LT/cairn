@@ -16,7 +16,7 @@ function jsonError(message: string, status: number, code: string) {
 
 const clip = (v: unknown, max: number) => (typeof v === "string" && v.trim() ? v.trim().slice(0, max) : null);
 
-/** Store one piece of feedback from the in-app "Góp ý" button (wealthtracker_feedback). */
+/** Store one piece of feedback from the in-app "Góp ý" button (cairn_feedback). */
 export async function POST(req: Request) {
   if (isCrossSiteRequest(req, { json: true })) {
     return jsonError("This request didn't come from the app", 403, "cross_site");
@@ -48,14 +48,14 @@ export async function POST(req: Request) {
 
     const sql = getSql();
     const [recent] = (await sql`
-      SELECT count(*)::int AS n FROM wealthtracker_feedback
+      SELECT count(*)::int AS n FROM cairn_feedback
       WHERE user_id = ${user.sub} AND created_at > now() - interval '1 hour'
     `) as { n: number }[];
     if (recent.n >= MAX_PER_HOUR) return jsonError("Too much feedback at once; try again later", 429, "rate_limited");
 
     const locale = body.locale === "vi" || body.locale === "en" ? body.locale : null;
     const [row] = (await sql`
-      INSERT INTO wealthtracker_feedback (user_id, kind, message, rating, page, locale, viewport, user_agent)
+      INSERT INTO cairn_feedback (user_id, kind, message, rating, page, locale, viewport, user_agent)
       VALUES (
         ${user.sub}, ${kind}, ${message}, ${rating},
         ${clip(body.page, 300)}, ${locale}, ${clip(body.viewport, 40)}, ${clip(req.headers.get("user-agent"), 300)}
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     `) as { id: string }[];
     return Response.json({ ok: true, id: row.id });
   } catch (e) {
-    console.error("[wealthtracker] feedback insert failed", e);
+    console.error("[cairn] feedback insert failed", e);
     return jsonError("Database error", 500, "unavailable");
   }
 }

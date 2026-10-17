@@ -26,7 +26,7 @@ export async function requireActiveUser(req: Request): Promise<SessionClaims | n
   if (!claims) return null;
   const rows = (await getSql()`
     SELECT 1
-    FROM wealthtracker_users
+    FROM cairn_users
     WHERE id = ${claims.sub}
       AND (password_changed_at IS NULL OR password_changed_at <= to_timestamp(${claims.iat}::double precision))
   `) as unknown[];
@@ -81,14 +81,14 @@ export async function checkPassword(
           SELECT id::text AS id, username, display_name, email,
                  (locked_until IS NOT NULL AND locked_until > now()) AS locked,
                  (password_hash = crypt(${password}, password_hash)) AS ok
-          FROM wealthtracker_users
+          FROM cairn_users
           WHERE id = ${who.userId}
         `
       : await sql`
           SELECT id::text AS id, username, display_name, email,
                  (locked_until IS NOT NULL AND locked_until > now()) AS locked,
                  (password_hash = crypt(${password}, password_hash)) AS ok
-          FROM wealthtracker_users
+          FROM cairn_users
           WHERE username = lower(trim(${who.identifier})) OR email = lower(trim(${who.identifier}))
           ORDER BY (username = lower(trim(${who.identifier}))) DESC
           LIMIT 1
@@ -100,7 +100,7 @@ export async function checkPassword(
   if (!row.ok) {
     if (!row.locked) {
       await sql`
-        UPDATE wealthtracker_users
+        UPDATE cairn_users
         SET failed_attempts = CASE WHEN failed_attempts + 1 >= ${MAX_FAILED_ATTEMPTS} THEN 0 ELSE failed_attempts + 1 END,
             locked_until = CASE
               WHEN failed_attempts + 1 >= ${MAX_FAILED_ATTEMPTS} THEN now() + make_interval(mins => ${LOCK_MINUTES})
@@ -114,7 +114,7 @@ export async function checkPassword(
   if (row.locked) return { result: "locked" };
 
   await sql`
-    UPDATE wealthtracker_users
+    UPDATE cairn_users
     SET failed_attempts = 0, locked_until = NULL
     WHERE id = ${row.id} AND (failed_attempts <> 0 OR locked_until IS NOT NULL)
   `;

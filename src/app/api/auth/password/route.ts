@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     }
 
     await getSql()`
-      UPDATE wealthtracker_users
+      UPDATE cairn_users
       SET password_hash = crypt(${newPassword}, gen_salt('bf', 12)),
           password_changed_at = date_trunc('second', now()),
           failed_attempts = 0,
@@ -78,7 +78,7 @@ export async function POST(req: Request) {
     await issueSessionCookies(res, { sub: check.user.id, name: displayNameOf(check.user) });
     return res;
   } catch (e) {
-    console.error("[wealthtracker] password change failed", e);
+    console.error("[cairn] password change failed", e);
     return jsonError("unavailable", 500);
   }
 }

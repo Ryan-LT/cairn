@@ -1,5 +1,6 @@
 "use client";
 
+import "@/shared/lib/legacy-storage";
 import { useSyncExternalStore } from "react";
 
 /**
@@ -49,7 +50,7 @@ export const explain = {
   },
 };
 
-const SEEN_KEY = "wealthtracker:help-seen";
+const SEEN_KEY = "cairn:help-seen";
 
 /** Whether this device has opened help before (the help button glows until then). */
 export function helpSeen(): boolean {

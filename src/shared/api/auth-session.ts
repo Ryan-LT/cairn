@@ -54,7 +54,7 @@ async function hmacSha256B64Url(payloadB64: string, secret: string): Promise<str
   return base64urlEncode(new Uint8Array(sig));
 }
 
-/** Who a session belongs to: `sub` is the `wealthtracker_users.id`. */
+/** Who a session belongs to: `sub` is the `cairn_users.id`. */
 export type SessionUserClaims = { sub: string; name: string };
 
 /**
@@ -108,7 +108,7 @@ export function encodeUserCookie(claims: SessionUserClaims): string {
 
 /**
  * Login is required whenever the app has a database: accounts live in
- * `wealthtracker_users`. With no `DATABASE_URL` (local sandbox) the gate is off.
+ * `cairn_users`. With no `DATABASE_URL` (local sandbox) the gate is off.
  */
 export function isAuthEnvConfigured(): boolean {
   const db = process.env.DATABASE_URL?.trim();

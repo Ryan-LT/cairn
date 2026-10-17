@@ -31,13 +31,13 @@ export async function POST(req: Request) {
     if (!user) return Response.json({ error: "Unauthorized", code: "unauthorized" }, { status: 401 });
     if (!ids.length || !(await ensureSchema("webhooks"))) return Response.json({ ok: true, changed: 0 });
     const rows = (await getSql()`
-      UPDATE wealthtracker_inbox SET dismissed_at = CASE WHEN ${restore} THEN NULL ELSE now() END
+      UPDATE cairn_inbox SET dismissed_at = CASE WHEN ${restore} THEN NULL ELSE now() END
       WHERE user_id = ${user.sub} AND id = ANY(${ids}::uuid[])
       RETURNING id
     `) as unknown[];
     return Response.json({ ok: true, changed: rows.length });
   } catch (e) {
-    console.error("[wealthtracker] inbox dismiss failed", e);
+    console.error("[cairn] inbox dismiss failed", e);
     return Response.json({ error: "Database error", code: "unavailable" }, { status: 500 });
   }
 }

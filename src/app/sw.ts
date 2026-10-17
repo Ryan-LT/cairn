@@ -17,8 +17,9 @@ declare global {
 declare const self: ServiceWorkerGlobalScope;
 
 /** v2: pages moved into sections (Oct 2026); the old cache held pages that no longer exist. */
-const NAV_CACHE = "wealthtracker-pages-v2";
-const RETIRED_CACHES = ["wealthtracker-pages"];
+const NAV_CACHE = "cairn-pages-v2";
+/** Includes the caches from before the app was renamed to Cairn. */
+const RETIRED_CACHES = ["cairn-pages", "wealthtracker-pages", "wealthtracker-pages-v2", "wealthtracker-tables", "wealthtracker-finance"];
 const OFFLINE_URL = "/offline";
 
 /**
@@ -32,7 +33,7 @@ const apiCaching: RuntimeCaching[] = [
     method: "GET",
     handler: new NetworkFirst({
       // Cleared on sign-in / sign-out (`clearTablesResponseCache`): it holds one account's data.
-      cacheName: "wealthtracker-tables",
+      cacheName: "cairn-tables",
       networkTimeoutSeconds: 10,
       plugins: [
         new ExpirationPlugin({
@@ -50,7 +51,7 @@ const apiCaching: RuntimeCaching[] = [
       pathname.startsWith("/api/finance/"),
     method: "GET",
     handler: new NetworkFirst({
-      cacheName: "wealthtracker-finance",
+      cacheName: "cairn-finance",
       networkTimeoutSeconds: 10,
       plugins: [
         new ExpirationPlugin({

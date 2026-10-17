@@ -7,9 +7,9 @@ import { getSql } from "@/shared/api/db";
  */
 const SCHEMAS = {
   audit: [
-    `CREATE TABLE IF NOT EXISTS wealthtracker_audit_log (
+    `CREATE TABLE IF NOT EXISTS cairn_audit_log (
       id BIGSERIAL PRIMARY KEY,
-      user_id UUID NOT NULL REFERENCES wealthtracker_users (id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES cairn_users (id) ON DELETE CASCADE,
       occurred_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       batch_id UUID NOT NULL,
       table_key TEXT NOT NULL,
@@ -22,13 +22,13 @@ const SCHEMAS = {
       after JSONB,
       user_agent TEXT
     )`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_audit_log_user_idx ON wealthtracker_audit_log (user_id, id DESC)`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_audit_log_entity_idx ON wealthtracker_audit_log (user_id, entity_type, entity_id, id DESC)`,
+    `CREATE INDEX IF NOT EXISTS cairn_audit_log_user_idx ON cairn_audit_log (user_id, id DESC)`,
+    `CREATE INDEX IF NOT EXISTS cairn_audit_log_entity_idx ON cairn_audit_log (user_id, entity_type, entity_id, id DESC)`,
   ],
   feedback: [
-    `CREATE TABLE IF NOT EXISTS wealthtracker_feedback (
+    `CREATE TABLE IF NOT EXISTS cairn_feedback (
       id BIGSERIAL PRIMARY KEY,
-      user_id UUID REFERENCES wealthtracker_users (id) ON DELETE SET NULL,
+      user_id UUID REFERENCES cairn_users (id) ON DELETE SET NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       kind TEXT NOT NULL CHECK (kind IN ('idea', 'bug', 'praise', 'other')),
       message TEXT NOT NULL CHECK (char_length(message) BETWEEN 1 AND 4000),
@@ -39,11 +39,11 @@ const SCHEMAS = {
       user_agent TEXT,
       status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'read', 'done'))
     )`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_feedback_created_idx ON wealthtracker_feedback (created_at DESC)`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_feedback_status_idx ON wealthtracker_feedback (status, created_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS cairn_feedback_created_idx ON cairn_feedback (created_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS cairn_feedback_status_idx ON cairn_feedback (status, created_at DESC)`,
   ],
   rates: [
-    `CREATE TABLE IF NOT EXISTS wealthtracker_rates_cache (
+    `CREATE TABLE IF NOT EXISTS cairn_rates_cache (
       id TEXT PRIMARY KEY,
       payload JSONB NOT NULL,
       fetched_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -51,9 +51,9 @@ const SCHEMAS = {
   ],
   // db/migrations/2026-10-webhook-share.sql
   webhooks: [
-    `CREATE TABLE IF NOT EXISTS wealthtracker_webhook_tokens (
+    `CREATE TABLE IF NOT EXISTS cairn_webhook_tokens (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id UUID NOT NULL REFERENCES wealthtracker_users (id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES cairn_users (id) ON DELETE CASCADE,
       name TEXT NOT NULL CHECK (char_length(name) BETWEEN 1 AND 60),
       token_hash TEXT NOT NULL UNIQUE,
       token_hint TEXT NOT NULL,
@@ -62,11 +62,11 @@ const SCHEMAS = {
       last_used_at TIMESTAMPTZ,
       revoked_at TIMESTAMPTZ
     )`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_webhook_tokens_user_idx ON wealthtracker_webhook_tokens (user_id, created_at DESC)`,
-    `CREATE TABLE IF NOT EXISTS wealthtracker_inbox (
+    `CREATE INDEX IF NOT EXISTS cairn_webhook_tokens_user_idx ON cairn_webhook_tokens (user_id, created_at DESC)`,
+    `CREATE TABLE IF NOT EXISTS cairn_inbox (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      user_id UUID NOT NULL REFERENCES wealthtracker_users (id) ON DELETE CASCADE,
-      token_id UUID REFERENCES wealthtracker_webhook_tokens (id) ON DELETE SET NULL,
+      user_id UUID NOT NULL REFERENCES cairn_users (id) ON DELETE CASCADE,
+      token_id UUID REFERENCES cairn_webhook_tokens (id) ON DELETE SET NULL,
       provider TEXT NOT NULL CHECK (provider IN ('generic', 'sepay', 'casso')),
       external_ref TEXT NOT NULL,
       txn JSONB NOT NULL,
@@ -75,13 +75,13 @@ const SCHEMAS = {
       dismissed_at TIMESTAMPTZ,
       UNIQUE (user_id, provider, external_ref)
     )`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_inbox_user_idx ON wealthtracker_inbox (user_id, received_at DESC)`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_inbox_token_idx ON wealthtracker_inbox (token_id, received_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS cairn_inbox_user_idx ON cairn_inbox (user_id, received_at DESC)`,
+    `CREATE INDEX IF NOT EXISTS cairn_inbox_token_idx ON cairn_inbox (token_id, received_at DESC)`,
   ],
   shares: [
-    `CREATE TABLE IF NOT EXISTS wealthtracker_shares (
+    `CREATE TABLE IF NOT EXISTS cairn_shares (
       id TEXT PRIMARY KEY,
-      user_id UUID NOT NULL REFERENCES wealthtracker_users (id) ON DELETE CASCADE,
+      user_id UUID NOT NULL REFERENCES cairn_users (id) ON DELETE CASCADE,
       title TEXT NOT NULL,
       period JSONB NOT NULL,
       sections TEXT[] NOT NULL,
@@ -93,15 +93,15 @@ const SCHEMAS = {
       view_count INTEGER NOT NULL DEFAULT 0,
       last_viewed_at TIMESTAMPTZ
     )`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_shares_user_idx ON wealthtracker_shares (user_id, created_at DESC)`,
-    `CREATE TABLE IF NOT EXISTS wealthtracker_share_failures (
+    `CREATE INDEX IF NOT EXISTS cairn_shares_user_idx ON cairn_shares (user_id, created_at DESC)`,
+    `CREATE TABLE IF NOT EXISTS cairn_share_failures (
       id BIGSERIAL PRIMARY KEY,
       share_id TEXT NOT NULL,
       ip_hash TEXT NOT NULL,
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_share_failures_share_idx ON wealthtracker_share_failures (share_id, created_at)`,
-    `CREATE INDEX IF NOT EXISTS wealthtracker_share_failures_ip_idx ON wealthtracker_share_failures (ip_hash, created_at)`,
+    `CREATE INDEX IF NOT EXISTS cairn_share_failures_share_idx ON cairn_share_failures (share_id, created_at)`,
+    `CREATE INDEX IF NOT EXISTS cairn_share_failures_ip_idx ON cairn_share_failures (ip_hash, created_at)`,
   ],
 } as const;
 
@@ -124,7 +124,7 @@ async function create(name: LazySchema): Promise<boolean> {
       for (const ddl of SCHEMAS[name]) await sql.query(ddl);
       return true;
     } catch {
-      console.error(`[wealthtracker] could not create the ${name} table`, e);
+      console.error(`[cairn] could not create the ${name} table`, e);
       return false;
     }
   }

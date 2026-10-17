@@ -77,7 +77,7 @@ export async function checkForServiceWorkerUpdate(): Promise<void> {
 }
 
 /** Service-worker cache of `GET /api/tables` (cache name in `src/app/sw.ts`). */
-const TABLES_SW_CACHE = "wealthtracker-tables";
+const TABLES_SW_CACHES = ["cairn-tables", "wealthtracker-tables"];
 
 /**
  * Drop the worker's offline copy of `/api/tables`. It holds one account's data,
@@ -85,7 +85,7 @@ const TABLES_SW_CACHE = "wealthtracker-tables";
  */
 export async function clearTablesResponseCache(): Promise<void> {
   try {
-    if (typeof caches !== "undefined") await caches.delete(TABLES_SW_CACHE);
+    if (typeof caches !== "undefined") await Promise.all(TABLES_SW_CACHES.map((name) => caches.delete(name)));
   } catch {
     // Cache Storage unavailable (private mode, old browser) — nothing cached.
   }
